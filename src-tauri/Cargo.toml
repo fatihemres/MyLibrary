@@ -1,0 +1,27 @@
+[package]
+name = "mylibrary"
+version = "1.0.0"
+description = "A private home for your physical library"
+authors = ["MyLibrary"]
+edition = "2021"
+
+[lib]
+name = "mylibrary_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+rusqlite = { version = "0.38", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+[dev-dependencies]
+tempfile = "3"

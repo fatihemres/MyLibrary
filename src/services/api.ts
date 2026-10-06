@@ -1,0 +1,13 @@
+import { invoke } from '@tauri-apps/api/core';
+import type { Snapshot } from '../domain/types';
+export const api = <T = unknown>(action: string, payload: unknown = {}): Promise<T> =>
+  invoke('database', { action, payload });
+export const snapshot = (query = '', trash = false) => api<Snapshot>('snapshot', { query, trash });
+export const lookup = (isbn: string) => invoke<Record<string, unknown>>('isbn_lookup', { isbn });
+export async function upload(file: File, copyId?: string) {
+  return api<string>(copyId ? 'attachment' : 'cover', {
+    name: file.name,
+    bytes: Array.from(new Uint8Array(await file.arrayBuffer())),
+    copy_id: copyId,
+  });
+}

@@ -42,3 +42,7 @@ pnpm-debug.log*
 # Windows / macOS junk
 Thumbs.db
 .DS_Store
+.cache/
+.env-check/
+*.tsbuildinfo
+
