@@ -87,10 +87,7 @@ const navigation = [
   },
   {
     label: 'YOUR DATA',
-    items: [
-      ['Trash', Trash2],
-      ['Settings', SettingsIcon],
-    ],
+    items: [['Trash', Trash2]],
   },
 ] as const;
 export default function App() {
@@ -213,7 +210,17 @@ export default function App() {
             <small>A home for your books</small>
           </div>
         </div>
-        <nav>
+        <button
+          className="navigation-toggle"
+          aria-label="Toggle sidebar"
+          title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          <span>Navigation</span>
+        </button>
+        <nav aria-label="Main navigation">
           {navigation.map((group) => (
             <div className="nav-group" key={group.label}>
               {group.label && <h2>{group.label}</h2>}
@@ -221,6 +228,8 @@ export default function App() {
                 <button
                   key={name}
                   title={name}
+                  aria-label={name}
+                  aria-current={route === name ? 'page' : undefined}
                   className={route === name ? 'active' : ''}
                   onClick={() => navigate(name)}
                 >
@@ -233,25 +242,19 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <span>
-            <span className="local-dot" />
-            Local & private
-          </span>
           <button
-            className="icon"
-            aria-label="Toggle sidebar"
-            onClick={() => setCollapsed(!collapsed)}
+            title="Settings"
+            aria-label="Settings"
+            aria-current={route === 'Settings' ? 'page' : undefined}
+            onClick={() => navigate('Settings')}
           >
-            {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+            <SettingsIcon size={18} />
+            <span>Settings</span>
           </button>
         </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <button onClick={() => navigate('Locations')}>Locations</button>
-          <div className="breadcrumb">
-            My library <span>/</span> {selected ? selected.title : route}
-          </div>
           <div className="search-box">
             <Search size={18} />
             <input
@@ -282,7 +285,7 @@ export default function App() {
             Add book
           </button>
         </header>
-        <main>
+        <main data-page={selected ? 'Book detail' : route}>
           {error && (
             <div className="alert global-error" role="alert">
               <span>{error}</span>
@@ -305,8 +308,20 @@ export default function App() {
             <>
               {!selected && route !== 'Dashboard' && (
                 <div className="page-heading">
-                  <div className="eyebrow">MY LIBRARY</div>
                   <h1>{route === 'Library' ? 'All books' : route}</h1>
+                  <p className="muted">
+                    {route === 'Locations'
+                      ? 'A place for every copy. Organize rooms, bookcases and shelves.'
+                      : route === 'Library'
+                        ? 'Browse, find and care for your collection.'
+                        : route === 'Settings'
+                          ? 'Make MyLibrary work the way you do.'
+                          : ['Create Backup', 'Restore Backup'].includes(route)
+                            ? 'Protect your complete library and managed files.'
+                            : ['Import CSV/JSON', 'Export CSV/JSON'].includes(route)
+                              ? 'Exchange catalogue records while keeping your library safe.'
+                              : 'Your library, organized in one place.'}
+                  </p>
                 </div>
               )}
               {selected ? (
@@ -322,7 +337,12 @@ export default function App() {
                   onReload={reload}
                 />
               ) : route === 'Dashboard' ? (
-                <Dashboard data={data} onOpen={openBook} onNavigate={navigate} />
+                <Dashboard
+                  data={data}
+                  onOpen={openBook}
+                  onNavigate={navigate}
+                  onAdd={() => setEditor({ quick: false })}
+                />
               ) : ['Library', 'Currently Reading', 'Want to Read', 'Favorites', 'Trash'].includes(
                   route,
                 ) ? (

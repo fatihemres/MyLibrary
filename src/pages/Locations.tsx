@@ -59,7 +59,7 @@ export function Locations({
       ));
   return (
     <>
-      <p>
+      <p className="location-guidance">
         Organize your library: Room → Bookcase → Shelf. Select a room to add a bookcase, then select
         the bookcase to add a shelf.
       </p>
@@ -82,8 +82,9 @@ export function Locations({
           </button>
         ))}
       </div>
-      <div className="explorer">
+      <div className="explorer location-workspace">
         <section className="panel entity-list">
+          <h2 className="tree-heading">Your locations</h2>
           <button className={!selected ? 'active' : ''} onClick={() => setSelected('')}>
             Unassigned
           </button>

@@ -115,7 +115,7 @@ Open a book's **Copies** tab to add, view, edit, move, lend, return or archive e
 
 **Locations** supports Home/Library → Room → Bookcase → Shelf, with rooms also allowed at the root. Create and rename locations, browse their copies and move selected library copies using **Move Location**. Copies may remain unassigned. Locations containing children or copies (including archived copies) cannot be deleted; move the copies and remove empty children first. Existing untyped locations remain usable and editable.
 
-From the default dashboard, click **Locations** in the top bar (always labeled, including with a collapsed sidebar). Click **Add Room**, enter **Study**, and **Save**. Select **Study**, click **Add Bookcase**, enter **Bookcase 1**, and **Save**. Select **Bookcase 1**, click **Add Shelf**, enter **Shelf 1**, and **Save**. Select any location to use its **Rename Room/Bookcase/Shelf** or **Remove location** action. Locations is also a top-level sidebar entry, and Dashboard has **Manage locations**.
+From the default dashboard, click **Locations** in the left sidebar (expand it with **Navigation** if collapsed). Click **Add Room**, enter **Study**, and **Save**. Select **Study**, click **Add Bookcase**, enter **Bookcase 1**, and **Save**. Select **Bookcase 1**, click **Add Shelf**, enter **Shelf 1**, and **Save**. Select any location to use its **Rename Room/Bookcase/Shelf** or **Remove location** action. The sidebar is the only global navigation surface; Settings stays at its bottom.
 
 To assign a copy, open **Library → book → Copies → Edit** (or **Add Copy**) → **Location**. Choose **Study → Bookcase 1 → Shelf 1** under **Room → Bookcase → Shelf**, then **Save physical copy**. The same tab provides **Add Room**, **Add Bookcase** and **Add Shelf** if locations have not been created yet; nested creation preserves the unsaved copy draft and immediately refreshes the choices.
 
@@ -150,7 +150,15 @@ scripts/              Local development/build/test wrappers
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the original implementation plan.
 
-## Shortcuts
+## Desktop interface
+
+The interface uses a calm Windows/Fluent-inspired surface system: Segoe typography, restrained blue accent, consistent focus rings, compact command bars and a single sidebar for navigation. Search and book creation occupy the top app bar; page titles belong to the content area. Settings remains pinned to the sidebar footer. Navigation labels stay visible in narrow windows unless explicitly collapsed; collapsed entries retain accessible names and native tooltips.
+
+Dashboard separates four primary metrics from secondary counts and gives reading and recent additions the main space. All prior statistics and charts remain available, with collection insights grouped in an expandable section. Locations uses a hierarchy browser and a contents pane. Copy location creation stays in the existing draft with clear contextual guidance.
+
+Hover/press, sidebar width, page-heading entrance and dialog entrance transitions last 100–180 ms. The operating system's reduced-motion preference disables these transitions and animations. These are web-rendered desktop controls, not native WinUI controls. Design references: [Microsoft NavigationView](https://learn.microsoft.com/en-us/windows/apps/develop/ui/controls/navigationview) and [Motion in Windows](https://learn.microsoft.com/en-us/windows/apps/design/signature-experiences/motion).
+
+## Keyboard shortcuts
 
 `Ctrl+N`: full editor. `Ctrl+F`: search. `Ctrl+S`: save the book editor. `Esc`: close a dialog, with unsaved-change protection.
 

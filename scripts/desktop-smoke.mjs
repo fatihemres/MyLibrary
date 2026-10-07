@@ -177,7 +177,10 @@ try {
     const s = await snapshot();
     assert.equal(s.books.length, 0);
     assert.equal(s.dataDir.toLowerCase(), dataDir.toLowerCase());
-    await page.screenshot({ path: join(runDir, 'dashboard-navigation.png') });
+    await page.screenshot({
+      animations: 'disabled',
+      path: join(runDir, 'dashboard-navigation.png'),
+    });
   });
   await check('hierarchical rooms, bookcases, shelves and renaming through UI', async () => {
     await button('Toggle sidebar').click();
@@ -188,14 +191,15 @@ try {
       deviceScaleFactor: 1,
       mobile: false,
     });
-    assert(await button('Locations', page.locator('.topbar')).isVisible());
-    const locationButton = await button('Locations', page.locator('.topbar')).boundingBox();
+    assert.equal(await button('Locations', page.locator('.topbar')).count(), 0);
+    assert(await button('Locations', page.locator('.sidebar')).isVisible());
+    const locationButton = await button('Locations', page.locator('.sidebar')).boundingBox();
     assert(locationButton.x >= 0 && locationButton.x + locationButton.width <= 900);
-    await button('Locations', page.locator('.topbar')).click();
+    await nav('Locations');
     await page
       .getByText('No locations yet. Create your first room with Add Room above.', { exact: true })
       .waitFor();
-    await page.screenshot({ path: join(runDir, 'locations-empty.png') });
+    await page.screenshot({ animations: 'disabled', path: join(runDir, 'locations-empty.png') });
     assert(await button('Add Room').isVisible());
     await layout.send('Emulation.clearDeviceMetricsOverride');
     await layout.detach();
@@ -230,7 +234,10 @@ try {
     await dialog().getByLabel('Name *', { exact: true }).fill('Bookcase 1');
     await button('Save', dialog()).click();
     await saved();
-    await page.screenshot({ path: join(runDir, 'locations-hierarchy.png') });
+    await page.screenshot({
+      animations: 'disabled',
+      path: join(runDir, 'locations-hierarchy.png'),
+    });
   });
   await check('custom field creation through UI', async () => {
     await nav('Settings');
@@ -387,7 +394,10 @@ try {
       await dialog()
         .getByLabel('Room → Bookcase → Shelf')
         .selectOption({ label: 'Study → Bookcase 1 → Shelf 1' });
-      await page.screenshot({ path: join(runDir, 'copy-location-assignment.png') });
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'copy-location-assignment.png'),
+      });
       await dialog().getByLabel('Shelf position').fill('A4');
       await dialog().getByLabel('Location note').fill('Left side');
       await button('Ownership', dialog()).click();
@@ -457,7 +467,7 @@ try {
       await button('Save physical copy', dialog()).click();
       await saved();
       assert((await snapshot()).books.every((b) => b.location_id === second.location_id));
-      await page.screenshot({ path: join(runDir, 'physical-copies.png') });
+      await page.screenshot({ animations: 'disabled', path: join(runDir, 'physical-copies.png') });
     },
   );
   await check(
@@ -518,7 +528,10 @@ try {
     assert.equal(await page.locator('tbody tr').count(), 2);
     await page.getByLabel('Sort books').selectOption('author');
     await button('Filters').click();
-    await page.getByLabel(/^Author/).selectOption('Verification Author');
+    await page
+      .locator('main')
+      .getByLabel(/^Author/)
+      .selectOption('Verification Author');
     await page.getByLabel(/^Reading status/).selectOption('Reading');
     assert.equal(await page.locator('tbody tr').count(), 1);
     await button('Reset').click();
@@ -744,15 +757,98 @@ try {
     await page
       .getByText('Database integrity and relationships are healthy.', { exact: true })
       .waitFor();
-    await page.screenshot({ path: join(runDir, 'settings-dark.png') });
+    await page.screenshot({ animations: 'disabled', path: join(runDir, 'settings-dark.png') });
     await nav('Library');
-    await page.screenshot({ path: join(runDir, 'library-dark.png') });
+    await page.screenshot({ animations: 'disabled', path: join(runDir, 'library-dark.png') });
     const placeholder = page.locator('.cover span').filter({ hasText: 'Verification Imported' });
     assert(
       await placeholder.evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
       'Placeholder title must wrap within its cover',
     );
   });
+  await check(
+    'desktop visual system, single navigation, adaptive layout and reduced motion',
+    async () => {
+      await nav('Dashboard');
+      assert.equal(await page.locator('.stats .stat').count(), 4);
+      assert.equal(await button('Locations', page.locator('.topbar')).count(), 0);
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'dashboard-populated-dark.png'),
+      });
+      await nav('Settings');
+      await page.getByLabel(/^Theme/).selectOption('light');
+      await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
+      for (const route of [
+        'Dashboard',
+        'Library',
+        'Locations',
+        'Import CSV/JSON',
+        'Export CSV/JSON',
+        'Create Backup',
+        'Restore Backup',
+        'Settings',
+      ]) {
+        await nav(route);
+        await page.screenshot({
+          animations: 'disabled',
+          path: join(runDir, `design-${route.replaceAll(/[^a-z]/gi, '-')}.png`),
+        });
+        assert(
+          (await page
+            .locator('.sidebar')
+            .getByTitle(route, { exact: true })
+            .getAttribute('aria-current')) === 'page',
+        );
+      }
+      const layout = await page.context().newCDPSession(page);
+      await layout.send('Emulation.setDeviceMetricsOverride', {
+        width: 900,
+        height: 620,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await nav('Locations');
+      assert(await button('Locations', page.locator('.sidebar')).locator('span').isVisible());
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'design-locations-narrow.png'),
+      });
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+      await nav('Dashboard');
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'design-dashboard-narrow.png'),
+      });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      assert.equal(
+        await page
+          .locator('.dashboard-heading')
+          .evaluate((el) => window.getComputedStyle(el).animationName),
+        'none',
+      );
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await layout.send('Emulation.setDeviceMetricsOverride', {
+        width: 1800,
+        height: 1000,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'design-dashboard-wide.png'),
+      });
+      await layout.send('Emulation.clearDeviceMetricsOverride');
+      await layout.detach();
+      await openFirst();
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'design-book-detail.png'),
+      });
+      await nav('Settings');
+      await page.getByLabel(/^Theme/).selectOption('dark');
+    },
+  );
   await check('restart preserves books, covers, settings and related records', async () => {
     await close();
     await launch();
@@ -775,7 +871,10 @@ try {
         .first()
         .evaluate((img) => img.complete && img.naturalWidth > 0),
     );
-    await page.screenshot({ path: join(runDir, 'library-after-restart.png') });
+    await page.screenshot({
+      animations: 'disabled',
+      path: join(runDir, 'library-after-restart.png'),
+    });
   });
   await check('explicit native window close discards only the unsaved draft', async () => {
     await button('Quick add').click();
@@ -836,7 +935,10 @@ try {
           .waitFor({ state: 'detached' });
         await dialog().getByLabel('Room → Bookcase → Shelf').selectOption({ label: path });
       }
-      await page.screenshot({ path: join(runDir, 'inline-location-creation.png') });
+      await page.screenshot({
+        animations: 'disabled',
+        path: join(runDir, 'inline-location-creation.png'),
+      });
       await button('Identity', dialog()).click();
       assert.equal(
         await dialog().getByLabel('Copy identifier / inventory code').inputValue(),
@@ -897,7 +999,9 @@ try {
       .locator('body')
       .innerText()
       .catch(() => '<unavailable>');
-    await page.screenshot({ path: join(runDir, 'failure.png') }).catch(() => {});
+    await page
+      .screenshot({ animations: 'disabled', path: join(runDir, 'failure.png') })
+      .catch(() => {});
   }
   process.exitCode = 1;
 } finally {

@@ -2,7 +2,10 @@
 
 ## 1.0.0 release candidate — awaiting user verification
 
-- Made Locations discoverable through a persistent labeled top-bar button, top-level sidebar entry and Dashboard shortcut, including collapsed navigation.
+- Refined desktop typography, light/dark surfaces, focus treatment, command bars and restrained motion, with reduced-motion support.
+- Consolidated global navigation into the sidebar, pinned Settings, removed duplicate Locations controls and retained labels at narrow widths.
+- Rebalanced Dashboard into primary/secondary metrics, featured reading, compact recent additions and expandable insights; polished location and physical-copy surfaces without changing persistence behavior.
+- Made Locations discoverable through a labeled top-level sidebar entry with explicit expand/collapse navigation.
 - Added visible Add Room/Bookcase/Shelf controls, explicit rename actions, hierarchy guidance and first-use messaging; physical-copy editors can create locations without discarding their drafts.
 - Fixed Escape in nested location dialogs so it closes only that dialog and preserves the underlying unsaved copy editor.
 - Separated Data Exchange from Backup & Recovery, with direct ZIP restore and helpful backup/manifest import guidance.

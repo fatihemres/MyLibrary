@@ -14,7 +14,7 @@ Verified on Windows x64 using the actual Tauri release executable and its Rust/S
 | `cargo fmt --manifest-path src-tauri/Cargo.toml --check`                           | Passed                                                         |
 | `npm run build`                                                                    | Passed; also run by the final Tauri build                      |
 | `npm run desktop:build`                                                            | Passed; Windows x64 executable and NSIS installer produced     |
-| `npm run test:desktop`                                                             | All 21 workflow groups passed on the final executable          |
+| `npm run test:desktop`                                                             | All 22 workflow groups passed on the final executable          |
 | `git diff --check`                                                                 | Passed                                                         |
 
 Rust commands used `CARGO_HOME=.cache/cargo` and repository-local temporary directories. The MSVC linker emitted an informational import-library creation message; there were no compilation or test failures in the final runs.
@@ -34,17 +34,17 @@ Rust commands used `CARGO_HOME=.cache/cargo` and repository-local temporary dire
 - ZIP backup, reversible Trash, recovery, validated restore and automatic pre-restore safety archive. Import rejected both the ZIP and a backup manifest with Restore Backup guidance, leaving records intact.
 - Settings, dark appearance, database integrity, placeholder-cover wrapping and restart persistence of books, covers, entries, loans, attachments and preferences. Copy conditions, acquisition data, shared edition, shelf position and location assignments were asserted after restore and restart.
 
-Final local report and screenshots: `.cache/desktop-check-1791397355344/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
+Final local report and screenshots: `.cache/desktop-check-1791400953511/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
 
 The clean-library desktop test initially exposed CSV exports containing local location IDs. Exports now use portable name paths; the regression test and final real desktop round trip pass. Native tests also verify malformed manifests, unsupported schemas, unsafe archives and missing assets are rejected without changing the current library. A snapshot copy of an existing v1 database remains editable with stable records; no schema migration or reset was needed.
 
 ## Location discoverability acceptance
 
-The previous release exposed Locations under Explore at full width, but narrow/collapsed navigation hid its text and the Copy Editor could not create missing locations. Locations now has a persistent labeled top-bar button, a top-level sidebar entry and a Dashboard shortcut. Add Room, Add Bookcase and Add Shelf remain visible; the latter two enable when the appropriate parent is selected. The hierarchy shows indented branches and explicit types, with Rename and safe Remove actions.
+The previous release exposed Locations under Explore at full width, but narrow/collapsed navigation hid its text and the Copy Editor could not create missing locations. Locations now has a top-level sidebar entry. The redesign removes the duplicate top-bar and Dashboard shortcuts; navigation labels remain visible at narrow widths unless explicitly collapsed. Add Room, Add Bookcase and Add Shelf remain visible; the latter two enable when the appropriate parent is selected. The hierarchy shows indented branches and explicit types, with Rename and safe Remove actions.
 
 Verified click path from the actual release dashboard:
 
-1. **Locations** in the top bar → **Add Room** → name **Study** → **Save**.
+1. **Locations** in the left sidebar → **Add Room** → name **Study** → **Save**.
 2. Select **Study** → **Add Bookcase** → name **Bookcase 1** → **Save**.
 3. Select **Bookcase 1** → **Add Shelf** → name **Shelf 1** → **Save**.
 4. **Library** → open the book → **Copies** → **Edit** or **Add Copy** → **Location** → choose **Study → Bookcase 1 → Shelf 1** → **Save physical copy**.
@@ -53,15 +53,28 @@ Desktop checks also covered renaming all three levels, moving a copy, blocking o
 
 An additional defect was reproduced and fixed: Escape from a nested location dialog propagated to the underlying copy dialog. The modal now stops that propagation; the regression check confirms Escape closes only the nested dialog without prompting to discard the copy draft.
 
-The actual WebView2 UI was also checked at a 900×620 viewport through CDP layout emulation with the sidebar collapsed. The labeled Locations button and Add Room action remained visible and usable. Screenshots include `dashboard-navigation.png`, `locations-empty.png`, `locations-hierarchy.png`, `copy-location-assignment.png` and `inline-location-creation.png` in the final report directory above. Native OS window resizing itself was not automated.
+The actual WebView2 UI was also checked at a 900×620 viewport through CDP layout emulation with the sidebar collapsed. The sidebar Locations entry and Add Room action remained visible and usable; the pane can be explicitly expanded to reveal labels. Screenshots include `dashboard-navigation.png`, `locations-empty.png`, `locations-hierarchy.png`, `copy-location-assignment.png` and `inline-location-creation.png` in the final report directory above. Native OS window resizing itself was not automated.
 
-## Final Windows artifacts
+## Desktop UI/UX redesign verification
+
+Inspected the previous release in the actual Windows app before changing source, then reviewed the redesigned Dashboard, Library, Locations, Book Detail, Copies, copy-location editor, Import/Export, Backup/Restore and Settings screenshots. The implementation changes presentation and navigation only; database schema, storage, imports and restore services are unchanged.
+
+- Single sidebar navigation, explicit accessible active-page states, native title tooltips for collapsed entries and pinned Settings. No duplicate Locations destination in the top bar.
+- Coherent search/Quick add/Add book app bar and content page headings. Dashboard retains all metrics but emphasizes four primary counts, current reading and recent additions; insights remain expandable.
+- Calm Segoe typography, blue accent, neutral surfaces, compact copy actions, clear location hierarchy and integrated copy-location creation. Light and dark themes verified.
+- Actual WebView2 layouts captured at 900×620, the normal 1380×900 viewport and 1800×1000. Narrow labels remain visible with an expanded sidebar; no document-level horizontal overflow was detected. This tests WebView layout through CDP, not native OS window resizing.
+- Short hover/press, sidebar width, heading, dialog and status-surface motion. Reduced-motion emulation verified the computed heading animation is disabled. Final screenshot capture fast-forwards finite animations to show settled surfaces.
+- Full regression suite passed on the release executable, including safe confirmations, unsaved drafts, nested location creation, occupied and archived location references, move/loan/return, CSV/JSON transfer, backup/restore and restart persistence. No external WebView requests or frontend runtime errors were recorded.
+
+Visual evidence includes `design-Dashboard.png`, `dashboard-populated-dark.png`, `design-dashboard-narrow.png`, `design-dashboard-wide.png`, `design-Library.png`, `design-Locations.png`, `design-locations-narrow.png`, `design-book-detail.png`, `physical-copies.png`, `inline-location-creation.png`, data-page captures and `design-Settings.png` in the final report directory. Subjective visual approval remains with the owner; this is a Fluent-inspired Tauri interface, not native WinUI.
+
+## Build artifacts
 
 - Executable: `src-tauri/target/release/mylibrary.exe`
-- SHA-256: `802cb0ad0e276eb8b9930cb538077db354424f2d0ae80a3a4961d86df89b3ed3`
+- SHA-256: `07d53e0b444038dde2398a8b000f47f2587982085d6394a15f929521e2f55123`
 - Installer: `src-tauri/target/release/bundle/nsis/MyLibrary_1.0.0_x64-setup.exe`
-- Installer size: 4,031,250 bytes
-- Installer SHA-256: `b28efb799180b5e00b274288f4079d16891b9c2a893df69747306c342257c57c`
+- Installer size: 4,033,671 bytes
+- Installer SHA-256: `beb41132a6725992f0c4df73509e080419ca030590ddb7421251463edb62f987`
 
 ## Audit and verification boundaries
 

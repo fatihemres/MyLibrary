@@ -175,33 +175,39 @@ export function CopyEditor({
                     ? 'Select a room to add a bookcase, or a bookcase to add a shelf. Select the final shelf to assign this copy.'
                     : 'No locations yet. Create your first room below. Your copy draft will stay open.'}
                 </p>
-                <div className="inline wrap">
-                  <button
-                    type="button"
-                    onClick={() => setLocationRequest({ type: 'locations', locationKind: 'Room' })}
-                  >
-                    Add Room
-                  </button>
-                  {['Bookcase', 'Shelf'].map((kind) => (
+                <section className="location-create-surface">
+                  <h3>Create a location</h3>
+                  <p className="muted">Your copy stays open while you organize its home.</p>
+                  <div className="inline wrap">
                     <button
                       type="button"
-                      key={kind}
-                      disabled={
-                        selectedLocation?.extra?.kind !==
-                        (kind === 'Bookcase' ? 'Room' : 'Bookcase')
-                      }
                       onClick={() =>
-                        setLocationRequest({
-                          type: 'locations',
-                          locationKind: kind,
-                          locationParent: selectedLocation,
-                        })
+                        setLocationRequest({ type: 'locations', locationKind: 'Room' })
                       }
                     >
-                      Add {kind}
+                      Add Room
                     </button>
-                  ))}
-                </div>
+                    {['Bookcase', 'Shelf'].map((kind) => (
+                      <button
+                        type="button"
+                        key={kind}
+                        disabled={
+                          selectedLocation?.extra?.kind !==
+                          (kind === 'Bookcase' ? 'Room' : 'Bookcase')
+                        }
+                        onClick={() =>
+                          setLocationRequest({
+                            type: 'locations',
+                            locationKind: kind,
+                            locationParent: selectedLocation,
+                          })
+                        }
+                      >
+                        Add {kind}
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </>
             )}
             {tab === 'Ownership' && (

@@ -4,10 +4,12 @@ export function Dashboard({
   data,
   onOpen,
   onNavigate,
+  onAdd,
 }: {
   data: Snapshot;
   onOpen: (b: Book) => void;
   onNavigate: (view: string) => void;
+  onAdd: () => void;
 }) {
   const books = data.books;
   const active = data.loans.filter((l) => !l.returned_date);
@@ -47,20 +49,27 @@ export function Dashboard({
   return (
     <>
       <div className="dashboard-heading">
-        <div className="eyebrow">A LITTLE ORDER. A WORLD OF STORIES.</div>
         <h1>Your library, at a glance.</h1>
-        <p>A quiet home for the books you own, the words you keep, and what comes next.</p>
-        <button onClick={() => onNavigate('Locations')}>Manage locations</button>
+        <p>Pick up where you left off, or find your next read.</p>
       </div>
       <div className="stats">
         {[
           ['Total books', books.length, 'Library'],
-          ['Pages on your shelves', books.reduce((n, b) => n + (b.pages || 0), 0), 'Library'],
           ['Finished', books.filter((b) => b.status === 'Finished').length, 'Library'],
-          ['Unread', books.filter((b) => b.status === 'Unread').length, 'Library'],
           ['Currently reading', reading.length, 'Currently Reading'],
-          ['Want to read', books.filter((b) => b.status === 'Want to Read').length, 'Want to Read'],
           ['On loan', active.length, 'Loans'],
+        ].map(([label, n, route]) => (
+          <button className="stat" key={label} onClick={() => onNavigate(String(route))}>
+            <span>{label}</span>
+            <strong>{Number(n).toLocaleString()}</strong>
+          </button>
+        ))}
+      </div>
+      <div className="secondary-stats" aria-label="More library statistics">
+        {[
+          ['Pages', books.reduce((n, b) => n + (b.pages || 0), 0), 'Library'],
+          ['Unread', books.filter((b) => b.status === 'Unread').length, 'Library'],
+          ['Want to read', books.filter((b) => b.status === 'Want to Read').length, 'Want to Read'],
           ['Overdue', active.filter((l) => l.due_date && l.due_date < today()).length, 'Loans'],
           ['Favorites', books.filter((b) => b.favorite).length, 'Favorites'],
           [
@@ -69,14 +78,14 @@ export function Dashboard({
             'Library',
           ],
         ].map(([label, n, route]) => (
-          <button className="stat" key={label} onClick={() => onNavigate(String(route))}>
+          <button key={label} onClick={() => onNavigate(String(route))}>
             <span>{label}</span>
             <strong>{Number(n).toLocaleString()}</strong>
           </button>
         ))}
       </div>
-      <div className="two-col">
-        <section className="panel">
+      <div className="dashboard-primary">
+        <section className="panel reading-feature">
           <div className="section-heading">
             <h2>On your reading table</h2>
             <button className="text-button" onClick={() => onNavigate('Currently Reading')}>
@@ -86,6 +95,7 @@ export function Dashboard({
           {!reading.length ? (
             <Empty title="Room for your next read">
               <p>Mark a book as Reading to track it here.</p>
+              <button onClick={() => onNavigate('Library')}>Browse your books</button>
             </Empty>
           ) : (
             reading.slice(0, 4).map((b) => (
@@ -110,6 +120,7 @@ export function Dashboard({
           {recent.length ? (
             recent.map((b) => (
               <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
+                <Cover book={b} />
                 <span>
                   <strong>{b.title}</strong>
                   <small className="block">{author(b) || 'Unknown author'}</small>
@@ -120,9 +131,12 @@ export function Dashboard({
           ) : (
             <Empty title="Your first chapter awaits">
               <p>Use Add book to begin.</p>
+              <button className="primary" onClick={onAdd}>
+                Add your first book
+              </button>
             </Empty>
           )}
-          <h3>Recently finished</h3>
+          {finished.length > 0 && <h3>Recently finished</h3>}
           {finished.map((b) => (
             <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
               <span>{b.title}</span>
@@ -131,42 +145,48 @@ export function Dashboard({
           ))}
         </section>
       </div>
-      <div className="chart-grid">
-        {chart(
-          'Genres',
-          books.flatMap((b) => b.terms.genre),
-        )}
-        {chart(
-          'Languages',
-          books.map((b) => b.language),
-        )}
-        {chart(
-          'Authors',
-          books.flatMap((b) =>
-            b.contributors.filter((p) => p.role === 'Author').map((p) => p.name),
-          ),
-        )}
-        {chart(
-          'Publication decades',
-          books
-            .filter((b) => b.publication_year !== null)
-            .map((b) => `${Math.floor(b.publication_year! / 10) * 10}s`),
-        )}
-        {chart(
-          'Acquired by year',
-          books.map((b) => b.acquisition_date.slice(0, 4)),
-        )}
-        {chart(
-          'Finished by year',
-          books
-            .filter((b) => b.status === 'Finished')
-            .map((b) => String(b.copy_extra.date_finished || '').slice(0, 4)),
-        )}
-        {chart(
-          'Ratings',
-          books.filter((b) => b.rating !== null).map((b) => `${b.rating} stars`),
-        )}
-      </div>
+      <details className="insights" open={books.length > 0}>
+        <summary>
+          Collection insights{' '}
+          <span className="muted">Genres, languages, authors and reading history</span>
+        </summary>
+        <div className="chart-grid">
+          {chart(
+            'Genres',
+            books.flatMap((b) => b.terms.genre),
+          )}
+          {chart(
+            'Languages',
+            books.map((b) => b.language),
+          )}
+          {chart(
+            'Authors',
+            books.flatMap((b) =>
+              b.contributors.filter((p) => p.role === 'Author').map((p) => p.name),
+            ),
+          )}
+          {chart(
+            'Publication decades',
+            books
+              .filter((b) => b.publication_year !== null)
+              .map((b) => `${Math.floor(b.publication_year! / 10) * 10}s`),
+          )}
+          {chart(
+            'Acquired by year',
+            books.map((b) => b.acquisition_date.slice(0, 4)),
+          )}
+          {chart(
+            'Finished by year',
+            books
+              .filter((b) => b.status === 'Finished')
+              .map((b) => String(b.copy_extra.date_finished || '').slice(0, 4)),
+          )}
+          {chart(
+            'Ratings',
+            books.filter((b) => b.rating !== null).map((b) => `${b.rating} stars`),
+          )}
+        </div>
+      </details>
     </>
   );
 }
