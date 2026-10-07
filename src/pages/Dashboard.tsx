@@ -50,6 +50,7 @@ export function Dashboard({
         <div className="eyebrow">A LITTLE ORDER. A WORLD OF STORIES.</div>
         <h1>Your library, at a glance.</h1>
         <p>A quiet home for the books you own, the words you keep, and what comes next.</p>
+        <button onClick={() => onNavigate('Locations')}>Manage locations</button>
       </div>
       <div className="stats">
         {[

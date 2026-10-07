@@ -115,6 +115,10 @@ Open a book's **Copies** tab to add, view, edit, move, lend, return or archive e
 
 **Locations** supports Home/Library → Room → Bookcase → Shelf, with rooms also allowed at the root. Create and rename locations, browse their copies and move selected library copies using **Move Location**. Copies may remain unassigned. Locations containing children or copies (including archived copies) cannot be deleted; move the copies and remove empty children first. Existing untyped locations remain usable and editable.
 
+From the default dashboard, click **Locations** in the top bar (always labeled, including with a collapsed sidebar). Click **Add Room**, enter **Study**, and **Save**. Select **Study**, click **Add Bookcase**, enter **Bookcase 1**, and **Save**. Select **Bookcase 1**, click **Add Shelf**, enter **Shelf 1**, and **Save**. Select any location to use its **Rename Room/Bookcase/Shelf** or **Remove location** action. Locations is also a top-level sidebar entry, and Dashboard has **Manage locations**.
+
+To assign a copy, open **Library → book → Copies → Edit** (or **Add Copy**) → **Location**. Choose **Study → Bookcase 1 → Shelf 1** under **Room → Bookcase → Shelf**, then **Save physical copy**. The same tab provides **Add Room**, **Add Bookcase** and **Add Shelf** if locations have not been created yet; nested creation preserves the unsaved copy draft and immediately refreshes the choices.
+
 ## Architecture and database
 
 The Rust layer is the only database writer; typed frontend services invoke desktop commands. Foreign keys, WAL, a busy timeout and full synchronization are enabled. Multi-step changes use transactions. Versioned migrations use `PRAGMA user_version`, reject newer schemas, and preserve an existing database before migration.

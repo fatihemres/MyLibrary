@@ -31,6 +31,7 @@ export function Modal({
       className={wide ? 'modal wide' : 'modal'}
       onCancel={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         onClose();
       }}
     >

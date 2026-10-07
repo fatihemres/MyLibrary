@@ -2,6 +2,9 @@
 
 ## 1.0.0 release candidate — awaiting user verification
 
+- Made Locations discoverable through a persistent labeled top-bar button, top-level sidebar entry and Dashboard shortcut, including collapsed navigation.
+- Added visible Add Room/Bookcase/Shelf controls, explicit rename actions, hierarchy guidance and first-use messaging; physical-copy editors can create locations without discarding their drafts.
+- Fixed Escape in nested location dialogs so it closes only that dialog and preserves the underlying unsaved copy editor.
 - Separated Data Exchange from Backup & Recovery, with direct ZIP restore and helpful backup/manifest import guidance.
 - Added portable JSON edition grouping and typed locations; fixed CSV location references so exports import into another library.
 - Added dedicated physical-copy editing, independent acquisition/condition/state, human-readable identifiers, copy-specific loans, moves and reversible archive actions.

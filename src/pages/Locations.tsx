@@ -5,7 +5,6 @@ import {
   locationName,
   withinLocation,
   type Book,
-  type Entity,
   type Snapshot,
 } from '../domain/types';
 import type { RecordRequest } from '../components/RecordDialog';
@@ -33,7 +32,7 @@ export function Locations({
     onRecord({
       type: 'locations',
       locationKind: kind,
-      locationParent: kind === 'Room' ? undefined : place,
+      locationParent: kind === 'Room' && place?.extra?.kind !== 'Home' ? undefined : place,
     });
   const tree = (parent: string, seen = new Set<string>(), depth = 0): React.ReactNode =>
     data.locations
@@ -41,11 +40,13 @@ export function Locations({
       .map((l) => (
         <div key={l.id}>
           <button
+            aria-label={`${l.name} ${String(l.extra?.kind || 'Location')}`}
             className={selected === l.id ? 'active' : ''}
             style={{ paddingLeft: 12 + depth * 18 }}
             onClick={() => setSelected(l.id)}
           >
             <span>
+              {depth > 0 && <span aria-hidden="true">└─ </span>}
               {l.name}
               <small className="block">{String(l.extra?.kind || 'Location')}</small>
             </span>
@@ -56,26 +57,30 @@ export function Locations({
           {tree(l.id, new Set([...seen, l.id]), depth + 1)}
         </div>
       ));
-  const childKind = (p: Entity) =>
-    p.extra?.kind === 'Home' ? 'Room' : p.extra?.kind === 'Bookcase' ? 'Shelf' : 'Bookcase';
   return (
     <>
+      <p>
+        Organize your library: Room → Bookcase → Shelf. Select a room to add a bookcase, then select
+        the bookcase to add a shelf.
+      </p>
       <div className="toolbar">
         <button className="primary" onClick={() => create('Room')}>
-          Create Room
+          Add Room
         </button>
         <button onClick={() => onRecord({ type: 'locations', locationKind: 'Home' })}>
           Create Home / Library
         </button>
-        {place && place.extra?.kind !== 'Shelf' && (
+        {['Bookcase', 'Shelf'].map((kind) => (
           <button
+            key={kind}
+            disabled={!place || place.extra?.kind !== (kind === 'Bookcase' ? 'Room' : 'Bookcase')}
             onClick={() =>
-              onRecord({ type: 'locations', locationKind: childKind(place), locationParent: place })
+              onRecord({ type: 'locations', locationKind: kind, locationParent: place })
             }
           >
-            Create {childKind(place)}
+            Add {kind}
           </button>
-        )}
+        ))}
       </div>
       <div className="explorer">
         <section className="panel entity-list">
@@ -84,7 +89,7 @@ export function Locations({
           </button>
           {tree('')}
           {!data.locations.length && (
-            <p>Create your first room, then select it to add a bookcase and shelf.</p>
+            <p>No locations yet. Create your first room with Add Room above.</p>
           )}
         </section>
         <section className="panel">
@@ -93,7 +98,7 @@ export function Locations({
             {place && (
               <div className="inline">
                 <button onClick={() => onRecord({ type: 'locations', entity: place })}>
-                  Edit location
+                  Rename {String(place.extra?.kind || 'location')}
                 </button>
                 <button
                   className="danger-text"

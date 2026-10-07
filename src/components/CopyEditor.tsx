@@ -12,6 +12,7 @@ import { api } from '../services/api';
 import { Field, Modal } from './common';
 import { confirmAction } from './Confirmation';
 import { useUnsaved } from './useUnsaved';
+import { RecordDialog, type RecordRequest } from './RecordDialog';
 
 export function CopyEditor({
   book,
@@ -49,6 +50,8 @@ export function CopyEditor({
   const [tab, setTab] = useState(mode === 'move' ? 'Location' : 'Identity');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [locationRequest, setLocationRequest] = useState<RecordRequest | null>(null);
+  const selectedLocation = data.locations.find((l) => l.id === value.location_id);
   const set = (key: string, v: string) => setValue((old) => ({ ...old, [key]: v }));
   const extra = (key: string, v: string | number | boolean) =>
     setValue((old) => ({ ...old, copy_extra: { ...old.copy_extra, [key]: v } }));
@@ -154,7 +157,7 @@ export function CopyEditor({
             )}
             {tab === 'Location' && (
               <>
-                <Field label="Shelf / location">
+                <Field label="Room → Bookcase → Shelf">
                   <select
                     value={value.location_id}
                     onChange={(e) => set('location_id', e.target.value)}
@@ -162,15 +165,43 @@ export function CopyEditor({
                     <option value="">Unassigned</option>
                     {data.locations.map((l) => (
                       <option value={l.id} key={l.id}>
-                        {locationName(l.id, data.locations)}
+                        {locationName(l.id, data.locations).replaceAll(' / ', ' → ')}
                       </option>
                     ))}
                   </select>
                 </Field>
                 <p className="muted">
-                  Create rooms, bookcases and shelves in Locations. Existing locations remain
-                  available.
+                  {data.locations.length
+                    ? 'Select a room to add a bookcase, or a bookcase to add a shelf. Select the final shelf to assign this copy.'
+                    : 'No locations yet. Create your first room below. Your copy draft will stay open.'}
                 </p>
+                <div className="inline wrap">
+                  <button
+                    type="button"
+                    onClick={() => setLocationRequest({ type: 'locations', locationKind: 'Room' })}
+                  >
+                    Add Room
+                  </button>
+                  {['Bookcase', 'Shelf'].map((kind) => (
+                    <button
+                      type="button"
+                      key={kind}
+                      disabled={
+                        selectedLocation?.extra?.kind !==
+                        (kind === 'Bookcase' ? 'Room' : 'Bookcase')
+                      }
+                      onClick={() =>
+                        setLocationRequest({
+                          type: 'locations',
+                          locationKind: kind,
+                          locationParent: selectedLocation,
+                        })
+                      }
+                    >
+                      Add {kind}
+                    </button>
+                  ))}
+                </div>
               </>
             )}
             {tab === 'Ownership' && (
@@ -235,6 +266,17 @@ export function CopyEditor({
           </button>
         </footer>
       </form>
+      {locationRequest && (
+        <RecordDialog
+          request={locationRequest}
+          data={data}
+          onClose={() => setLocationRequest(null)}
+          onSaved={async () => {
+            await onSaved();
+            setLocationRequest(null);
+          }}
+        />
+      )}
     </Modal>
   );
 }

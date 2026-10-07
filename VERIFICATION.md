@@ -14,7 +14,7 @@ Verified on Windows x64 using the actual Tauri release executable and its Rust/S
 | `cargo fmt --manifest-path src-tauri/Cargo.toml --check`                           | Passed                                                         |
 | `npm run build`                                                                    | Passed; also run by the final Tauri build                      |
 | `npm run desktop:build`                                                            | Passed; Windows x64 executable and NSIS installer produced     |
-| `npm run test:desktop`                                                             | All 20 workflow groups passed on the final executable          |
+| `npm run test:desktop`                                                             | All 21 workflow groups passed on the final executable          |
 | `git diff --check`                                                                 | Passed                                                         |
 
 Rust commands used `CARGO_HOME=.cache/cargo` and repository-local temporary directories. The MSVC linker emitted an informational import-library creation message; there were no compilation or test failures in the final runs.
@@ -34,17 +34,34 @@ Rust commands used `CARGO_HOME=.cache/cargo` and repository-local temporary dire
 - ZIP backup, reversible Trash, recovery, validated restore and automatic pre-restore safety archive. Import rejected both the ZIP and a backup manifest with Restore Backup guidance, leaving records intact.
 - Settings, dark appearance, database integrity, placeholder-cover wrapping and restart persistence of books, covers, entries, loans, attachments and preferences. Copy conditions, acquisition data, shared edition, shelf position and location assignments were asserted after restore and restart.
 
-Final local report and screenshots: `.cache/desktop-check-1791377951330/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
+Final local report and screenshots: `.cache/desktop-check-1791397355344/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
 
 The clean-library desktop test initially exposed CSV exports containing local location IDs. Exports now use portable name paths; the regression test and final real desktop round trip pass. Native tests also verify malformed manifests, unsupported schemas, unsafe archives and missing assets are rejected without changing the current library. A snapshot copy of an existing v1 database remains editable with stable records; no schema migration or reset was needed.
 
-## Artifacts
+## Location discoverability acceptance
+
+The previous release exposed Locations under Explore at full width, but narrow/collapsed navigation hid its text and the Copy Editor could not create missing locations. Locations now has a persistent labeled top-bar button, a top-level sidebar entry and a Dashboard shortcut. Add Room, Add Bookcase and Add Shelf remain visible; the latter two enable when the appropriate parent is selected. The hierarchy shows indented branches and explicit types, with Rename and safe Remove actions.
+
+Verified click path from the actual release dashboard:
+
+1. **Locations** in the top bar → **Add Room** → name **Study** → **Save**.
+2. Select **Study** → **Add Bookcase** → name **Bookcase 1** → **Save**.
+3. Select **Bookcase 1** → **Add Shelf** → name **Shelf 1** → **Save**.
+4. **Library** → open the book → **Copies** → **Edit** or **Add Copy** → **Location** → choose **Study → Bookcase 1 → Shelf 1** → **Save physical copy**.
+
+Desktop checks also covered renaming all three levels, moving a copy, blocking occupied deletion at all three levels, and blocking deletion of a shelf referenced only by an archived copy. In a second empty verification library, Add Room/Bookcase/Shelf inside the Copy Editor preserved an unsaved inventory code, kept the editor open and refreshed the location choices after each save. The assignment survived restart and the copy could be opened from its shelf in Locations.
+
+An additional defect was reproduced and fixed: Escape from a nested location dialog propagated to the underlying copy dialog. The modal now stops that propagation; the regression check confirms Escape closes only the nested dialog without prompting to discard the copy draft.
+
+The actual WebView2 UI was also checked at a 900×620 viewport through CDP layout emulation with the sidebar collapsed. The labeled Locations button and Add Room action remained visible and usable. Screenshots include `dashboard-navigation.png`, `locations-empty.png`, `locations-hierarchy.png`, `copy-location-assignment.png` and `inline-location-creation.png` in the final report directory above. Native OS window resizing itself was not automated.
+
+## Final Windows artifacts
 
 - Executable: `src-tauri/target/release/mylibrary.exe`
-- SHA-256: `76b0cbcd156c10c6005091e9f2198c2af06df2e02adca64f8453b4e24ab7147b`
+- SHA-256: `802cb0ad0e276eb8b9930cb538077db354424f2d0ae80a3a4961d86df89b3ed3`
 - Installer: `src-tauri/target/release/bundle/nsis/MyLibrary_1.0.0_x64-setup.exe`
-- Installer size: 4,032,060 bytes
-- Installer SHA-256: `9fe1d9c568f8ca2ca9cad9d1cb9111b024e17ad2cca95b99f59471d0186d3026`
+- Installer size: 4,031,250 bytes
+- Installer SHA-256: `b28efb799180b5e00b274288f4079d16891b9c2a893df69747306c342257c57c`
 
 ## Audit and verification boundaries
 

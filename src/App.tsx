@@ -38,7 +38,13 @@ import { Personal } from './pages/Personal';
 import { DataPage, exportBooks } from './pages/DataPage';
 import { Settings } from './pages/Settings';
 const navigation = [
-  { label: '', items: [['Dashboard', LayoutDashboard]] },
+  {
+    label: '',
+    items: [
+      ['Dashboard', LayoutDashboard],
+      ['Locations', MapPin],
+    ],
+  },
   {
     label: 'COLLECTION',
     items: [
@@ -55,7 +61,6 @@ const navigation = [
       ['Series', Layers],
       ['Genres', BookMarked],
       ['Tags', Tags],
-      ['Locations', MapPin],
     ],
   },
   {
@@ -243,6 +248,7 @@ export default function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
+          <button onClick={() => navigate('Locations')}>Locations</button>
           <div className="breadcrumb">
             My library <span>/</span> {selected ? selected.title : route}
           </div>

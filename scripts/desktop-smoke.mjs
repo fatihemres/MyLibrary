@@ -45,7 +45,7 @@ function assertCopyDetails(snapshot) {
   assert.equal(second.source, 'Second store');
   assert.equal(first.acquisition_date, '2025-01-02');
   assert.equal(second.acquisition_date, '2026-02-03');
-  assert.equal(snapshot.locations.find((l) => l.id === first.location_id).name, 'Shelf 4');
+  assert.equal(snapshot.locations.find((l) => l.id === first.location_id).name, 'Shelf 1');
   assert.equal(first.location_id, second.location_id);
 }
 async function freePort() {
@@ -177,29 +177,60 @@ try {
     const s = await snapshot();
     assert.equal(s.books.length, 0);
     assert.equal(s.dataDir.toLowerCase(), dataDir.toLowerCase());
+    await page.screenshot({ path: join(runDir, 'dashboard-navigation.png') });
   });
   await check('hierarchical rooms, bookcases, shelves and renaming through UI', async () => {
-    await nav('Locations');
+    await button('Toggle sidebar').click();
+    const layout = await page.context().newCDPSession(page);
+    await layout.send('Emulation.setDeviceMetricsOverride', {
+      width: 900,
+      height: 620,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    assert(await button('Locations', page.locator('.topbar')).isVisible());
+    const locationButton = await button('Locations', page.locator('.topbar')).boundingBox();
+    assert(locationButton.x >= 0 && locationButton.x + locationButton.width <= 900);
+    await button('Locations', page.locator('.topbar')).click();
+    await page
+      .getByText('No locations yet. Create your first room with Add Room above.', { exact: true })
+      .waitFor();
+    await page.screenshot({ path: join(runDir, 'locations-empty.png') });
+    assert(await button('Add Room').isVisible());
+    await layout.send('Emulation.clearDeviceMetricsOverride');
+    await layout.detach();
+    await button('Toggle sidebar').click();
     for (const [name, parent, kind] of [
       ['Study draft', '', 'Room'],
-      ['Bookcase 2', 'Study', 'Bookcase'],
-      ['Shelf 4', 'Bookcase 2', 'Shelf'],
-      ['Shelf 5', 'Bookcase 2', 'Shelf'],
+      ['Bookcase 1', 'Study', 'Bookcase'],
+      ['Shelf 1', 'Bookcase 1', 'Shelf'],
+      ['Shelf 2', 'Bookcase 1', 'Shelf'],
     ]) {
       if (parent) await selectPlace(parent);
-      await button('Create ' + kind).click();
+      await button('Add ' + kind).click();
       await dialog().getByLabel('Name *', { exact: true }).fill(name);
       await button('Save', dialog()).click();
       await saved();
       if (name === 'Study draft') {
         await selectPlace(name);
-        await button('Edit location').click();
+        await button(/^Rename /).click();
         await dialog().getByLabel('Name *', { exact: true }).fill('Study');
         await button('Save', dialog()).click();
         await saved();
       }
     }
     assert.equal((await snapshot()).locations.length, 4);
+    await selectPlace('Bookcase 1');
+    await button('Rename Bookcase').click();
+    await dialog().getByLabel('Name *', { exact: true }).fill('Bookcase renamed');
+    await button('Save', dialog()).click();
+    await saved();
+    await selectPlace('Bookcase renamed');
+    await button('Rename Bookcase').click();
+    await dialog().getByLabel('Name *', { exact: true }).fill('Bookcase 1');
+    await button('Save', dialog()).click();
+    await saved();
+    await page.screenshot({ path: join(runDir, 'locations-hierarchy.png') });
   });
   await check('custom field creation through UI', async () => {
     await nav('Settings');
@@ -224,7 +255,7 @@ try {
     await dialog().getByLabel('Genres (separate with ;)').fill('Literature');
     await dialog()
       .getByLabel('Physical location')
-      .selectOption({ label: 'Study / Bookcase 2 / Shelf 4' });
+      .selectOption({ label: 'Study / Bookcase 1 / Shelf 1' });
     await dialog().locator('input[type=file]').setInputFiles(cover);
     await dialog().getByRole('img', { name: 'Cover of Verification — The Quiet Shelf' }).waitFor();
     await button('Open full editor', dialog()).click();
@@ -327,9 +358,9 @@ try {
     await button('Verification Series 1').click();
     await page.getByRole('heading', { name: '1 copies in your library' }).waitFor();
     await nav('Locations');
-    await selectPlace('Shelf 4');
+    await selectPlace('Shelf 1');
     await page
-      .getByRole('heading', { name: 'Study / Bookcase 2 / Shelf 4', exact: true })
+      .getByRole('heading', { name: 'Study / Bookcase 1 / Shelf 1', exact: true })
       .waitFor();
   });
   await check(
@@ -353,6 +384,10 @@ try {
       );
       await dialog().getByLabel('Copy identifier / inventory code').fill('Copy #1');
       await button('Location', dialog()).click();
+      await dialog()
+        .getByLabel('Room → Bookcase → Shelf')
+        .selectOption({ label: 'Study → Bookcase 1 → Shelf 1' });
+      await page.screenshot({ path: join(runDir, 'copy-location-assignment.png') });
       await dialog().getByLabel('Shelf position').fill('A4');
       await dialog().getByLabel('Location note').fill('Left side');
       await button('Ownership', dialog()).click();
@@ -372,8 +407,8 @@ try {
       await dialog().getByLabel('Barcode', { exact: true }).fill('VERIFY-002');
       await button('Location', dialog()).click();
       await dialog()
-        .getByLabel('Shelf / location')
-        .selectOption({ label: 'Study / Bookcase 2 / Shelf 5' });
+        .getByLabel('Room → Bookcase → Shelf')
+        .selectOption({ label: 'Study → Bookcase 1 → Shelf 2' });
       await button('Ownership', dialog()).click();
       await dialog().getByLabel('Acquisition date', { exact: true }).fill('2026-02-03');
       await dialog().getByLabel('Acquisition source', { exact: true }).fill('Second store');
@@ -417,8 +452,8 @@ try {
       await until((s) => s.loans.every((l) => l.returned_date), 'second returned');
       await button('Move', page.getByRole('article', { name: 'Copy #1', exact: true })).click();
       await dialog()
-        .getByLabel('Shelf / location')
-        .selectOption({ label: 'Study / Bookcase 2 / Shelf 5' });
+        .getByLabel('Room → Bookcase → Shelf')
+        .selectOption({ label: 'Study → Bookcase 1 → Shelf 2' });
       await button('Save physical copy', dialog()).click();
       await saved();
       assert((await snapshot()).books.every((b) => b.location_id === second.location_id));
@@ -429,24 +464,32 @@ try {
     'occupied location deletion, empty removal and copy archive cancellation',
     async () => {
       await nav('Locations');
-      await selectPlace('Shelf 5');
+      await selectPlace('Shelf 2');
       await button('Remove location').click();
       const confirm = page.getByRole('dialog', { name: 'Please confirm', exact: true });
       await button('Continue', confirm).click();
       await page.getByRole('alert').filter({ hasText: 'contains copies' }).waitFor();
       assert.equal((await snapshot()).locations.length, 4);
       await button('Dismiss').click();
-      await selectPlace('Shelf 4');
-      await button('Edit location').click();
-      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 4 renamed');
+      for (const parent of ['Study', 'Bookcase 1']) {
+        await selectPlace(parent);
+        await button('Remove location').click();
+        await button('Continue', confirm).click();
+        await page.getByRole('alert').filter({ hasText: 'contains copies' }).waitFor();
+        assert.equal((await snapshot()).locations.length, 4);
+        await button('Dismiss').click();
+      }
+      await selectPlace('Shelf 1');
+      await button(/^Rename /).click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 1 renamed');
       await button('Save', dialog()).click();
       await saved();
-      await selectPlace('Shelf 4 renamed');
-      await button('Edit location').click();
-      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 4');
+      await selectPlace('Shelf 1 renamed');
+      await button(/^Rename /).click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 1');
       await button('Save', dialog()).click();
       await saved();
-      await button('Create Room').click();
+      await button('Add Room').click();
       await dialog().getByLabel('Name *', { exact: true }).fill('Temporary empty room');
       await button('Save', dialog()).click();
       await saved();
@@ -489,7 +532,7 @@ try {
     await button('Apply').click();
     await until((s) => s.books.every((b) => b.terms.tag.includes('Verified')), 'bulk tag');
     await page.getByLabel('Bulk operation').selectOption('location_id');
-    const shelf = (await snapshot()).locations.find((l) => l.name === 'Shelf 4');
+    const shelf = (await snapshot()).locations.find((l) => l.name === 'Shelf 1');
     await page.getByLabel('New location').selectOption(shelf.id);
     await button('Apply').click();
     await until(
@@ -519,7 +562,7 @@ try {
       if (format === 'JSON') {
         const exported = JSON.parse(text);
         assert.equal(exported.books.length, 2);
-        assert.deepEqual(exported.books[0].transfer.location, ['Study', 'Bookcase 2', 'Shelf 4']);
+        assert.deepEqual(exported.books[0].transfer.location, ['Study', 'Bookcase 1', 'Shelf 1']);
       } else assert(text.includes('Verification Author'));
     }
   });
@@ -750,6 +793,94 @@ try {
     await launch();
     assert.equal((await snapshot()).books.length, 3);
   });
+  await check(
+    'empty-copy location creation preserves draft and immediately refreshes choices',
+    async () => {
+      await close();
+      dataDir = join(runDir, 'inline-locations-library');
+      await launch();
+      await button('Quick add').click();
+      await dialog().getByLabel('Title *', { exact: true }).fill('Verification — The Quiet Shelf');
+      await page.keyboard.press('Control+s');
+      await saved();
+      await openFirst();
+      await button('Copies', page.locator('main .tabs')).click();
+      await button('Add Copy').click();
+      await dialog().getByLabel('Copy identifier / inventory code').fill('My unsaved copy');
+      await button('Location', dialog()).click();
+      await dialog()
+        .getByText(/No locations yet/)
+        .waitFor();
+      await button('Add Room', dialog()).click();
+      await page.keyboard.press('Escape');
+      await page
+        .getByRole('dialog', { name: 'Add locations', exact: true })
+        .waitFor({ state: 'detached' });
+      assert.equal(
+        await page.getByRole('dialog', { name: 'Please confirm', exact: true }).count(),
+        0,
+      );
+      assert(
+        await page.getByRole('dialog', { name: 'Add Physical Copy', exact: true }).isVisible(),
+      );
+      for (const [kind, name, path] of [
+        ['Room', 'Study', 'Study'],
+        ['Bookcase', 'Bookcase 1', 'Study → Bookcase 1'],
+        ['Shelf', 'Shelf 1', 'Study → Bookcase 1 → Shelf 1'],
+      ]) {
+        await button('Add ' + kind, dialog()).click();
+        await dialog().getByLabel('Name *', { exact: true }).fill(name);
+        await button('Save', dialog()).click();
+        await page
+          .getByRole('dialog', { name: 'Add locations', exact: true })
+          .waitFor({ state: 'detached' });
+        await dialog().getByLabel('Room → Bookcase → Shelf').selectOption({ label: path });
+      }
+      await page.screenshot({ path: join(runDir, 'inline-location-creation.png') });
+      await button('Identity', dialog()).click();
+      assert.equal(
+        await dialog().getByLabel('Copy identifier / inventory code').inputValue(),
+        'My unsaved copy',
+      );
+      await button('Save physical copy', dialog()).click();
+      await saved();
+      const s = await snapshot();
+      const copy = s.books.find((b) => b.copy_extra.inventory_code === 'My unsaved copy');
+      assert.equal(s.locations.find((l) => l.id === copy.location_id).name, 'Shelf 1');
+      assert.equal(s.books.length, 2);
+      await close();
+      await launch();
+      assert.equal(
+        (await snapshot()).books.find((b) => b.id === copy.id).location_id,
+        copy.location_id,
+      );
+      await nav('Locations');
+      await selectPlace('Shelf 1');
+      await page
+        .getByRole('button', { name: /Verification — The Quiet Shelf · My unsaved copy/ })
+        .click();
+      await button('Copies', page.locator('main .tabs')).click();
+      await button(
+        'Archive',
+        page.getByRole('article', { name: 'My unsaved copy', exact: true }),
+      ).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await until((state) => state.books.length === 1, 'inline copy archived');
+      await nav('Locations');
+      await selectPlace('Shelf 1');
+      await button('Remove location').click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await page.getByRole('alert').filter({ hasText: 'contains copies' }).waitFor();
+      assert.equal((await snapshot()).locations.length, 3);
+      await button('Dismiss').click();
+    },
+  );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
   assert.deepEqual(report.network, [], 'Core workflows must not make network requests');
   report.passed = true;
