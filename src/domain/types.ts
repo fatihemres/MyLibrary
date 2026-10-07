@@ -14,6 +14,7 @@ export interface Entity {
 export interface Book {
   id: string;
   edition_id: string;
+  copy_number?: number;
   title: string;
   subtitle: string;
   isbn10: string;
@@ -42,6 +43,13 @@ export interface Book {
   created_at: string;
   updated_at: string;
   deleted_at?: string;
+  transfer?: {
+    edition_key?: string;
+    location?: string[];
+    location_kinds?: string[];
+    fields?: Entity[];
+    error?: string;
+  };
 }
 export interface Entry {
   id: string;
@@ -97,6 +105,22 @@ export const statuses = [
   'Reference Only',
 ];
 export const conditions = ['New', 'Like New', 'Very Good', 'Good', 'Acceptable', 'Poor'];
+export const copyName = (book: Book) =>
+  String(book.copy_extra.inventory_code || `Copy #${book.copy_number || 1}`);
+export const copyState = (book: Book, loans: Loan[]) => {
+  if (book.deleted_at) return 'Archived';
+  const loan = loans.find((l) => l.copy_id === book.id && !l.returned_date);
+  return loan ? `Lent to ${loan.borrower}` : String(book.copy_extra.copy_state || 'Owned');
+};
+export function withinLocation(id: string, parent: string, locations: Entity[]) {
+  const seen = new Set<string>();
+  while (id && !seen.has(id)) {
+    if (id === parent) return true;
+    seen.add(id);
+    id = locations.find((l) => l.id === id)?.parent_id || '';
+  }
+  return false;
+}
 export const roles = ['Author', 'Translator', 'Editor', 'Illustrator', 'Narrator', 'Contributor'];
 export const emptyBook = (): Book => ({
   id: '',

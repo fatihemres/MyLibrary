@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { copyName } from '../domain/types';
 import { Plus } from 'lucide-react';
 import { today, type Book, type Snapshot } from '../domain/types';
 import type { RecordRequest } from '../components/RecordDialog';
@@ -81,6 +82,8 @@ export function Personal({
                 <div>
                   <button className="text-button" onClick={() => onOpen(books.get(l.copy_id)!)}>
                     {books.get(l.copy_id)?.title}
+                    {' · '}
+                    {copyName(books.get(l.copy_id)!)}
                   </button>
                   <small className="block">
                     {l.borrower} · {l.contact}

@@ -4,7 +4,7 @@ A private Windows desktop catalogue for physical books, built with Tauri 2, Reac
 
 ## Features
 
-- Edition and physical-copy records; tabbed editor and Quick Add; managed PNG/JPEG/WebP covers (file selection or drop).
+- Edition and independently editable physical-copy records; tabbed editor and Quick Add; managed PNG/JPEG/WebP covers (file selection or drop).
 - Contributors, publication data, classification, acquisition, condition, reading, reviews and precise hierarchical locations.
 - Grid/table browsing, configurable columns, search, combined filters, sorting, selection and bulk operations.
 - People, series, genres, tags, locations, reading sessions, notes, quotes, lending history, attachments and typed custom fields.
@@ -89,9 +89,9 @@ Do not copy only a live `.sqlite3` file: current writes may be in its WAL. Use t
 
 ## Backup and restore
 
-1. Select **Backup → Save backup archive** and choose a new ZIP filename, preferably on another drive.
+1. Under **Backup & Recovery**, select **Create Backup → Create Backup…** and choose a new ZIP filename, preferably on another drive.
 2. SQLite's online backup API creates a consistent snapshot; the archive also contains managed covers, attachments and a versioned manifest. All database-held settings and relationships are included.
-3. To restore, choose an archive and type `RESTORE`. Extraction happens in staging. Unsafe paths, unsupported versions, integrity/foreign-key failures and missing referenced files are rejected.
+3. Select **Restore Backup → Choose Backup ZIP…**, select the original archive directly and type `RESTORE`. Do not extract it or select `manifest.json`. Restore replaces the current library state. Extraction happens in staging. Unsafe or duplicate paths, unsupported versions, invalid manifests, incompatible database structures, integrity/foreign-key failures and missing referenced files are rejected before replacement.
 4. A mandatory `backups/before-restore-<uuid>.zip` preserves the current library before replacement. Failure to make that archive aborts restore.
 5. Validated files are swapped into place with rollback on ordinary filesystem errors. The previous directories are also retained as `.previous-<uuid>` recovery data.
 
@@ -101,15 +101,27 @@ Archives are not encrypted. Restore limits are 100,000 files and 20 GB expanded.
 
 ## Import/export
 
+**Data Exchange → Import CSV/JSON / Export CSV/JSON** exchanges catalogue records. A backup ZIP and its internal manifest are not catalogue imports; selecting either displays guidance to use **Restore Backup**. Exports can include the entire library, filtered results or selected copies.
+
 CSV requires UTF-8 and a header row. Use semicolons between multiple authors/genres/tags. Map unfamiliar headers, validate, review problems/duplicates and explicitly confirm which rows to accept. Dates use `YYYY-MM-DD`; ratings use half-star steps from 0 to 5. Accepted rows are written in one transaction. Existing records are never overwritten or silently merged.
 
-JSON accepts an array of book objects or a MyLibrary object with a `books` array. It preserves nested book fields but is a catalogue export, not a complete backup. Transfer images, loans, individual notes, quotes and reading sessions with ZIP backup/restore. CSV contains common catalogue columns. Existing export files are not silently overwritten. Formula-like spreadsheet text is escaped in CSV.
+JSON exports use `{ "format": "MyLibrary catalogue", "version": 1, "books": [...] }`. Each record contains edition fields, contributor/classification names, physical-copy fields, nested `extra`, `copy_extra` and custom values. Its `transfer` object contains an `edition_key`, a location-name path, location kinds and custom-field definitions. Import assigns fresh record IDs while preserving shared-edition groups within that import; it never merges into existing editions. Older arrays of book objects and objects with a `books` array remain accepted. This is a catalogue exchange format, not a complete backup: use ZIP backup/restore for managed images, attachments, loans, individual notes, quotes, reading sessions and settings.
+
+CSV contains common catalogue columns, with `location_path` encoded as a JSON array of location names so it works in another library. It does not preserve edition grouping or all copy attributes. Legacy CSV `location_id` values from another library must be left unmapped or replaced with a portable path. Existing export files are not silently overwritten. Formula-like spreadsheet text is escaped in CSV.
+
+## Physical copies and locations
+
+Open a book's **Copies** tab to add, view, edit, move, lend, return or archive each copy. Copy identifiers default to readable **Copy #1**, **Copy #2**, etc.; you can enter your own inventory code. Each copy independently stores barcode, condition, acquisition source/date/price/currency, gift details, shelf position, location notes and personal notes. Owned and Missing states are editable; Lent is derived from the active loan. Archiving requires confirmation and is reversible in Trash. Copy attachments are managed through **View copy → Attachments**.
+
+**Locations** supports Home/Library → Room → Bookcase → Shelf, with rooms also allowed at the root. Create and rename locations, browse their copies and move selected library copies using **Move Location**. Copies may remain unassigned. Locations containing children or copies (including archived copies) cannot be deleted; move the copies and remove empty children first. Existing untyped locations remain usable and editable.
 
 ## Architecture and database
 
 The Rust layer is the only database writer; typed frontend services invoke desktop commands. Foreign keys, WAL, a busy timeout and full synchronization are enabled. Multi-step changes use transactions. Versioned migrations use `PRAGMA user_version`, reject newer schemas, and preserve an existing database before migration.
 
-**Edition/copy separation:** editions contain shared bibliographic information and contributor/classification relationships. Each physical copy has a UUID Library ID and independent barcode, location, acquisition, condition, reading state, notes, quotes and loans. **Add another copy** deliberately shares an edition. Ordinary duplicate additions/imports remain separate editions to avoid incorrectly merging publications. The editor warns when bibliographic edits affect multiple copies.
+**Edition/copy separation:** editions contain shared bibliographic information and contributor/classification relationships. Each physical copy has an internal UUID and independent barcode, location, acquisition, condition, reading state, notes, quotes and loans. **Add Physical Copy** shares an edition; its dedicated editor and bulk location moves cannot modify bibliographic data. The full book editor warns when bibliographic edits affect multiple copies. Ordinary duplicate additions remain separate editions; portable JSON imports retain explicit edition groups using fresh IDs. There is no additional work-level table: the current book detail represents an edition, avoiding inferred merges between different publications.
+
+The copy/location correction retains schema version 1. New optional copy attributes and location kinds use the existing owning JSON columns; no destructive migration or data reset is necessary. Compatibility tests reopen and edit a copy of an existing v1 database.
 
 People are first-class records joined through contributor roles. Publishers, series, acquisition sources, typed terms, hierarchical locations, loans, entries, attachments and custom fields have relational tables. A unique partial loan index permits only one active loan per copy. Infrequently queried descriptive attributes live in JSON objects on their owning edition, copy or person; the design is not a single unstructured books table.
 
@@ -123,6 +135,7 @@ src/services/         Desktop bridge and catalogue transfer
 src/App.tsx           Navigation/application coordination
 src/styles.css        Local desktop design system and themes
 src-tauri/src/db.rs    Transactional repository and migrations
+src-tauri/src/copies.rs   Copy-only validation, edits and moves
 src-tauri/src/schema.sql  Relational schema and FTS
 src-tauri/src/backup.rs   Snapshot/archive/restore services
 src-tauri/src/lib.rs      Desktop commands and managed files

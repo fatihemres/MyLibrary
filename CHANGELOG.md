@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.0.0 — 2026-10-07
+## 1.0.0 release candidate — awaiting user verification
+
+- Separated Data Exchange from Backup & Recovery, with direct ZIP restore and helpful backup/manifest import guidance.
+- Added portable JSON edition grouping and typed locations; fixed CSV location references so exports import into another library.
+- Added dedicated physical-copy editing, independent acquisition/condition/state, human-readable identifiers, copy-specific loans, moves and reversible archive actions.
+- Added typed location creation/editing/browsing and blocked deletion of occupied locations, including those holding archived copies.
+- Restricted copy edits and bulk location moves to copy data; preserved existing v1 databases without a schema reset or migration.
+- Hardened backup validation for duplicate paths and database compatibility; expanded round-trip, rollback and real desktop verification.
+
+## Initial release candidate — 2026-10-07
 
 - Added a local Tauri catalogue with SQLite migrations and edition/copy separation.
 - Added tabbed editing, Quick Add, managed covers, contributors, classifications and hierarchical locations.

@@ -4,6 +4,7 @@ import { Download, Upload, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 import {
   exportCsv,
+  exportJson,
   importFields,
   mappedBook,
   parseCsv,
@@ -20,36 +21,7 @@ export async function exportBooks(books: Book[], format: 'csv' | 'json', data?: 
   if (path)
     await api('write_text', {
       path,
-      text:
-        format === 'csv'
-          ? exportCsv(books)
-          : JSON.stringify(
-              {
-                format: 'MyLibrary catalogue',
-                version: 1,
-                books: books.map((b) => {
-                  const location: string[] = [];
-                  let id = b.location_id;
-                  const seen = new Set<string>();
-                  while (id && !seen.has(id)) {
-                    seen.add(id);
-                    const item = data?.locations.find((l) => l.id === id);
-                    if (!item) break;
-                    location.unshift(item.name);
-                    id = item.parent_id || '';
-                  }
-                  return {
-                    ...b,
-                    transfer: {
-                      location,
-                      fields: data?.fields.filter((f) => f.id in b.custom) || [],
-                    },
-                  };
-                }),
-              },
-              null,
-              2,
-            ),
+      text: format === 'csv' ? exportCsv(books, data) : exportJson(books, data),
     });
 }
 export function DataPage({
@@ -57,11 +29,13 @@ export function DataPage({
   data,
   onAction,
   onReload,
+  onNavigate,
 }: {
   section: string;
   data: Snapshot;
   onAction: (f: () => Promise<unknown>) => void;
   onReload: () => Promise<void>;
+  onNavigate: (route: string) => void;
 }) {
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -82,9 +56,20 @@ export function DataPage({
   const read = async () => {
     const path = await open({
       multiple: false,
-      filters: [{ name: 'Library data', extensions: ['csv', 'json'] }],
+      filters: [
+        { name: 'Library records (CSV / JSON)', extensions: ['csv', 'json'] },
+        { name: 'All files', extensions: ['*'] },
+      ],
     });
     if (typeof path !== 'string') return;
+    setRows([]);
+    setJsonBooks(null);
+    setStage(false);
+    setErrors([]);
+    if (path.toLowerCase().endsWith('.zip'))
+      throw new Error(
+        'This appears to be a MyLibrary backup. Use Restore Backup instead. Select the ZIP directly; do not extract it.',
+      );
     const text = await api<string>('read_text', { path });
     setConfirmed(false);
     setStage(false);
@@ -128,25 +113,22 @@ export function DataPage({
       setBusy(false);
     }
   };
-  return section === 'Backup' ? (
+  return ['Create Backup', 'Restore Backup'].includes(section) ? (
     <>
       <div className="hero-panel">
         <ShieldCheck size={34} />
         <div>
           <h2>A safe copy of your library.</h2>
           <p>
-            Portable archives include the SQLite database, covers, attachments and settings. Keep a
+            Backup archives preserve your complete library, covers, attachments and settings. Keep a
             copy on another drive for protection from disk failure.
           </p>
         </div>
       </div>
       <div className="two-col">
-        <section className="panel">
-          <h2>Create a backup</h2>
-          <p>
-            Uses SQLite’s online backup API for a consistent snapshot, including while the
-            application is open.
-          </p>
+        <section className="panel" hidden={section !== 'Create Backup'}>
+          <h2>Create Backup</h2>
+          <p>Creates a complete recovery archive, including while the application is open.</p>
           <button
             className="primary"
             onClick={() =>
@@ -163,7 +145,7 @@ export function DataPage({
             }
           >
             <Download size={17} />
-            Save backup archive…
+            Create Backup…
           </button>
           <h3>Automatic backups</h3>
           <Field label="While MyLibrary is open">
@@ -184,11 +166,12 @@ export function DataPage({
             Check scheduled backup now
           </button>
         </section>
-        <section className="panel">
-          <h2>Restore a backup</h2>
+        <section className="panel" hidden={section !== 'Restore Backup'}>
+          <h2>Restore Backup</h2>
           <p>
             Restoring replaces the current library. The archive is validated first, then a mandatory
-            safety backup preserves the current library.
+            safety backup preserves the current library. Select the original ZIP directly. Do not
+            extract it or select manifest.json.
           </p>
           <button
             onClick={() =>
@@ -205,7 +188,7 @@ export function DataPage({
             }
           >
             <Upload size={17} />
-            Choose backup…
+            Choose Backup ZIP…
           </button>
           {restorePath && (
             <div className="notice">
@@ -246,25 +229,29 @@ export function DataPage({
     </>
   ) : (
     <>
+      <div className="notice">
+        Data exchange adds catalogue records to a library. To recover a full library from a backup
+        ZIP, use <button onClick={() => onNavigate('Restore Backup')}>Restore Backup</button>.
+      </div>
       <div className="two-col">
-        <section className="panel">
-          <h2>Bring your books home</h2>
+        <section className="panel" hidden={section !== 'Import CSV/JSON'}>
+          <h2>Import CSV/JSON</h2>
           <p>
             Import CSV or JSON. Map columns, review errors and duplicates, then confirm. Each
             imported row becomes a separate physical copy; existing records are never overwritten.
           </p>
           <button className="primary" onClick={() => onAction(read)}>
             <Upload size={16} />
-            Choose import file…
+            Import CSV/JSON…
           </button>
           <small className="block">
             CSV: UTF-8, one book per row; multiple names/tags separated with semicolons. JSON
-            catalogue exports contain book fields, not media or related notes/loans. Use Backup for
-            a complete transfer.
+            catalogue exports contain book fields, not media or related notes/loans. Use Restore
+            Backup for a complete transfer.
           </small>
         </section>
-        <section className="panel">
-          <h2>Export your catalogue</h2>
+        <section className="panel" hidden={section !== 'Export CSV/JSON'}>
+          <h2>Export CSV/JSON</h2>
           <p>
             Export all active books here, or use Library to export selected or filtered results.
           </p>

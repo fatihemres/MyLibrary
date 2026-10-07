@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowDownUp, Columns3, Grid2X2, List, SlidersHorizontal, Star } from 'lucide-react';
 import {
   author,
+  copyName,
+  copyState,
   conditions,
   locationName,
   statuses,
@@ -315,7 +317,7 @@ export function Library({
             }}
           >
             <option value="status">Reading status</option>
-            <option value="location_id">Move location</option>
+            <option value="location_id">Move Location</option>
             <option value="favorite">Favorite</option>
             <option value="add_tag">Add tag</option>
             <option value="remove_tag">Remove tag</option>
@@ -429,6 +431,9 @@ export function Library({
                 {b.title}
               </button>
               <p>{author(b) || 'Author not specified'}</p>
+              <p>
+                {copyName(b)} · {copyState(b, data.loans)}
+              </p>
               <div className="card-bottom">
                 <span className={`badge status-${b.status.toLowerCase().replaceAll(' ', '-')}`}>
                   {b.status}
@@ -494,6 +499,9 @@ export function Library({
                     <button className="text-button" onClick={() => onOpen(b)}>
                       {b.title}
                     </button>
+                    <small className="block">
+                      {copyName(b)} · {copyState(b, data.loans)}
+                    </small>
                   </td>
                   {columns.map((c) => (
                     <td key={c}>{cell(b, c)}</td>

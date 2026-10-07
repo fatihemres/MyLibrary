@@ -114,6 +114,8 @@ impl Store {
         }
         let mut c = self.conn()?;
         let tx = c.transaction()?;
+        let mut editions: std::collections::HashMap<String, (String, Value)> =
+            std::collections::HashMap::new();
         for b in books {
             let mut b = b.clone();
             b["id"] = json!("");
@@ -121,12 +123,15 @@ impl Store {
             b["cover"] = json!("");
             if b["transfer"].is_object() {
                 let transfer = b["transfer"].clone();
+                if !s(&transfer, "error").is_empty() {
+                    return Err(s(&transfer, "error").to_owned().into());
+                }
                 let mut parent: Option<String> = None;
                 if let Some(path) = transfer["location"].as_array() {
                     if path.len() > 50 {
                         return Err("Location hierarchy is too deep.".into());
                     }
-                    for name in path {
+                    for (index, name) in path.iter().enumerate() {
                         let name = name
                             .as_str()
                             .ok_or("Invalid location name in import")?
@@ -136,10 +141,17 @@ impl Store {
                         }
                         let existing:Option<String>=tx.query_row("SELECT id FROM locations WHERE name=? COLLATE NOCASE AND parent_id IS ?",params![name,parent],|r|r.get(0)).optional()?;
                         let key = existing.unwrap_or_else(id);
-                        tx.execute(
-                            "INSERT OR IGNORE INTO locations(id,name,parent_id) VALUES(?,?,?)",
-                            params![key, name, parent],
-                        )?;
+                        if !tx.query_row(
+                            "SELECT EXISTS(SELECT 1 FROM locations WHERE id=?)",
+                            [&key],
+                            |r| r.get::<_, bool>(0),
+                        )? {
+                            let kind = transfer["location_kinds"][index].as_str().unwrap_or("");
+                            save_entity(
+                                &tx,
+                                &json!({"table":"locations","id":key,"name":name,"parent_id":parent,"extra":{"kind":kind}}),
+                            )?;
+                        }
                         parent = Some(key);
                     }
                 }
@@ -184,6 +196,43 @@ impl Store {
                     }
                 }
                 b["custom"] = values;
+                let edition_key = s(&transfer, "edition_key");
+                if !edition_key.is_empty() {
+                    let mut signature = json!({});
+                    for field in [
+                        "title",
+                        "subtitle",
+                        "isbn10",
+                        "isbn13",
+                        "publisher",
+                        "series",
+                        "series_order",
+                        "publication_year",
+                        "pages",
+                        "language",
+                        "extra",
+                        "contributors",
+                        "terms",
+                    ] {
+                        signature[field] = b[field].clone();
+                    }
+                    let (key, expected) = editions
+                        .entry(edition_key.into())
+                        .or_insert_with(|| (id(), signature.clone()));
+                    if *expected != signature {
+                        return Err("Copies of the same imported edition have conflicting bibliographic data. No rows were imported.".into());
+                    }
+                    b["edition_id"] = json!(key);
+                }
+            }
+            if !s(&b, "location_id").is_empty()
+                && !tx.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM locations WHERE id=?)",
+                    [s(&b, "location_id")],
+                    |r| r.get::<_, bool>(0),
+                )?
+            {
+                return Err("The imported location belongs to another library. Use a portable location_path column, or leave the legacy location_id column unmapped.".into());
             }
             save_book(&tx, &b)?;
         }
@@ -195,6 +244,24 @@ impl Store {
         let mut c = self.conn()?;
         let tx = c.transaction()?;
         match action {
+            "save_copy" | "add_copy" => {
+                crate::copies::save(&tx, v, action == "add_copy")?;
+            }
+            "move_copies" => {
+                crate::copies::move_copies(&tx, &v["ids"], s(v, "location_id"))?;
+            }
+            "delete_location" => {
+                let key = s(v, "id");
+                let used:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM copies WHERE location_id=?) OR EXISTS(SELECT 1 FROM locations WHERE parent_id=?)",params![key,key],|r|r.get(0))?;
+                if used {
+                    return Err("This location contains copies (including archived copies) or child locations. Move the copies and remove or move its children first.".into());
+                }
+                tx.execute("DELETE FROM locations WHERE id=?", [key])?;
+                tx.execute(
+                    "DELETE FROM settings WHERE key='default_location' AND value=?",
+                    [key],
+                )?;
+            }
             "trash" | "untrash" => {
                 for key in v["ids"].as_array().ok_or("Select at least one book.")? {
                     let key = key.as_str().ok_or("Invalid book ID")?;
@@ -231,7 +298,7 @@ impl Store {
                 b["rating"] = Value::Null;
                 b["copy_extra"] = json!({});
                 b["custom"] = json!({});
-                save_book(&tx, &b)?;
+                crate::copies::save(&tx, &b, true)?;
             }
             "entity" => {
                 save_entity(&tx, v)?;
@@ -254,6 +321,10 @@ impl Store {
                 tx.execute("DELETE FROM entries WHERE id=?", [s(v, "id")])?;
             }
             "loan" => {
+                let missing:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM copies WHERE id=? AND json_extract(extra,'$.copy_state')='Missing')",[s(v,"copy_id")],|r|r.get(0))?;
+                if missing {
+                    return Err("Locate this missing copy before lending it.".into());
+                }
                 let active_copy: bool = tx.query_row(
                     "SELECT EXISTS(SELECT 1 FROM copies WHERE id=? AND deleted_at IS NULL)",
                     [s(v, "copy_id")],
@@ -289,6 +360,12 @@ impl Store {
                 }
             }
             "bulk" => {
+                if s(v, "field") == "location_id" {
+                    crate::copies::move_copies(&tx, &v["ids"], s(v, "value"))?;
+                    reindex(&tx)?;
+                    tx.commit()?;
+                    return Ok(json!(true));
+                }
                 let books: std::collections::HashMap<String, Value> = list(&tx, false)?
                     .into_iter()
                     .map(|b| (s(&b, "id").to_owned(), b))
@@ -397,6 +474,36 @@ fn save_entity(c: &Connection, v: &Value) -> Result<()> {
     };
     if table == "locations" {
         let parent = opt(v, "parent_id");
+        let kind = s(&extra, "kind");
+        if !["", "Location", "Home", "Room", "Bookcase", "Shelf"].contains(&kind) {
+            return Err("Choose a valid location type.".into());
+        }
+        let parent_kind: String = if let Some(p) = &parent {
+            c.query_row(
+                "SELECT coalesce(json_extract(extra,'$.kind'),'') FROM locations WHERE id=?",
+                [p],
+                |r| r.get(0),
+            )?
+        } else {
+            String::new()
+        };
+        if (kind == "Home" && parent.is_some())
+            || (["Bookcase", "Shelf"].contains(&kind) && parent.is_none())
+            || (!parent_kind.is_empty()
+                && parent_kind != "Location"
+                && !kind.is_empty()
+                && kind != "Location"
+                && !matches!(
+                    (kind, parent_kind.as_str()),
+                    ("Room", "Home") | ("Bookcase", "Room") | ("Shelf", "Bookcase")
+                ))
+        {
+            return Err("Place rooms in a Home (or at top level), bookcases in rooms, and shelves in bookcases.".into());
+        }
+        let invalid_child:bool=c.query_row("SELECT EXISTS(SELECT 1 FROM locations WHERE parent_id=? AND coalesce(json_extract(extra,'$.kind'),'') NOT IN ('','Location',?))",params![key,match kind{"Home"=>"Room","Room"=>"Bookcase","Bookcase"=>"Shelf",_=>""}],|r|r.get(0))?;
+        if !["", "Location"].contains(&kind) && invalid_child {
+            return Err("Move child locations before changing this location type.".into());
+        }
         if let Some(p) = &parent {
             let mut cursor = Some(p.clone());
             let mut seen = std::collections::HashSet::new();
@@ -654,7 +761,7 @@ pub fn save_book(c: &Connection, b: &Value) -> Result<String> {
     Ok(key)
 }
 pub fn list(c: &Connection, trash: bool) -> Result<Vec<Value>> {
-    let mut books=rows(c,&format!("SELECT json_object('id',c.id,'edition_id',e.id,'title',e.title,'subtitle',e.subtitle,'isbn10',e.isbn10,'isbn13',e.isbn13,'publisher',coalesce(p.name,''),'series',coalesce(s.name,''),'series_order',e.series_order,'publication_year',e.publication_year,'pages',e.pages,'language',e.language,'cover',e.cover,'extra',json(e.extra),'barcode',c.barcode,'location_id',coalesce(c.location_id,''),'source',coalesce(a.name,''),'status',c.status,'rating',c.rating,'favorite',json(CASE c.favorite WHEN 1 THEN 'true' ELSE 'false' END),'current_page',c.current_page,'acquisition_date',c.acquisition_date,'condition',c.condition,'copy_extra',json(c.extra),'created_at',c.created_at,'updated_at',max(c.updated_at,e.updated_at),'deleted_at',c.deleted_at) FROM copies c JOIN editions e ON e.id=c.edition_id LEFT JOIN publishers p ON p.id=e.publisher_id LEFT JOIN series s ON s.id=e.series_id LEFT JOIN acquisition_sources a ON a.id=c.source_id WHERE c.deleted_at IS {}NULL ORDER BY c.created_at DESC",if trash{"NOT "}else{""}))?;
+    let mut books=rows(c,&format!("SELECT json_object('id',c.id,'edition_id',e.id,'copy_number',(SELECT count(*) FROM copies numbered WHERE numbered.edition_id=c.edition_id AND numbered.rowid<=c.rowid),'title',e.title,'subtitle',e.subtitle,'isbn10',e.isbn10,'isbn13',e.isbn13,'publisher',coalesce(p.name,''),'series',coalesce(s.name,''),'series_order',e.series_order,'publication_year',e.publication_year,'pages',e.pages,'language',e.language,'cover',e.cover,'extra',json(e.extra),'barcode',c.barcode,'location_id',coalesce(c.location_id,''),'source',coalesce(a.name,''),'status',c.status,'rating',c.rating,'favorite',json(CASE c.favorite WHEN 1 THEN 'true' ELSE 'false' END),'current_page',c.current_page,'acquisition_date',c.acquisition_date,'condition',c.condition,'copy_extra',json(c.extra),'created_at',c.created_at,'updated_at',max(c.updated_at,e.updated_at),'deleted_at',c.deleted_at) FROM copies c JOIN editions e ON e.id=c.edition_id LEFT JOIN publishers p ON p.id=e.publisher_id LEFT JOIN series s ON s.id=e.series_id LEFT JOIN acquisition_sources a ON a.id=c.source_id WHERE c.deleted_at IS {}NULL ORDER BY c.created_at DESC",if trash{"NOT "}else{""}))?;
     for b in &mut books {
         let edition = s(b, "edition_id").to_owned();
         let key = s(b, "id").to_owned();

@@ -1,5 +1,49 @@
 import Papa from 'papaparse';
-import { emptyBook, duplicates, statuses, conditions, type Book } from '../domain/types';
+import {
+  emptyBook,
+  duplicates,
+  statuses,
+  conditions,
+  type Book,
+  type Snapshot,
+} from '../domain/types';
+function portableLocation(b: Book, data?: Snapshot) {
+  const location: string[] = [];
+  const locationKinds: string[] = [];
+  let key = b.location_id;
+  const seen = new Set<string>();
+  while (key && !seen.has(key)) {
+    seen.add(key);
+    const item = data?.locations.find((l) => l.id === key);
+    if (!item) break;
+    location.unshift(item.name);
+    locationKinds.unshift(String(item.extra?.kind || ''));
+    key = item.parent_id || '';
+  }
+  return { location, locationKinds };
+}
+export function exportJson(books: Book[], data?: Snapshot) {
+  return JSON.stringify(
+    {
+      format: 'MyLibrary catalogue',
+      version: 1,
+      books: books.map((b) => {
+        const { location, locationKinds } = portableLocation(b, data);
+        return {
+          ...b,
+          transfer: {
+            edition_key: b.edition_id,
+            location,
+            location_kinds: locationKinds,
+            fields: data?.fields.filter((f) => f.id in b.custom) || [],
+          },
+        };
+      }),
+    },
+    null,
+    2,
+  );
+}
 export const importFields = [
   'title',
   'subtitle',
@@ -27,6 +71,7 @@ export const importFields = [
   'synopsis',
   'personal_notes',
   'location_id',
+  'location_path',
 ] as const;
 export function parseCsv(text: string) {
   const result = Papa.parse<Record<string, string>>(text.replace(/^\uFEFF/, ''), {
@@ -54,6 +99,16 @@ export function mappedBook(row: Record<string, string>, mapping: Record<string, 
             role: key === 'authors' ? 'Author' : key === 'translators' ? 'Translator' : 'Editor',
           })),
       );
+    } else if (key === 'location_path') {
+      try {
+        const location: unknown = JSON.parse(value);
+        if (!Array.isArray(location) || location.some((v) => typeof v !== 'string' || !v.trim()))
+          throw new Error('invalid');
+        b.transfer = { location, fields: [] };
+        b.location_id = '';
+      } catch {
+        b.transfer = { error: 'Location path must be a JSON array of location names.' };
+      }
     } else if (['genre', 'tag'].includes(key)) {
       b.terms[key] = value
         .split(';')
@@ -75,6 +130,7 @@ export function mappedBook(row: Record<string, string>, mapping: Record<string, 
 }
 export function validateBook(b: Book): string[] {
   const errors: string[] = [];
+  if (b.transfer?.error) errors.push(b.transfer.error);
   if (!b.title?.trim()) errors.push('Title is required');
   for (const key of [
     'pages',
@@ -143,7 +199,7 @@ export function preview(books: Book[], existing: Book[]) {
     return result;
   });
 }
-export function exportCsv(books: Book[]) {
+export function exportCsv(books: Book[], data?: Snapshot) {
   return Papa.unparse(
     books.map((b) => ({
       title: b.title,
@@ -173,7 +229,7 @@ export function exportCsv(books: Book[]) {
       acquisition_date: b.acquisition_date,
       source: b.source,
       condition: b.condition,
-      location_id: b.location_id,
+      location_path: JSON.stringify(portableLocation(b, data).location),
       synopsis: b.extra.synopsis || '',
       personal_notes: b.copy_extra.personal_notes || '',
     })),
@@ -182,6 +238,10 @@ export function exportCsv(books: Book[]) {
 }
 export function parseJson(text: string): Book[] {
   const data: unknown = JSON.parse(text);
+  if (data && typeof data === 'object' && 'application' in data && data.application === 'MyLibrary')
+    throw new Error(
+      'This appears to be a MyLibrary backup. Use Restore Backup instead. Select the original ZIP, not manifest.json.',
+    );
   const values = Array.isArray(data) ? data : (data as { books?: unknown[] })?.books;
   if (!Array.isArray(values))
     throw new Error('Expected a JSON array or an object containing books.');

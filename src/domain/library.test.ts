@@ -3,6 +3,7 @@ import { duplicates, emptyBook, locationName, progress, type Snapshot } from './
 import { filterBooks } from './filter';
 import {
   exportCsv,
+  exportJson,
   mappedBook,
   parseCsv,
   parseJson,
@@ -81,6 +82,93 @@ describe('library domain', () => {
   });
 });
 describe('catalogue transfer', () => {
+  it('round trips its JSON catalogue with edition grouping and portable locations', () => {
+    const one = {
+      ...emptyBook(),
+      id: 'copy1',
+      edition_id: 'edition1',
+      title: 'Shared edition',
+      location_id: 'shelf',
+      copy_extra: { inventory_code: 'Copy #1', purchase_price: 12 },
+    };
+    const two = {
+      ...one,
+      id: 'copy2',
+      condition: 'Poor',
+      copy_extra: { inventory_code: 'Copy #2', purchase_price: 25 },
+    };
+    const data = {
+      locations: [
+        { id: 'room', name: 'Study', extra: { kind: 'Room' } },
+        { id: 'case', name: 'Case', parent_id: 'room', extra: { kind: 'Bookcase' } },
+        { id: 'shelf', name: 'Shelf', parent_id: 'case', extra: { kind: 'Shelf' } },
+      ],
+      fields: [],
+    } as unknown as Snapshot;
+    const text = exportJson([one, two], data);
+    const imported = parseJson(text);
+    expect(imported.map((b) => b.title)).toEqual(['Shared edition', 'Shared edition']);
+    expect(imported[0].copy_extra.purchase_price).toBe(12);
+    expect(imported[1].condition).toBe('Poor');
+    const transfer = JSON.parse(text).books.map((b: { transfer: unknown }) => b.transfer);
+    expect(transfer[0]).toMatchObject({
+      edition_key: 'edition1',
+      location: ['Study', 'Case', 'Shelf'],
+      location_kinds: ['Room', 'Bookcase', 'Shelf'],
+    });
+    expect(transfer[1].edition_key).toBe(transfer[0].edition_key);
+    expect(imported.every((b) => b.id === '' && b.edition_id === '')).toBe(true);
+  });
+  it('round trips CSV fields and multiple authors through the import mapper', () => {
+    const book = {
+      ...emptyBook(),
+      title: 'A, book',
+      pages: 210,
+      contributors: [
+        { role: 'Author', name: 'Ada' },
+        { role: 'Author', name: 'Lin' },
+      ],
+      terms: { genre: ['History'], tag: ['Keep'] },
+    };
+    const parsed = parseCsv(exportCsv([book]));
+    const copy = mappedBook(parsed.rows[0], Object.fromEntries(parsed.columns.map((c) => [c, c])));
+    expect(validateBook(copy)).toEqual([]);
+    expect(copy.title).toBe(book.title);
+    expect(copy.pages).toBe(210);
+    expect(copy.contributors).toEqual(book.contributors);
+    expect(copy.terms.tag).toEqual(['Keep']);
+  });
+  it('directs backup manifests to Restore Backup without accepting them as books', () => {
+    expect(() =>
+      parseJson(JSON.stringify({ application: 'MyLibrary', format: 1, schema: 1 })),
+    ).toThrow('Use Restore Backup instead');
+  });
+  it('exports CSV locations as portable paths and rejects malformed paths during preview', () => {
+    const b = { ...emptyBook(), title: 'Portable CSV', location_id: 'source-shelf' };
+    const data = {
+      locations: [
+        { id: 'room', name: 'Study' },
+        { id: 'source-shelf', name: 'Shelf / special', parent_id: 'room' },
+      ],
+      fields: [],
+    } as unknown as Snapshot;
+    const parsed = parseCsv(exportCsv([b], data));
+    expect(parsed.columns).not.toContain('location_id');
+    const result = mappedBook(
+      parsed.rows[0],
+      Object.fromEntries(parsed.columns.map((c) => [c, c])),
+    );
+    expect(result.transfer?.location).toEqual(['Study', 'Shelf / special']);
+    expect(result.location_id).toBe('');
+    expect(
+      validateBook(
+        mappedBook(
+          { title: 'A', location_path: 'bad' },
+          { title: 'title', location_path: 'location_path' },
+        ),
+      ),
+    ).toContain('Location path must be a JSON array of location names.');
+  });
   it('maps arbitrary headers, quoted delimiters and multiple contributors', () => {
     const p = parseCsv('Book name,Writer,Pages\n"A, B",Jane; John,200');
     expect(p.errors).toEqual([]);

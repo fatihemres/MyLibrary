@@ -71,7 +71,7 @@ impl Store {
             for i in 0..zip.len() {
                 let mut f = zip.by_index(i)?;
                 let name = f.name().to_string();
-                if !names.insert(name.clone()) {
+                if !names.insert(name.to_lowercase()) {
                     return Err("Backup contains duplicate paths.".into());
                 }
                 total = total.checked_add(f.size()).ok_or("Backup too large")?;
@@ -140,6 +140,11 @@ impl Store {
                 ] {
                     c.prepare(&format!("SELECT * FROM {table} LIMIT 0"))?;
                 }
+            }
+            // Exercise the full supported schema before touching the live library.
+            {
+                let staged = Store::open(stage.clone())?;
+                staged.snapshot("schema validation", false)?;
             }
             let safety = self
                 .root

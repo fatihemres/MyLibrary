@@ -49,7 +49,9 @@ export function BookEditor({
   const [duplicateOk, setDuplicateOk] = useState(false);
   const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
   const [selectedMetadata, setSelectedMetadata] = useState<string[]>([]);
-  const dup = duplicates(book, data.books);
+  const dup = duplicates(book, data.books).filter(
+    (b) => !initial || b.edition_id !== initial.edition_id,
+  );
   const close = async () => {
     if (
       baseline.current !== JSON.stringify(book) &&

@@ -2,7 +2,17 @@ import { confirmAction } from '../components/Confirmation';
 import { useState } from 'react';
 import { ArrowLeft, Edit3, Plus, Star, Trash2 } from 'lucide-react';
 import { save } from '@tauri-apps/plugin-dialog';
-import { author, locationName, progress, today, type Book, type Snapshot } from '../domain/types';
+import {
+  author,
+  copyName,
+  copyState,
+  locationName,
+  progress,
+  today,
+  type Book,
+  type Snapshot,
+} from '../domain/types';
+import { CopyEditor } from '../components/CopyEditor';
 import { copyFields, editionFields } from '../domain/fields';
 import type { RecordRequest } from '../components/RecordDialog';
 import { Cover, Empty } from '../components/common';
@@ -15,6 +25,7 @@ export function Detail({
   onRecord,
   onAction,
   onOpen,
+  onReload,
 }: {
   book: Book;
   data: Snapshot;
@@ -23,8 +34,13 @@ export function Detail({
   onRecord: (r: RecordRequest) => void;
   onAction: (f: () => Promise<unknown>) => void;
   onOpen: (b: Book) => void;
+  onReload: () => Promise<void>;
 }) {
   const [tab, setTab] = useState('Overview');
+  const [copyEditor, setCopyEditor] = useState<{
+    book: Book;
+    mode: 'add' | 'edit' | 'move';
+  } | null>(null);
   const entries = data.entries.filter((e) => e.copy_id === b.id);
   const loans = data.loans.filter((l) => l.copy_id === b.id);
   const copies = data.books.filter((v) => v.edition_id === b.edition_id);
@@ -73,18 +89,27 @@ export function Detail({
               <Edit3 size={16} />
               Edit book
             </button>
-            <button onClick={() => onAction(() => api('copy', { id: b.id }))}>
+            <button onClick={() => setCopyEditor({ book: b, mode: 'add' })}>
               <Plus size={16} />
-              Add another copy
+              Add Physical Copy
             </button>
             <button
               onClick={() => onRecord({ type: 'loan', book: b })}
-              disabled={loans.some((l) => !l.returned_date)}
+              disabled={
+                !!b.deleted_at ||
+                b.copy_extra.copy_state === 'Missing' ||
+                loans.some((l) => !l.returned_date)
+              }
             >
               Lend book
             </button>
           </div>
-          <small className="block">Library ID: {b.id}</small>
+          <p className="block">
+            <strong>{copyName(b)}</strong> · {copyState(b, data.loans)}{' '}
+            <button onClick={() => setCopyEditor({ book: b, mode: 'edit' })}>
+              Edit physical copy
+            </button>
+          </p>
         </div>
       </div>
       <nav className="tabs">
@@ -312,16 +337,87 @@ export function Detail({
               These copies share bibliographic metadata. Ownership, reading, location and loans are
               independent.
             </p>
-            {copies.map((c) => (
-              <div className="list-row" key={c.id}>
-                <button className="text-button" onClick={() => onOpen(c)}>
-                  {c.barcode || c.id.slice(0, 8)}
-                </button>
-                <span>{locationName(c.location_id, data.locations) || 'Unassigned'}</span>
-                <span>{c.condition}</span>
-                <span>{c.status}</span>
-              </div>
-            ))}
+            <button className="primary" onClick={() => setCopyEditor({ book: b, mode: 'add' })}>
+              Add Copy
+            </button>
+            {!copies.length && (
+              <p>Add your first physical copy to record its shelf, condition and acquisition.</p>
+            )}
+            {copies.map((c) => {
+              const loan = data.loans.find((l) => l.copy_id === c.id && !l.returned_date);
+              return (
+                <article className="panel copy-card" key={c.id} aria-label={copyName(c)}>
+                  <div className="section-heading">
+                    <h3>{copyName(c)}</h3>
+                    <span className="badge">{copyState(c, data.loans)}</span>
+                  </div>
+                  <p>
+                    {locationName(c.location_id, data.locations) || 'Unassigned'}
+                    {c.copy_extra.shelf_position
+                      ? ` · Position ${c.copy_extra.shelf_position}`
+                      : ''}
+                  </p>
+                  <p>
+                    {c.condition} · {c.acquisition_date || 'Acquisition date not recorded'}{' '}
+                    {c.source && ` · ${c.source}`}
+                  </p>
+                  <p className="muted">
+                    {String(c.copy_extra.location_note || '')}
+                    {c.copy_extra.purchase_price !== undefined
+                      ? ` · ${c.copy_extra.purchase_price} ${c.copy_extra.currency || ''}`
+                      : ''}
+                  </p>
+                  <div className="inline wrap">
+                    <button
+                      onClick={() => {
+                        onOpen(c);
+                        setTab('Overview');
+                      }}
+                    >
+                      View copy / book
+                    </button>
+                    <button onClick={() => setCopyEditor({ book: c, mode: 'edit' })}>Edit</button>
+                    <button onClick={() => setCopyEditor({ book: c, mode: 'move' })}>Move</button>
+                    {loan ? (
+                      <button
+                        onClick={() =>
+                          onAction(() => api('return', { id: loan.id, date: today() }))
+                        }
+                      >
+                        Mark returned
+                      </button>
+                    ) : (
+                      <button
+                        disabled={c.copy_extra.copy_state === 'Missing'}
+                        onClick={() => onRecord({ type: 'loan', book: c })}
+                      >
+                        Loan
+                      </button>
+                    )}
+                    <button
+                      className="danger-text"
+                      onClick={async () => {
+                        if (
+                          await confirmAction(
+                            `Archive ${copyName(c)}? Its history and attachments will be kept in Trash.`,
+                          )
+                        )
+                          onAction(async () => {
+                            await api('trash', { ids: [c.id] });
+                            if (c.id === b.id) {
+                              const next = copies.find((other) => other.id !== c.id);
+                              if (next) onOpen(next);
+                              else onBack();
+                            }
+                          });
+                      }}
+                    >
+                      Archive
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </section>
         )}
         {tab === 'Lending' && (
@@ -428,6 +524,14 @@ export function Detail({
           </>
         )}
       </div>
+      {copyEditor && (
+        <CopyEditor
+          {...copyEditor}
+          data={data}
+          onClose={() => setCopyEditor(null)}
+          onSaved={onReload}
+        />
+      )}
     </>
   );
 }

@@ -12,7 +12,7 @@ import { chromium } from 'playwright-core';
 
 const root = resolve(import.meta.dirname, '..');
 const runDir = join(root, '.cache', `desktop-check-${Date.now()}`);
-const dataDir = join(runDir, 'library');
+let dataDir = join(runDir, 'library');
 const exe = join(root, 'src-tauri/target/release/mylibrary.exe');
 await mkdir(runDir, { recursive: true });
 const report = {
@@ -30,6 +30,23 @@ async function check(name, fn) {
   await fn();
   report.checks.push(name);
   console.log(`PASS ${name}`);
+}
+function assertCopyDetails(snapshot) {
+  const first = snapshot.books.find((b) => b.copy_extra.inventory_code === 'Copy #1');
+  const second = snapshot.books.find((b) => b.copy_extra.inventory_code === 'Copy #2');
+  assert(first && second);
+  assert.equal(first.edition_id, second.edition_id);
+  assert.equal(first.condition, 'Very Good');
+  assert.equal(second.condition, 'Poor');
+  assert.equal(first.copy_extra.currency, 'TRY');
+  assert.equal(second.copy_extra.currency, 'USD');
+  assert.equal(first.copy_extra.shelf_position, 'A4');
+  assert.equal(first.source, 'First store');
+  assert.equal(second.source, 'Second store');
+  assert.equal(first.acquisition_date, '2025-01-02');
+  assert.equal(second.acquisition_date, '2026-02-03');
+  assert.equal(snapshot.locations.find((l) => l.id === first.location_id).name, 'Shelf 4');
+  assert.equal(first.location_id, second.location_id);
 }
 async function freePort() {
   const server = createServer();
@@ -120,6 +137,11 @@ async function close() {
 }
 const button = (name, scope = page) => scope.getByRole('button', { name, exact: true });
 const dialog = () => page.getByRole('dialog').last();
+const selectPlace = (name) =>
+  page
+    .locator('.entity-list')
+    .getByRole('button', { name: new RegExp('^' + name + '\\s') })
+    .click();
 const nav = (name) => page.locator('.sidebar').getByTitle(name, { exact: true }).click();
 const snapshot = () =>
   page.evaluate(() =>
@@ -156,21 +178,28 @@ try {
     assert.equal(s.books.length, 0);
     assert.equal(s.dataDir.toLowerCase(), dataDir.toLowerCase());
   });
-  await check('hierarchical locations through UI', async () => {
+  await check('hierarchical rooms, bookcases, shelves and renaming through UI', async () => {
     await nav('Locations');
-    for (const [name, parent] of [
-      ['Study', ''],
-      ['Bookcase 2', 'Study'],
-      ['Shelf 4', 'Bookcase 2'],
+    for (const [name, parent, kind] of [
+      ['Study draft', '', 'Room'],
+      ['Bookcase 2', 'Study', 'Bookcase'],
+      ['Shelf 4', 'Bookcase 2', 'Shelf'],
+      ['Shelf 5', 'Bookcase 2', 'Shelf'],
     ]) {
-      await button('Add location').click();
+      if (parent) await selectPlace(parent);
+      await button('Create ' + kind).click();
       await dialog().getByLabel('Name *', { exact: true }).fill(name);
-      if (parent) await dialog().getByLabel('Parent location').selectOption({ label: parent });
       await button('Save', dialog()).click();
       await saved();
+      if (name === 'Study draft') {
+        await selectPlace(name);
+        await button('Edit location').click();
+        await dialog().getByLabel('Name *', { exact: true }).fill('Study');
+        await button('Save', dialog()).click();
+        await saved();
+      }
     }
-    const s = await snapshot();
-    assert.equal(s.locations.length, 3);
+    assert.equal((await snapshot()).locations.length, 4);
   });
   await check('custom field creation through UI', async () => {
     await nav('Settings');
@@ -298,18 +327,148 @@ try {
     await button('Verification Series 1').click();
     await page.getByRole('heading', { name: '1 copies in your library' }).waitFor();
     await nav('Locations');
-    await button('Study / Bookcase 2 / Shelf 4 1').click();
-    await page.getByRole('heading', { name: 'Shelf 4', exact: true }).waitFor();
+    await selectPlace('Shelf 4');
+    await page
+      .getByRole('heading', { name: 'Study / Bookcase 2 / Shelf 4', exact: true })
+      .waitFor();
   });
-  await check('additional physical copy remains independent', async () => {
-    await openFirst();
-    await button('Add another copy').click();
-    const s = await until((s) => s.books.length === 2, 'second copy');
-    assert.equal(s.books[0].edition_id, s.books[1].edition_id);
-    const added = s.books.find((b) => b.id !== originalId);
-    assert.equal(added.current_page, 0);
-    assert.equal(added.status, 'Unread');
-  });
+  await check(
+    'physical copy editing, independent acquisition and copy-specific lending',
+    async () => {
+      await openFirst();
+      await button('Edit physical copy').click();
+      await dialog().getByLabel('Copy identifier / inventory code').fill('Unsaved copy name');
+      await page.keyboard.press('Escape');
+      const discardCopy = page.getByRole('dialog', { name: 'Please confirm', exact: true });
+      await discardCopy.waitFor();
+      assert.equal(await page.locator(':focus').innerText(), 'Cancel');
+      await button('Cancel', discardCopy).click();
+      assert.equal(
+        await dialog().getByLabel('Copy identifier / inventory code').inputValue(),
+        'Unsaved copy name',
+      );
+      assert.notEqual(
+        (await snapshot()).books.find((b) => b.id === originalId).copy_extra.inventory_code,
+        'Unsaved copy name',
+      );
+      await dialog().getByLabel('Copy identifier / inventory code').fill('Copy #1');
+      await button('Location', dialog()).click();
+      await dialog().getByLabel('Shelf position').fill('A4');
+      await dialog().getByLabel('Location note').fill('Left side');
+      await button('Ownership', dialog()).click();
+      await dialog().getByLabel('Acquisition date', { exact: true }).fill('2025-01-02');
+      await dialog().getByLabel('Acquisition source', { exact: true }).fill('First store');
+      await dialog().getByLabel('Purchase price', { exact: true }).fill('12.5');
+      await dialog().getByLabel('Currency', { exact: true }).fill('TRY');
+      await button('Physical', dialog()).click();
+      await dialog()
+        .getByLabel(/^Condition/)
+        .first()
+        .selectOption('Very Good');
+      await button('Save physical copy', dialog()).click();
+      await saved();
+      await button('Add Physical Copy').click();
+      await dialog().getByLabel('Copy identifier / inventory code').fill('Copy #2');
+      await dialog().getByLabel('Barcode', { exact: true }).fill('VERIFY-002');
+      await button('Location', dialog()).click();
+      await dialog()
+        .getByLabel('Shelf / location')
+        .selectOption({ label: 'Study / Bookcase 2 / Shelf 5' });
+      await button('Ownership', dialog()).click();
+      await dialog().getByLabel('Acquisition date', { exact: true }).fill('2026-02-03');
+      await dialog().getByLabel('Acquisition source', { exact: true }).fill('Second store');
+      await dialog().getByLabel('Purchase price', { exact: true }).fill('40');
+      await dialog().getByLabel('Currency', { exact: true }).fill('USD');
+      await dialog().getByLabel('Gift', { exact: true }).check();
+      await dialog().getByLabel('Gifted by').fill('Verification friend');
+      await button('Physical', dialog()).click();
+      await dialog()
+        .getByLabel(/^Condition/)
+        .first()
+        .selectOption('Poor');
+      await button('Save physical copy', dialog()).click();
+      await saved();
+      let current = await until((s) => s.books.length === 2, 'second physical copy');
+      const first = current.books.find((b) => b.id === originalId),
+        second = current.books.find((b) => b.id !== originalId);
+      assert.equal(first.condition, 'Very Good');
+      assert.equal(second.condition, 'Poor');
+      assert.equal(first.copy_extra.currency, 'TRY');
+      assert.equal(second.copy_extra.currency, 'USD');
+      assert.notEqual(first.location_id, second.location_id);
+      assert.equal(first.edition_id, second.edition_id);
+      assert.equal(second.current_page, 0);
+      assert.equal(second.status, 'Unread');
+      await button('Copies', page.locator('main .tabs')).click();
+      const card = page.getByRole('article', { name: 'Copy #2', exact: true });
+      await button('Loan', card).click();
+      await dialog().getByLabel('Borrower *').fill('Second copy borrower');
+      await button('Save', dialog()).click();
+      await saved();
+      await card.getByText('Lent to Second copy borrower', { exact: true }).waitFor();
+      await page
+        .getByRole('article', { name: 'Copy #1', exact: true })
+        .getByText('Owned', { exact: true })
+        .waitFor();
+      current = await snapshot();
+      assert.equal(current.loans.filter((l) => !l.returned_date).length, 1);
+      assert.equal(current.loans.find((l) => !l.returned_date).copy_id, second.id);
+      await button('Mark returned', card).click();
+      await until((s) => s.loans.every((l) => l.returned_date), 'second returned');
+      await button('Move', page.getByRole('article', { name: 'Copy #1', exact: true })).click();
+      await dialog()
+        .getByLabel('Shelf / location')
+        .selectOption({ label: 'Study / Bookcase 2 / Shelf 5' });
+      await button('Save physical copy', dialog()).click();
+      await saved();
+      assert((await snapshot()).books.every((b) => b.location_id === second.location_id));
+      await page.screenshot({ path: join(runDir, 'physical-copies.png') });
+    },
+  );
+  await check(
+    'occupied location deletion, empty removal and copy archive cancellation',
+    async () => {
+      await nav('Locations');
+      await selectPlace('Shelf 5');
+      await button('Remove location').click();
+      const confirm = page.getByRole('dialog', { name: 'Please confirm', exact: true });
+      await button('Continue', confirm).click();
+      await page.getByRole('alert').filter({ hasText: 'contains copies' }).waitFor();
+      assert.equal((await snapshot()).locations.length, 4);
+      await button('Dismiss').click();
+      await selectPlace('Shelf 4');
+      await button('Edit location').click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 4 renamed');
+      await button('Save', dialog()).click();
+      await saved();
+      await selectPlace('Shelf 4 renamed');
+      await button('Edit location').click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('Shelf 4');
+      await button('Save', dialog()).click();
+      await saved();
+      await button('Create Room').click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('Temporary empty room');
+      await button('Save', dialog()).click();
+      await saved();
+      await selectPlace('Temporary empty room');
+      await button('Remove location').click();
+      await button('Continue', confirm).click();
+      await until((s) => s.locations.length === 4, 'empty location removed');
+      await openFirst();
+      await button('Copies', page.locator('main .tabs')).click();
+      await button('Archive', page.getByRole('article', { name: 'Copy #2', exact: true })).click();
+      await button('Cancel', confirm).click();
+      assert.equal((await snapshot()).books.length, 2);
+      await button('Archive', page.getByRole('article', { name: 'Copy #2', exact: true })).click();
+      await button('Continue', confirm).click();
+      await until((s) => s.books.length === 1, 'copy archived without deleting its edition');
+      await nav('Trash');
+      await page.getByLabel('Select all', { exact: true }).check();
+      await button('Restore from Trash').click();
+      await button('Continue', confirm).click();
+      await until((s) => s.books.length === 2, 'physical copy restored');
+    },
+  );
   await check('grid, table, search, filters, sorting and bulk tag', async () => {
     await nav('Library');
     await page.getByLabel('table view').click();
@@ -329,13 +488,21 @@ try {
     await page.getByPlaceholder('Tag name').fill('Verified');
     await button('Apply').click();
     await until((s) => s.books.every((b) => b.terms.tag.includes('Verified')), 'bulk tag');
+    await page.getByLabel('Bulk operation').selectOption('location_id');
+    const shelf = (await snapshot()).locations.find((l) => l.name === 'Shelf 4');
+    await page.getByLabel('New location').selectOption(shelf.id);
+    await button('Apply').click();
+    await until(
+      (s) => s.books.every((b) => b.location_id === shelf.id),
+      'bulk move physical copies',
+    );
     await page.getByLabel('grid view').click();
     await page.locator('.book-card').first().click({ button: 'right' });
     await page.getByRole('menu').waitFor();
     await page.keyboard.press('Escape');
   });
   await check('JSON and CSV catalogue export use real file writes', async () => {
-    await nav('Import / Export');
+    await nav('Export CSV/JSON');
     for (const format of ['JSON', 'CSV']) {
       const path = join(runDir, `catalogue.${format.toLowerCase()}`);
       await fileChoice('save', path);
@@ -356,14 +523,67 @@ try {
       } else assert(text.includes('Verification Author'));
     }
   });
+  await check(
+    'JSON export imports into a clean library with shared editions; CSV round trip',
+    async () => {
+      const originalData = dataDir;
+      await close();
+      dataDir = join(runDir, 'clean-import-library');
+      await launch();
+      assert.equal((await snapshot()).books.length, 0);
+      await nav('Import CSV/JSON');
+      await fileChoice('open', join(runDir, 'catalogue.json'));
+      await button('Import CSV/JSON…').click();
+      await page.getByLabel(/Import 2 valid rows/).check();
+      await button('Confirm import').click();
+      let imported = await until((s) => s.books.length === 2, 'JSON imported');
+      assert.equal(imported.books[0].edition_id, imported.books[1].edition_id);
+      assert(
+        imported.books.every(
+          (b) =>
+            b.title === 'Verification — The Quiet Shelf' &&
+            b.publisher === 'Verification Press' &&
+            b.pages === 200,
+        ),
+      );
+      assert.deepEqual(imported.books.map((b) => b.condition).sort(), ['Poor', 'Very Good']);
+      assert.equal(imported.locations.length, 3);
+      assert(imported.locations.some((l) => l.extra.kind === 'Shelf'));
+      assert(
+        imported.books.some(
+          (b) => b.copy_extra.inventory_code === 'Copy #1' && b.copy_extra.currency === 'TRY',
+        ),
+      );
+      assert(
+        imported.books.some(
+          (b) => b.copy_extra.inventory_code === 'Copy #2' && b.copy_extra.currency === 'USD',
+        ),
+      );
+      await fileChoice('open', join(runDir, 'catalogue.csv'));
+      await button('Import CSV/JSON…').click();
+      await button('Validate & preview').click();
+      await page.getByLabel(/Import 2 valid rows/).check();
+      await button('Confirm import').click();
+      imported = await until((s) => s.books.length === 4, 'CSV round trip');
+      assert(
+        imported.books.every(
+          (b) => b.title === 'Verification — The Quiet Shelf' && b.pages === 200,
+        ),
+      );
+      await close();
+      dataDir = originalData;
+      await launch();
+    },
+  );
   await check('CSV mapping, invalid-row preview and transactional import', async () => {
+    await nav('Import CSV/JSON');
     const csv = join(runDir, 'import.csv');
     await writeFile(
       csv,
       'Name,Writer,Pages\nVerification Imported,Second Author,120\n,Invalid Author,bad\n',
     );
     await fileChoice('open', csv);
-    await button('Choose import file…').click();
+    await button('Import CSV/JSON…').click();
     await page.getByLabel(/^Name ·/).selectOption('title');
     await page.getByLabel(/^Writer ·/).selectOption('authors');
     await button('Validate & preview').click();
@@ -419,11 +639,22 @@ try {
   });
   await check('complete backup, reversible Trash and protected restore', async () => {
     const archive = join(runDir, 'library-backup.zip');
-    await nav('Backup');
+    await nav('Create Backup');
     await fileChoice('save', archive);
-    await button('Save backup archive…').click();
+    await button('Create Backup…').click();
     await page.getByText(`Backup saved to ${archive}`, { exact: true }).waitFor();
     assert((await stat(archive)).size > 1000);
+    await nav('Import CSV/JSON');
+    const manifest = join(runDir, 'manifest.json');
+    await writeFile(manifest, JSON.stringify({ application: 'MyLibrary', format: 1, schema: 1 }));
+    for (const wrongFile of [archive, manifest]) {
+      await fileChoice('open', wrongFile);
+      await button('Import CSV/JSON…').click();
+      await page.getByRole('alert').filter({ hasText: 'Use Restore Backup instead' }).waitFor();
+      assert.equal((await snapshot()).books.length, 3);
+      await button('Dismiss').click();
+    }
+
     await nav('Library');
     await page.getByLabel('Select all', { exact: true }).check();
     await button('Move to Trash').click();
@@ -440,17 +671,19 @@ try {
       page.getByRole('dialog', { name: 'Please confirm', exact: true }),
     ).click();
     await until((s) => s.books.length === 3, 'trash recovery');
-    await nav('Backup');
+    await nav('Create Backup');
+    await nav('Restore Backup');
     await fileChoice('open', archive);
-    await button('Choose backup…').click();
+    await button('Choose Backup ZIP…').click();
     await page.getByLabel('Type RESTORE to confirm replacing your current library').fill('RESTORE');
     await button('Validate & restore').click();
     await page.getByText(/Restore completed/).waitFor();
     const s = await snapshot();
     assert.equal(s.books.length, 3);
     assert.equal(s.entries.length, 3);
-    assert.equal(s.loans.length, 1);
+    assert.equal(s.loans.length, 2);
     assert.equal(s.attachments.length, 1);
+    assertCopyDetails(s);
     assert((await readdir(join(dataDir, 'backups'))).some((n) => n.startsWith('before-restore-')));
     await stat(join(dataDir, coverPath));
   });
@@ -483,8 +716,9 @@ try {
     const s = await snapshot();
     assert.equal(s.books.length, 3);
     assert.equal(s.entries.length, 3);
-    assert.equal(s.loans.length, 1);
+    assert.equal(s.loans.length, 2);
     assert.equal(s.attachments.length, 1);
+    assertCopyDetails(s);
     assert.equal(s.books.find((b) => b.id === originalId).cover, coverPath);
     assert.equal(s.settings.find((p) => p.key === 'currency').value, 'USD');
     await nav('Library');

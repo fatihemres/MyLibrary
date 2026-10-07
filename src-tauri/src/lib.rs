@@ -1,4 +1,5 @@
 pub mod backup;
+mod copies;
 pub mod db;
 mod metadata;
 use db::{Result, Store};
@@ -128,6 +129,11 @@ async fn database(
                     &PathBuf::from(db::s(&payload, "path")),
                     50 * 1024 * 1024,
                 )?;
+                if bytes.starts_with(b"PK\x03\x04") {
+                    return Err(
+                        "This appears to be a MyLibrary backup. Use Restore Backup instead.".into(),
+                    );
+                }
                 Ok(json!(String::from_utf8(bytes)?))
             }
             "write_text" => {

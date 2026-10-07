@@ -2,6 +2,8 @@ import { confirmAction } from './Confirmation';
 import { useState } from 'react';
 import {
   today,
+  copyName,
+  locationName,
   type Book,
   type Entity,
   type Entry,
@@ -17,6 +19,8 @@ export type RecordRequest = {
   entity?: Entity;
   entry?: Entry;
   loan?: Loan;
+  locationKind?: string;
+  locationParent?: Entity;
 };
 export function RecordDialog({
   request,
@@ -36,7 +40,11 @@ export function RecordDialog({
     ...entry,
     ...loan,
     copy_id: book?.id || entry?.copy_id || loan?.copy_id || '',
-    extra: { ...(entity?.extra || entry?.extra || {}) },
+    extra: {
+      ...(entity?.extra || entry?.extra || {}),
+      ...(request.locationKind ? { kind: request.locationKind } : {}),
+    },
+    parent_id: entity?.parent_id || request.locationParent?.id || '',
     kind: entry?.kind || entity?.kind || (isEntry ? type : 'text'),
     loan_date: loan?.loan_date || today(),
     name: entity?.name || '',
@@ -133,7 +141,8 @@ export function RecordDialog({
                 <option value="">Choose a book</option>
                 {data.books.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.title} · {b.id.slice(0, 8)}
+                    {b.title} · {copyName(b)} ·{' '}
+                    {locationName(b.location_id, data.locations) || 'Unassigned'}
                   </option>
                 ))}
               </select>
@@ -209,6 +218,16 @@ export function RecordDialog({
           {type === 'series' && input('notes', 'Series notes', 'textarea', true)}
           {type === 'locations' && (
             <>
+              <Field label="Location type">
+                <select
+                  value={String(extra.kind || 'Location')}
+                  onChange={(e) => set('extra', { ...extra, kind: e.target.value })}
+                >
+                  {['Home', 'Room', 'Bookcase', 'Shelf', 'Location'].map((kind) => (
+                    <option key={kind}>{kind}</option>
+                  ))}
+                </select>
+              </Field>
               <Field label="Parent location">
                 <select
                   value={String(values.parent_id || '')}
@@ -219,7 +238,7 @@ export function RecordDialog({
                     .filter((l) => l.id !== entity?.id)
                     .map((l) => (
                       <option key={l.id} value={l.id}>
-                        {l.name}
+                        {locationName(l.id, data.locations)}
                       </option>
                     ))}
                 </select>

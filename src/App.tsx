@@ -33,6 +33,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Library } from './pages/Library';
 import { Detail } from './pages/Detail';
 import { Explore } from './pages/Explore';
+import { Locations } from './pages/Locations';
 import { Personal } from './pages/Personal';
 import { DataPage, exportBooks } from './pages/DataPage';
 import { Settings } from './pages/Settings';
@@ -66,10 +67,22 @@ const navigation = [
     ],
   },
   {
+    label: 'DATA EXCHANGE',
+    items: [
+      ['Import CSV/JSON', ArrowLeftRight],
+      ['Export CSV/JSON', ArrowLeftRight],
+    ],
+  },
+  {
+    label: 'BACKUP & RECOVERY',
+    items: [
+      ['Create Backup', ShieldCheck],
+      ['Restore Backup', ShieldCheck],
+    ],
+  },
+  {
     label: 'YOUR DATA',
     items: [
-      ['Import / Export', ArrowLeftRight],
-      ['Backup', ShieldCheck],
       ['Trash', Trash2],
       ['Settings', SettingsIcon],
     ],
@@ -300,6 +313,7 @@ export default function App() {
                   onRecord={setRecord}
                   onAction={(f) => void action(f)}
                   onOpen={openBook}
+                  onReload={reload}
                 />
               ) : route === 'Dashboard' ? (
                 <Dashboard data={data} onOpen={openBook} onNavigate={navigate} />
@@ -316,7 +330,14 @@ export default function App() {
                   onExport={setExportSelection}
                   trash={route === 'Trash'}
                 />
-              ) : ['Authors', 'Series', 'Genres', 'Tags', 'Locations'].includes(route) ? (
+              ) : route === 'Locations' ? (
+                <Locations
+                  data={data}
+                  onOpen={openBook}
+                  onRecord={setRecord}
+                  onAction={(f) => void action(f)}
+                />
+              ) : ['Authors', 'Series', 'Genres', 'Tags'].includes(route) ? (
                 <Explore
                   key={route}
                   section={route}
@@ -333,13 +354,19 @@ export default function App() {
                   onOpen={openBook}
                   onAction={(f) => void action(f)}
                 />
-              ) : ['Import / Export', 'Backup'].includes(route) ? (
+              ) : [
+                  'Import CSV/JSON',
+                  'Export CSV/JSON',
+                  'Create Backup',
+                  'Restore Backup',
+                ].includes(route) ? (
                 <DataPage
                   key={route}
                   section={route}
                   data={data}
                   onAction={(f) => void action(f)}
                   onReload={reload}
+                  onNavigate={navigate}
                 />
               ) : (
                 <Settings data={data} onAction={(f) => void action(f)} onRecord={setRecord} />
