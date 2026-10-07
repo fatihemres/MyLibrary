@@ -1,3 +1,4 @@
+import { confirmAction } from './Confirmation';
 import { useState } from 'react';
 import {
   today,
@@ -9,7 +10,7 @@ import {
 } from '../domain/types';
 import { api } from '../services/api';
 import { Field, Modal } from './common';
-import {useUnsaved} from './useUnsaved';
+import { useUnsaved } from './useUnsaved';
 export type RecordRequest = {
   type: 'note' | 'quote' | 'reading' | 'loan' | 'people' | 'series' | 'locations' | 'custom_fields';
   book?: Book;
@@ -86,8 +87,8 @@ export function RecordDialog({
       )}
     </Field>
   );
-  const close = () => {
-    if (!dirty || window.confirm('Discard unsaved changes?')) onClose();
+  const close = async () => {
+    if (!dirty || (await confirmAction('Discard unsaved changes?'))) onClose();
   };
   const submit = async () => {
     setBusy(true);
@@ -125,6 +126,7 @@ export function RecordDialog({
             <Field label="Book">
               <select
                 required
+                disabled={!!entry || !!loan}
                 value={String(values.copy_id)}
                 onChange={(e) => set('copy_id', e.target.value)}
               >

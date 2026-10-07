@@ -1,3 +1,4 @@
+import { confirmAction } from './Confirmation';
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Save, Upload, X } from 'lucide-react';
 import {
@@ -12,10 +13,10 @@ import {
   type Snapshot,
 } from '../domain/types';
 import { copyFields, editionFields, type Field as FieldDef } from '../domain/fields';
-import { api, lookup, upload } from '../services/api';
+import { api, lookup, lookupCover, upload } from '../services/api';
 import { validateBook } from '../services/transfer';
 import { Cover, Field, Modal } from './common';
-import {useUnsaved} from './useUnsaved';
+import { useUnsaved } from './useUnsaved';
 export function BookEditor({
   initial,
   data,
@@ -40,7 +41,7 @@ export function BookEditor({
         },
   );
   const baseline = useRef(JSON.stringify(book));
-  useUnsaved(baseline.current!==JSON.stringify(book));
+  useUnsaved(baseline.current !== JSON.stringify(book));
   const [tab, setTab] = useState('General');
   const [full, setFull] = useState(!quick);
   const [error, setError] = useState('');
@@ -49,10 +50,10 @@ export function BookEditor({
   const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
   const [selectedMetadata, setSelectedMetadata] = useState<string[]>([]);
   const dup = duplicates(book, data.books);
-  const close = () => {
+  const close = async () => {
     if (
       baseline.current !== JSON.stringify(book) &&
-      !window.confirm('Discard your unsaved changes?')
+      !(await confirmAction('Discard your unsaved changes?'))
     )
       return;
     onClose();
@@ -60,7 +61,7 @@ export function BookEditor({
   const update = <K extends keyof Book>(key: K, value: Book[K]) =>
     setBook((b) => ({ ...b, [key]: value }));
   const save = async () => {
-    if(busy)return;
+    if (busy) return;
     const errors = validateBook(book);
     if (errors.length) {
       setError(errors.join('. '));
@@ -142,6 +143,7 @@ export function BookEditor({
   const simple = (key: keyof Book, label: string, type = 'text') => (
     <Field label={label}>
       <input
+        autoFocus={key === 'title'}
         type={type}
         step={key === 'rating' ? '0.5' : key === 'series_order' ? 'any' : undefined}
         value={String(book[key] ?? '')}
@@ -193,13 +195,16 @@ export function BookEditor({
       setBusy(false);
     }
   };
-  const applyMetadata = () => {
+  const applyMetadata = async () => {
     if (!metadata) return;
+    setBusy(true);
     const next = structuredClone(book);
     for (const key of selectedMetadata) {
       const val = metadata[key];
       if (key === 'title' && typeof val === 'string') next.title = val;
       if (key === 'subtitle' && typeof val === 'string') next.subtitle = val;
+      if (key === 'language' && typeof val === 'string') next.language = val;
+      if (key === 'description' && typeof val === 'string') next.extra.synopsis = val;
       if (key === 'number_of_pages' && typeof val === 'number') next.pages = val;
       if (key === 'authors' && Array.isArray(val))
         next.contributors = [
@@ -213,8 +218,17 @@ export function BookEditor({
         if (match) next.publication_year = Number(match[0]);
       }
     }
+    if (selectedMetadata.includes('cover')) {
+      try {
+        const bytes = await lookupCover(book.isbn13 || book.isbn10);
+        next.cover = await api<string>('cover', { name: 'isbn-cover.jpg', bytes });
+      } catch (e) {
+        setError(String(e));
+      }
+    }
     setBook(next);
     setMetadata(null);
+    setBusy(false);
   };
   return (
     <Modal
@@ -592,7 +606,17 @@ export function BookEditor({
               Selected fields replace the current form values. Nothing is saved until you save the
               book.
             </p>
-            {['title', 'subtitle', 'authors', 'publishers', 'publish_date', 'number_of_pages']
+            {[
+              'title',
+              'subtitle',
+              'authors',
+              'publishers',
+              'publish_date',
+              'number_of_pages',
+              'language',
+              'description',
+              'cover',
+            ]
               .filter((k) => metadata[k])
               .map((k) => (
                 <label className="metadata-row" key={k}>
@@ -610,17 +634,19 @@ export function BookEditor({
                   <span>
                     <strong>{k.replaceAll('_', ' ')}</strong>
                     <br />
-                    {Array.isArray(metadata[k])
-                      ? (metadata[k] as { name: string }[]).map((v) => v.name).join(', ')
-                      : String(metadata[k])}
+                    {k === 'cover'
+                      ? 'Download and use the Open Library cover as a managed local image'
+                      : Array.isArray(metadata[k])
+                        ? (metadata[k] as { name: string }[]).map((v) => v.name).join(', ')
+                        : String(metadata[k])}
                   </span>
                 </label>
               ))}
           </div>
           <footer>
             <button onClick={() => setMetadata(null)}>Cancel</button>
-            <button className="primary" onClick={applyMetadata}>
-              Apply selected fields
+            <button className="primary" disabled={busy} onClick={() => void applyMetadata()}>
+              {busy ? 'Applying…' : 'Apply selected fields'}
             </button>
           </footer>
         </Modal>

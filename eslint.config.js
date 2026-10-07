@@ -12,5 +12,5 @@ export default ts.config(
     plugins: { 'react-hooks': hooks },
     rules: { ...hooks.configs.recommended.rules },
   },
-  { files: ['*.js','scripts/*.mjs'], languageOptions: { globals: globals.node } },
+  { files: ['*.js', 'scripts/*.mjs'], languageOptions: { globals: globals.node } },
 );

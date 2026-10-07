@@ -1,3 +1,4 @@
+import { confirmAction, ConfirmationHost } from './components/Confirmation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BookOpen,
@@ -168,14 +169,14 @@ export default function App() {
   };
   const openBook = (b: Book) => setDetail(b.id);
   const selected = data?.books.find((b) => b.id === detail);
-  const bulk = (ids: string[], field: string, value: unknown) => {
+  const bulk = async (ids: string[], field: string, value: unknown) => {
     if (['trash', 'untrash'].includes(field)) {
       if (
-        !window.confirm(
+        !(await confirmAction(
           field === 'trash'
             ? `Move ${ids.length} copies to Trash? Their records and files will be retained.`
             : `Restore ${ids.length} copies from Trash?`,
-        )
+        ))
       )
         return;
       void action(() => api(field, { ids }));
@@ -183,6 +184,7 @@ export default function App() {
   };
   return (
     <div className={`app ${collapsed ? 'collapsed' : ''}`}>
+      <ConfirmationHost />
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">
@@ -382,7 +384,7 @@ export default function App() {
             <button
               onClick={() =>
                 void action(async () => {
-                  await exportBooks(exportSelection, 'csv');
+                  await exportBooks(exportSelection, 'csv', data || undefined);
                   setExportSelection(null);
                 })
               }
@@ -393,7 +395,7 @@ export default function App() {
               className="primary"
               onClick={() =>
                 void action(async () => {
-                  await exportBooks(exportSelection, 'json');
+                  await exportBooks(exportSelection, 'json', data || undefined);
                   setExportSelection(null);
                 })
               }

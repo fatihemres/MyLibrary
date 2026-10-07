@@ -12,7 +12,7 @@ import {
 } from '../services/transfer';
 import { today, type Book, type Snapshot } from '../domain/types';
 import { Field } from '../components/common';
-export async function exportBooks(books: Book[], format: 'csv' | 'json') {
+export async function exportBooks(books: Book[], format: 'csv' | 'json', data?: Snapshot) {
   const path = await save({
     defaultPath: `mylibrary-${today()}.${format}`,
     filters: [{ name: format.toUpperCase(), extensions: [format] }],
@@ -23,7 +23,33 @@ export async function exportBooks(books: Book[], format: 'csv' | 'json') {
       text:
         format === 'csv'
           ? exportCsv(books)
-          : JSON.stringify({ format: 'MyLibrary catalogue', version: 1, books }, null, 2),
+          : JSON.stringify(
+              {
+                format: 'MyLibrary catalogue',
+                version: 1,
+                books: books.map((b) => {
+                  const location: string[] = [];
+                  let id = b.location_id;
+                  const seen = new Set<string>();
+                  while (id && !seen.has(id)) {
+                    seen.add(id);
+                    const item = data?.locations.find((l) => l.id === id);
+                    if (!item) break;
+                    location.unshift(item.name);
+                    id = item.parent_id || '';
+                  }
+                  return {
+                    ...b,
+                    transfer: {
+                      location,
+                      fields: data?.fields.filter((f) => f.id in b.custom) || [],
+                    },
+                  };
+                }),
+              },
+              null,
+              2,
+            ),
     });
 }
 export function DataPage({
@@ -243,11 +269,13 @@ export function DataPage({
             Export all active books here, or use Library to export selected or filtered results.
           </p>
           <div className="inline">
-            <button onClick={() => onAction(() => exportBooks(data.books, 'csv'))}>
+            <button onClick={() => onAction(() => exportBooks(data.books, 'csv', data))}>
               <Download size={16} />
               CSV
             </button>
-            <button onClick={() => onAction(() => exportBooks(data.books, 'json'))}>JSON</button>
+            <button onClick={() => onAction(() => exportBooks(data.books, 'json', data))}>
+              JSON
+            </button>
           </div>
           <small className="block">
             Exports use a new filename to avoid overwriting existing files. JSON preserves nested

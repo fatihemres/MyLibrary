@@ -50,7 +50,12 @@ impl Store {
             );
         }
         if version < 1 {
-            if store.root.join("library.sqlite3").metadata()?.len() > 4096 {
+            let populated: bool = c.query_row(
+                "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table')",
+                [],
+                |r| r.get(0),
+            )?;
+            if populated {
                 c.backup(
                     "main",
                     store
@@ -114,6 +119,72 @@ impl Store {
             b["id"] = json!("");
             b["edition_id"] = json!("");
             b["cover"] = json!("");
+            if b["transfer"].is_object() {
+                let transfer = b["transfer"].clone();
+                let mut parent: Option<String> = None;
+                if let Some(path) = transfer["location"].as_array() {
+                    if path.len() > 50 {
+                        return Err("Location hierarchy is too deep.".into());
+                    }
+                    for name in path {
+                        let name = name
+                            .as_str()
+                            .ok_or("Invalid location name in import")?
+                            .trim();
+                        if name.is_empty() {
+                            return Err("Imported location names cannot be empty.".into());
+                        }
+                        let existing:Option<String>=tx.query_row("SELECT id FROM locations WHERE name=? COLLATE NOCASE AND parent_id IS ?",params![name,parent],|r|r.get(0)).optional()?;
+                        let key = existing.unwrap_or_else(id);
+                        tx.execute(
+                            "INSERT OR IGNORE INTO locations(id,name,parent_id) VALUES(?,?,?)",
+                            params![key, name, parent],
+                        )?;
+                        parent = Some(key);
+                    }
+                }
+                b["location_id"] = json!(parent.unwrap_or_default());
+                let mut values = json!({});
+                if let Some(fields) = transfer["fields"].as_array() {
+                    for field in fields {
+                        let old = s(field, "id");
+                        let value = b["custom"][old].clone();
+                        if value.is_null() {
+                            continue;
+                        }
+                        let existing: Option<(String, String)> = tx
+                            .query_row(
+                                "SELECT id,kind FROM custom_fields WHERE name=? COLLATE NOCASE",
+                                [s(field, "name")],
+                                |r| Ok((r.get(0)?, r.get(1)?)),
+                            )
+                            .optional()?;
+                        let key = if let Some((key, kind)) = existing {
+                            if kind != s(field, "kind") {
+                                return Err(format!("The custom field '{}' already exists with a different type. Rename the imported field or use a full backup restore.",s(field,"name")).into());
+                            }
+                            key
+                        } else {
+                            let mut definition = field.clone();
+                            definition["id"] = json!(id());
+                            definition["table"] = json!("custom_fields");
+                            save_entity(&tx, &definition)?;
+                            s(&definition, "id").to_owned()
+                        };
+                        values[key] = value;
+                    }
+                }
+                if let Some(old) = b["custom"].as_object() {
+                    let defined = transfer["fields"]
+                        .as_array()
+                        .map(|f| f.iter().map(|f| s(f, "id")).collect::<Vec<_>>())
+                        .unwrap_or_default();
+                    if old.keys().any(|key| !defined.contains(&key.as_str())) {
+                        return Err("The JSON catalogue is missing a custom field definition. Use a complete catalogue export or ZIP backup.".into());
+                    }
+                }
+                b["custom"] = values;
+            }
             save_book(&tx, &b)?;
         }
         reindex(&tx)?;
@@ -183,6 +254,14 @@ impl Store {
                 tx.execute("DELETE FROM entries WHERE id=?", [s(v, "id")])?;
             }
             "loan" => {
+                let active_copy: bool = tx.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM copies WHERE id=? AND deleted_at IS NULL)",
+                    [s(v, "copy_id")],
+                    |r| r.get(0),
+                )?;
+                if !active_copy {
+                    return Err("Restore this book from Trash before lending it.".into());
+                }
                 let date = s(v, "loan_date");
                 check_date(date)?;
                 for k in ["due_date", "returned_date"] {
@@ -195,7 +274,7 @@ impl Store {
                 } else {
                     s(v, "id").into()
                 };
-                tx.execute("INSERT INTO loans(id,copy_id,borrower,contact,loan_date,due_date,returned_date,notes) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET borrower=excluded.borrower,contact=excluded.contact,due_date=excluded.due_date,returned_date=excluded.returned_date,notes=excluded.notes",params![key,s(v,"copy_id"),s(v,"borrower"),s(v,"contact"),date,s(v,"due_date"),s(v,"returned_date"),s(v,"notes")])?;
+                tx.execute("INSERT INTO loans(id,copy_id,borrower,contact,loan_date,due_date,returned_date,notes) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET borrower=excluded.borrower,contact=excluded.contact,loan_date=excluded.loan_date,due_date=excluded.due_date,returned_date=excluded.returned_date,notes=excluded.notes",params![key,s(v,"copy_id"),s(v,"borrower"),s(v,"contact"),date,s(v,"due_date"),s(v,"returned_date"),s(v,"notes")])?;
             }
             "return" => {
                 check_date(s(v, "date"))?;
@@ -210,12 +289,15 @@ impl Store {
                 }
             }
             "bulk" => {
+                let books: std::collections::HashMap<String, Value> = list(&tx, false)?
+                    .into_iter()
+                    .map(|b| (s(&b, "id").to_owned(), b))
+                    .collect();
                 for key in v["ids"].as_array().ok_or("Select books")? {
-                    let books = list(&tx, false)?;
                     let mut b = books
-                        .into_iter()
-                        .find(|b| b["id"] == *key)
-                        .ok_or("Book not found")?;
+                        .get(key.as_str().ok_or("Invalid book identifier")?)
+                        .ok_or("Book not found")?
+                        .clone();
                     match s(v, "field") {
                         "status" | "location_id" | "favorite" => {
                             b[s(v, "field")] = v["value"].clone();
@@ -342,6 +424,25 @@ fn save_entity(c: &Connection, v: &Value) -> Result<()> {
         if old.as_deref().is_some_and(|k| k != s(v, "kind")) {
             return Err("Field types cannot be changed after creation; create a new field to preserve existing values.".into());
         }
+        if s(v, "kind") == "dropdown" {
+            let options: Vec<&str> = s(&extra, "options")
+                .split('|')
+                .map(str::trim)
+                .filter(|v| !v.is_empty())
+                .collect();
+            if options.is_empty() {
+                return Err("Add at least one dropdown option.".into());
+            }
+            let mut statement = c.prepare(
+                "SELECT DISTINCT value FROM custom_values WHERE field_id=? AND value<>''",
+            )?;
+            for value in statement.query_map([&key], |row| row.get::<_, String>(0))? {
+                let value = value?;
+                if !options.contains(&value.as_str()) {
+                    return Err(format!("The option '{value}' is used by a book. Keep it in the dropdown to preserve that book's value.").into());
+                }
+            }
+        }
         c.execute("INSERT INTO custom_fields(id,name,kind,extra) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,extra=excluded.extra",params![key,name,s(v,"kind"),extra.to_string()])?;
     } else {
         c.execute(&format!("INSERT INTO {table}(id,name,extra) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,extra=excluded.extra"),params![key,name,extra.to_string()])?;
@@ -413,7 +514,9 @@ pub fn save_book(c: &Connection, b: &Value) -> Result<String> {
             })
             .map_err(|_| "The book no longer exists. Refresh the library before saving.")?;
         if existing != edition {
-            return Err("A copy cannot be reassigned to a different edition during editing.".into());
+            return Err(
+                "A copy cannot be reassigned to a different edition during editing.".into(),
+            );
         }
     }
     let pages = b["pages"].as_i64();

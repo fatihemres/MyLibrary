@@ -86,33 +86,72 @@ export function validateBook(b: Book): string[] {
     if (b[key] !== null && !Number.isFinite(b[key])) errors.push(`${key} must be a number`);
   }
   if ((b.pages ?? 0) < 0 || b.current_page < 0) errors.push('Page counts cannot be negative');
-  for(const key of ['pages','publication_year','current_page'] as const) {
-    if(b[key]!==null&&!Number.isInteger(b[key]))errors.push(`${key} must be a whole number`);
+  for (const key of ['pages', 'publication_year', 'current_page'] as const) {
+    if (b[key] !== null && !Number.isInteger(b[key])) errors.push(`${key} must be a whole number`);
   }
-  if(!statuses.includes(b.status))errors.push('Unknown reading status');
-  if(!conditions.includes(b.condition))errors.push('Unknown physical condition');
+  if (!statuses.includes(b.status)) errors.push('Unknown reading status');
+  if (!conditions.includes(b.condition)) errors.push('Unknown physical condition');
   if (b.pages !== null && b.current_page > b.pages) errors.push('Current page exceeds total pages');
   if (b.rating !== null && (b.rating < 0 || b.rating > 5 || (b.rating * 2) % 1))
     errors.push('Rating must be 0–5 in half-star increments');
-  for(const [label,date] of [['Acquisition date',b.acquisition_date],['Start date',b.copy_extra.date_started],['Finish date',b.copy_extra.date_finished]]) {
-    if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(String(date))||!Number.isFinite(Date.parse(String(date)))||new Date(String(date)).toISOString().slice(0,10)!==date))errors.push(`${label} must be a valid YYYY-MM-DD date`);
+  for (const [label, date] of [
+    ['Acquisition date', b.acquisition_date],
+    ['Start date', b.copy_extra.date_started],
+    ['Finish date', b.copy_extra.date_finished],
+  ]) {
+    if (
+      date &&
+      (!/^\d{4}-\d{2}-\d{2}$/.test(String(date)) ||
+        !Number.isFinite(Date.parse(String(date))) ||
+        new Date(String(date)).toISOString().slice(0, 10) !== date)
+    )
+      errors.push(`${label} must be a valid YYYY-MM-DD date`);
   }
   return errors;
 }
 export function preview(books: Book[], existing: Book[]) {
-  return books.map((book, i) => ({
-    book,
-    row: i + 1,
-    errors: validateBook(book),
-    duplicates: duplicates(book, [...existing, ...books.slice(0, i)]),
-  }));
+  const index = new Map<string, Book[]>();
+  const keys = (b: Book) =>
+    [
+      b.isbn10 && `isbn10:${b.isbn10.replace(/[-\s]/g, '').toLowerCase()}`,
+      b.isbn13 && `isbn13:${b.isbn13.replace(/[-\s]/g, '').toLowerCase()}`,
+      b.barcode && `barcode:${b.barcode}`,
+      b.title.trim() &&
+        `title:${b.title.trim().toLowerCase()}|${b.contributors
+          .filter((p) => p.role === 'Author')
+          .map((p) => p.name)
+          .join(', ')
+          .toLowerCase()}`,
+    ].filter(Boolean);
+  const add = (b: Book) => {
+    for (const key of keys(b)) {
+      const values = index.get(key) || [];
+      values.push(b);
+      index.set(key, values);
+    }
+  };
+  existing.forEach(add);
+  return books.map((book, i) => {
+    const candidates = [...new Set(keys(book).flatMap((k) => index.get(k) || []))];
+    const result = {
+      book,
+      row: i + 1,
+      errors: validateBook(book),
+      duplicates: duplicates(book, candidates),
+    };
+    add(book);
+    return result;
+  });
 }
 export function exportCsv(books: Book[]) {
   return Papa.unparse(
     books.map((b) => ({
       title: b.title,
       subtitle: b.subtitle,
-      authors: b.contributors.filter(p=>p.role==='Author').map(p=>p.name).join(';'),
+      authors: b.contributors
+        .filter((p) => p.role === 'Author')
+        .map((p) => p.name)
+        .join(';'),
       translators: b.contributors
         .filter((p) => p.role === 'Translator')
         .map((p) => p.name)
@@ -146,21 +185,55 @@ export function parseJson(text: string): Book[] {
   const values = Array.isArray(data) ? data : (data as { books?: unknown[] })?.books;
   if (!Array.isArray(values))
     throw new Error('Expected a JSON array or an object containing books.');
-  return values.map((v,index) => {
-    const fail=(detail:string):never=>{throw new Error(`JSON row ${index+1}: ${detail}`);};
-    if (!v || typeof v !== 'object'||Array.isArray(v)) return fail('Each book must be an object.');
-    const record=v as Record<string,unknown>;
-    const base=emptyBook();
-    for(const [key,defaultValue] of Object.entries(base)){
-      if(typeof defaultValue==='string'&&key in record&&typeof record[key]!=='string')fail(`${key} must be text.`);
+  return values.map((v, index) => {
+    const fail = (detail: string): never => {
+      throw new Error(`JSON row ${index + 1}: ${detail}`);
+    };
+    if (!v || typeof v !== 'object' || Array.isArray(v))
+      return fail('Each book must be an object.');
+    const record = v as Record<string, unknown>;
+    const base = emptyBook();
+    for (const [key, defaultValue] of Object.entries(base)) {
+      if (typeof defaultValue === 'string' && key in record && typeof record[key] !== 'string')
+        fail(`${key} must be text.`);
     }
-    for(const key of ['extra','copy_extra','custom','terms']){
-      if(key in record&&(!record[key]||typeof record[key]!=='object'||Array.isArray(record[key])))fail(`${key} must be an object.`);
+    for (const key of ['extra', 'copy_extra', 'custom', 'terms']) {
+      if (
+        key in record &&
+        (!record[key] || typeof record[key] !== 'object' || Array.isArray(record[key]))
+      )
+        fail(`${key} must be an object.`);
     }
-    if(record.contributors!==undefined&&(!Array.isArray(record.contributors)||record.contributors.some(p=>!p||typeof p.name!=='string'||typeof p.role!=='string')))fail('Contributors must contain names and roles.');
-    if(record.terms&&Object.values(record.terms).some(v=>!Array.isArray(v)||v.some(t=>typeof t!=='string')))fail('Classifications must be lists of text.');
-    for(const key of ['extra','copy_extra'])if(record[key]&&Object.values(record[key]).some(v=>!['string','number','boolean'].includes(typeof v)))fail(`${key} contains an invalid value.`);
-    if(record.custom&&Object.values(record.custom).some(v=>typeof v!=='string'))fail('Custom values must be text.');
-    return { ...base, ...record,terms:{...base.terms,...record.terms as Book['terms']}, id: '', edition_id: '', cover: '' } as Book;
+    if (
+      record.contributors !== undefined &&
+      (!Array.isArray(record.contributors) ||
+        record.contributors.some(
+          (p) => !p || typeof p.name !== 'string' || typeof p.role !== 'string',
+        ))
+    )
+      fail('Contributors must contain names and roles.');
+    if (
+      record.terms &&
+      Object.values(record.terms).some(
+        (v) => !Array.isArray(v) || v.some((t) => typeof t !== 'string'),
+      )
+    )
+      fail('Classifications must be lists of text.');
+    for (const key of ['extra', 'copy_extra'])
+      if (
+        record[key] &&
+        Object.values(record[key]).some((v) => !['string', 'number', 'boolean'].includes(typeof v))
+      )
+        fail(`${key} contains an invalid value.`);
+    if (record.custom && Object.values(record.custom).some((v) => typeof v !== 'string'))
+      fail('Custom values must be text.');
+    return {
+      ...base,
+      ...record,
+      terms: { ...base.terms, ...(record.terms as Book['terms']) },
+      id: '',
+      edition_id: '',
+      cover: '',
+    } as Book;
   });
 }

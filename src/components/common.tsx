@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, X } from 'lucide-react';
 import type { Book } from '../domain/types';
 import { api } from '../services/api';
@@ -14,6 +14,7 @@ export function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const el = ref.current;
     const previous = document.activeElement as HTMLElement;
@@ -26,6 +27,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
+      aria-labelledby={titleId}
       className={wide ? 'modal wide' : 'modal'}
       onCancel={(e) => {
         e.preventDefault();
@@ -33,7 +35,7 @@ export function Modal({
       }}
     >
       <header>
-        <h2>{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button className="icon" onClick={onClose} aria-label="Close dialog">
           <X size={20} />
         </button>

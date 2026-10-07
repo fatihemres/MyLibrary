@@ -2,5 +2,11 @@
   "identifier": "default",
   "description": "Local desktop window and file selection",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open", "dialog:allow-save"]
+  "permissions": [
+    "core:default",
+    "core:window:allow-destroy",
+    "core:window:allow-close",
+    "dialog:allow-open",
+    "dialog:allow-save"
+  ]
 }

@@ -14,7 +14,8 @@
     "desktop:build": "node scripts/desktop.mjs build",
     "desktop:verify": "node scripts/desktop.mjs verify",
     "test:rust": "node scripts/rust-test.mjs",
-    "format": "prettier --write src scripts *.json *.js *.ts *.md src-tauri/*.json src-tauri/capabilities/*.json"
+    "format": "prettier --write src scripts *.json *.js *.ts *.md src-tauri/*.json src-tauri/capabilities/*.json",
+    "test:desktop": "node scripts/desktop-smoke.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
@@ -35,6 +36,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.0.0",
+    "playwright-core": "^1.63.0",
     "prettier": "^3.9.9",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.0.0",

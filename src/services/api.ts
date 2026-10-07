@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+export const lookupCover = (isbn: string) => invoke<number[]>('isbn_cover', { isbn });
 import type { Snapshot } from '../domain/types';
 export const api = <T = unknown>(action: string, payload: unknown = {}): Promise<T> =>
   invoke('database', { action, payload });

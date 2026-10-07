@@ -1,3 +1,4 @@
+import { confirmAction } from '../components/Confirmation';
 import { useState } from 'react';
 import { ArrowLeft, Edit3, Plus, Star, Trash2 } from 'lucide-react';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -287,8 +288,10 @@ export function Detail({
                       </button>
                       <button
                         className="danger-text"
-                        onClick={() => {
-                          if (window.confirm('Delete this entry? This action cannot be undone.'))
+                        onClick={async () => {
+                          if (
+                            await confirmAction('Delete this entry? This action cannot be undone.')
+                          )
                             onAction(() => api('delete_entry', { id: e.id }));
                         }}
                       >
@@ -407,9 +410,11 @@ export function Detail({
             </section>
             <button
               className="danger-text"
-              onClick={() => {
+              onClick={async () => {
                 if (
-                  window.confirm('Move this copy to Trash? Its records and files will be retained.')
+                  await confirmAction(
+                    'Move this copy to Trash? Its records and files will be retained.',
+                  )
                 )
                   onAction(async () => {
                     await api('trash', { ids: [b.id] });

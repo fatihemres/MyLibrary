@@ -277,3 +277,51 @@ fn automatic_backup_due_only_and_bulk_transaction() {
     assert!(s.automatic_backup().unwrap().is_some());
     assert!(s.automatic_backup().unwrap().is_none());
 }
+
+#[test]
+fn portable_catalogue_recreates_locations_and_custom_fields() {
+    let (_d, s) = store();
+    let mut b = book("Portable catalogue");
+    b["location_id"] = json!("source-machine-location");
+    b["custom"] = json!({"source-machine-field":"Istanbul"});
+    b["transfer"] = json!({"location":["Study","Bookcase 2","Shelf 4"],"fields":[{"id":"source-machine-field","name":"Bought in city","kind":"text","extra":{}}]});
+    s.import(&[b.clone(), b]).unwrap();
+    let snap = s.snapshot("", false).unwrap();
+    assert_eq!(snap["locations"].as_array().unwrap().len(), 3);
+    assert_eq!(snap["fields"].as_array().unwrap().len(), 1);
+    let field = snap["fields"][0]["id"].as_str().unwrap();
+    assert_ne!(field, "source-machine-field");
+    assert_eq!(snap["books"][0]["custom"][field], "Istanbul");
+    assert_eq!(
+        snap["books"][0]["location_id"],
+        snap["books"][1]["location_id"]
+    );
+}
+
+#[test]
+fn exclusive_lock_and_trashed_loan_protect_library() {
+    let (d, s) = store();
+    assert!(Store::open(d.path().join("library")).is_err());
+    let key = s.save(&book("Archived copy")).unwrap();
+    s.mutate("trash", &json!({"ids":[key]})).unwrap();
+    assert!(s
+        .mutate(
+            "loan",
+            &json!({"copy_id":key,"borrower":"Test borrower","loan_date":"2026-10-06"})
+        )
+        .is_err());
+}
+
+#[test]
+fn dropdown_definition_cannot_invalidate_saved_values() {
+    let (_d, s) = store();
+    s.mutate("entity", &json!({"table":"custom_fields","id":"city","name":"City","kind":"dropdown","extra":{"options":"Ankara|Istanbul"}})).unwrap();
+    let mut b = book("Keep custom value");
+    b["custom"] = json!({"city":"Istanbul"});
+    s.save(&b).unwrap();
+    assert!(s.mutate("entity", &json!({"table":"custom_fields","id":"city","name":"City","kind":"dropdown","extra":{"options":"Ankara"}})).is_err());
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"][0]["custom"]["city"],
+        "Istanbul"
+    );
+}

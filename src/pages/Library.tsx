@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowDownUp, Columns3, Grid2X2, List, SlidersHorizontal, Star } from 'lucide-react';
 import {
   author,
@@ -50,8 +50,23 @@ export function Library({
   const [showColumns, setShowColumns] = useState(false);
   const [bulkValue, setBulkValue] = useState('');
   const [bulkField, setBulkField] = useState('status');
+  const [page, setPage] = useState(1);
+  const [menu, setMenu] = useState<{ book: Book; x: number; y: number } | null>(null);
+  useEffect(() => {
+    const close = () => setMenu(null);
+    window.addEventListener('click', close);
+    window.addEventListener('keydown', close);
+    return () => {
+      window.removeEventListener('click', close);
+      window.removeEventListener('keydown', close);
+    };
+  }, []);
   const books = filterBooks(data, filters, sort, desc);
-  const ids = selected.filter((id) => books.some((b) => b.id === id));
+  const bookIds = new Set(books.map((b) => b.id));
+  const ids = selected.filter((id) => bookIds.has(id));
+  const pages = Math.max(1, Math.ceil(books.length / 60));
+  const currentPage = Math.min(page, pages);
+  const visible = books.slice((currentPage - 1) * 60, currentPage * 60);
   const setFilter = (key: string, value: string) => setFilters({ ...filters, [key]: value });
   const toggle = (id: string) =>
     setSelected(selected.includes(id) ? selected.filter((v) => v !== id) : [...selected, id]);
@@ -384,13 +399,18 @@ export function Library({
         </Empty>
       ) : view === 'grid' ? (
         <div className="book-grid">
-          {books.map((b) => (
+          {visible.map((b) => (
             <article
               key={b.id}
               className={`book-card ${ids.includes(b.id) ? 'is-selected' : ''}`}
               onContextMenu={(e) => {
                 e.preventDefault();
                 setSelected([b.id]);
+                setMenu({
+                  book: b,
+                  x: Math.min(e.clientX, window.innerWidth - 220),
+                  y: Math.min(e.clientY, window.innerHeight - 200),
+                });
               }}
             >
               <div className="card-cover">
@@ -449,12 +469,17 @@ export function Library({
               </tr>
             </thead>
             <tbody>
-              {books.map((b) => (
+              {visible.map((b) => (
                 <tr
                   key={b.id}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setSelected([b.id]);
+                    setMenu({
+                      book: b,
+                      x: Math.min(e.clientX, window.innerWidth - 220),
+                      y: Math.min(e.clientY, window.innerHeight - 200),
+                    });
                   }}
                 >
                   <td>
@@ -477,6 +502,42 @@ export function Library({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {books.length > 60 && (
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {pages} · 60 per page
+          </span>
+          <button disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>
+            Next
+          </button>
+        </div>
+      )}
+      {menu && (
+        <div className="context-menu" role="menu" style={{ left: menu.x, top: menu.y }}>
+          <button role="menuitem" onClick={() => onOpen(menu.book)}>
+            Open book details
+          </button>
+          <button
+            role="menuitem"
+            onClick={() => onBulk([menu.book.id], 'favorite', !menu.book.favorite)}
+          >
+            {menu.book.favorite ? 'Remove favorite' : 'Mark favorite'}
+          </button>
+          <button role="menuitem" onClick={() => onExport([menu.book])}>
+            Export this copy…
+          </button>
+          <button
+            role="menuitem"
+            className="danger-text"
+            onClick={() => onBulk([menu.book.id], trash ? 'untrash' : 'trash', null)}
+          >
+            {trash ? 'Restore from Trash' : 'Move to Trash…'}
+          </button>
         </div>
       )}
     </>

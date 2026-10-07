@@ -1,13 +1,17 @@
 pub mod backup;
 pub mod db;
+mod metadata;
 use db::{Result, Store};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};
 use tauri::Manager;
-struct State { store: Mutex<Option<Store>>, startup_error: Option<String> }
+struct State {
+    store: Mutex<Option<Store>>,
+    startup_error: Option<String>,
+}
 #[tauri::command]
 async fn database(
-    state: tauri::State<State>,
+    state: tauri::State<'_, State>,
     action: String,
     payload: Value,
 ) -> std::result::Result<Value, String> {
@@ -16,7 +20,12 @@ async fn database(
             .store
             .lock()
             .map_err(|_| "The library is busy. Restart the application.")?;
-        let store = guard.as_ref().ok_or_else(||state.startup_error.as_deref().unwrap_or("The library could not be opened. Restart the application."))?;
+        let store = guard.as_ref().ok_or_else(|| {
+            state
+                .startup_error
+                .as_deref()
+                .unwrap_or("The library could not be opened. Restart the application.")
+        })?;
         match action.as_str() {
             "snapshot" => store.snapshot(
                 db::s(&payload, "query"),
@@ -143,44 +152,6 @@ async fn database(
     };
     work().map_err(|e| e.to_string())
 }
-#[tauri::command]
-async fn isbn_lookup(isbn: String) -> std::result::Result<Value, String> {
-    let isbn: String = isbn
-        .chars()
-        .filter(|c| *c != '-' && !c.is_whitespace())
-        .collect();
-    if ![10, 13].contains(&isbn.len()) || !isbn.chars().all(|c| c.is_ascii_digit() || c == 'X') {
-        return Err("Enter an ISBN-10 or ISBN-13.".into());
-    }
-    let result = async {
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(12))
-            .user_agent("MyLibrary/1.0 (optional user-requested ISBN lookup)")
-            .build()?;
-        let data: Value = client
-            .get("https://openlibrary.org/api/books")
-            .query(&[
-                ("bibkeys", format!("ISBN:{isbn}")),
-                ("format", "json".into()),
-                ("jscmd", "data".into()),
-            ])
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        Ok::<_, reqwest::Error>(data)
-    }
-    .await
-    .map_err(|e| {
-        format!("Metadata lookup was unavailable. You can continue entering the book manually. {e}")
-    })?;
-    let record = &result[format!("ISBN:{isbn}")];
-    if record.is_null() {
-        return Err("No metadata was found for this ISBN. You can enter the book manually.".into());
-    }
-    Ok(record.clone())
-}
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -188,11 +159,21 @@ pub fn run() {
             let root = std::env::var_os("MYLIBRARY_DATA_DIR")
                 .map(PathBuf::from)
                 .unwrap_or(app.path().app_data_dir()?);
-            let (store,startup_error)=match Store::open(root){Ok(store)=>(Some(store),None),Err(error)=>(None,Some(error.to_string()))};
-            app.manage(State {store:Mutex::new(store),startup_error});
+            let (store, startup_error) = match Store::open(root) {
+                Ok(store) => (Some(store), None),
+                Err(error) => (None, Some(error.to_string())),
+            };
+            app.manage(State {
+                store: Mutex::new(store),
+                startup_error,
+            });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![database, isbn_lookup])
+        .invoke_handler(tauri::generate_handler![
+            database,
+            metadata::isbn_lookup,
+            metadata::isbn_cover
+        ])
         .run(tauri::generate_context!())
         .expect("MyLibrary could not start");
 }
