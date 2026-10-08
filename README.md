@@ -111,6 +111,10 @@ CSV contains common catalogue columns, with `location_path` encoded as a JSON ar
 
 ## Physical copies and locations
 
+Library grid and table show one entry per edition, with a total active-copy label such as **2 copies**. Different editions with the same title stay separate. Search and filters operate on physical copies first, then group matching editions; all selected criteria must match the same copy. A filtered card may show **2 copies · 1 matching**. Mixed reading states are labeled explicitly. Opening an entry still exposes all its individual copies in **Copies**. No copy records are merged.
+
+Selecting an edition selects its matching copies for bulk operations and export; the selection bar reports the copy count. Filtered-out copies are unaffected. Trash remains copy-based for individual recovery. Dashboard **Finished**, **Unread**, **Currently Reading**, **Want to Read** and **Favorites** open the corresponding filtered view without changing their existing counts.
+
 Open a book's **Copies** tab to add, view, edit, move, lend, return or archive each copy. Copy identifiers default to readable **Copy #1**, **Copy #2**, etc.; you can enter your own inventory code. Each copy independently stores barcode, condition, acquisition source/date/price/currency, gift details, shelf position, location notes and personal notes. Owned and Missing states are editable; Lent is derived from the active loan. Archiving requires confirmation and is reversible in Trash. Copy attachments are managed through **View copy → Attachments**.
 
 **Locations** supports Home/Library → Room → Bookcase → Shelf, with rooms also allowed at the root. Create and rename locations, browse their copies and move selected library copies using **Move Location**. Copies may remain unassigned. Locations containing children or copies (including archived copies) cannot be deleted; move the copies and remove empty children first. Existing untyped locations remain usable and editable.

@@ -55,7 +55,7 @@ export function Dashboard({
       <div className="stats">
         {[
           ['Total books', books.length, 'Library'],
-          ['Finished', books.filter((b) => b.status === 'Finished').length, 'Library'],
+          ['Finished', books.filter((b) => b.status === 'Finished').length, 'Finished'],
           ['Currently reading', reading.length, 'Currently Reading'],
           ['On loan', active.length, 'Loans'],
         ].map(([label, n, route]) => (
@@ -68,7 +68,7 @@ export function Dashboard({
       <div className="secondary-stats" aria-label="More library statistics">
         {[
           ['Pages', books.reduce((n, b) => n + (b.pages || 0), 0), 'Library'],
-          ['Unread', books.filter((b) => b.status === 'Unread').length, 'Library'],
+          ['Unread', books.filter((b) => b.status === 'Unread').length, 'Unread'],
           ['Want to read', books.filter((b) => b.status === 'Want to Read').length, 'Want to Read'],
           ['Overdue', active.filter((l) => l.due_date && l.due_date < today()).length, 'Loans'],
           ['Favorites', books.filter((b) => b.favorite).length, 'Favorites'],

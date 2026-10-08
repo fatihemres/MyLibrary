@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { duplicates, emptyBook, locationName, progress, type Snapshot } from './types';
-import { filterBooks } from './filter';
+import { editionCards, filterBooks, navigationFilters } from './filter';
 import {
   exportCsv,
   exportJson,
@@ -11,6 +11,47 @@ import {
   validateBook,
 } from '../services/transfer';
 describe('library domain', () => {
+  it('routes status metrics to their existing copy filters', () => {
+    expect(navigationFilters('Finished')).toEqual({ status: 'Finished' });
+    expect(navigationFilters('Unread')).toEqual({ status: 'Unread' });
+    expect(navigationFilters('Currently Reading')).toEqual({ status: 'Reading' });
+    expect(navigationFilters('Want to Read')).toEqual({ status: 'Want to Read' });
+    expect(navigationFilters('Favorites')).toEqual({ favorite: 'yes' });
+  });
+  it('groups matching copies by edition while retaining distinct editions and export records', () => {
+    const a = {
+      ...emptyBook(),
+      id: 'a',
+      edition_id: 'one',
+      title: 'Same title',
+      status: 'Finished',
+      location_id: 'study',
+    };
+    const b = { ...a, id: 'b', status: 'Unread', location_id: 'other' };
+    const c = { ...a, id: 'c', edition_id: 'two' };
+    const data = { books: [a, b, c], loans: [], locations: [] } as unknown as Snapshot;
+    expect(editionCards(data.books, data.books).map((b) => b.copyCount)).toEqual([2, 1]);
+    expect(editionCards(data.books, data.books)[0].readingLabel).toBe('Mixed reading statuses');
+    const filtered = filterBooks(
+      data,
+      { status: 'Finished', location_id: 'study' },
+      'title',
+      false,
+    );
+    const cards = editionCards(filtered, data.books);
+    expect(cards).toHaveLength(2);
+    expect(cards[0].matchingIds).toEqual(['a']);
+    expect(cards[0].copyCount).toBe(2);
+    expect(cards[0].readingLabel).toBe('Finished');
+    expect(
+      editionCards(filterBooks(data, { status: 'Reading' }, 'title', false), data.books),
+    ).toEqual([]);
+    expect(
+      editionCards(filterBooks({ ...data, searchIds: ['a', 'b'] }, {}, 'title', false), data.books),
+    ).toHaveLength(1);
+    expect(editionCards(data.books, data.books, true)).toHaveLength(3);
+    expect(data.books).toHaveLength(3);
+  });
   it('calculates progress safely', () => {
     const b = emptyBook();
     expect(progress(b)).toBe(0);

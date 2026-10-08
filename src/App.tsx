@@ -24,7 +24,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import type { Book, Snapshot } from './domain/types';
-import type { Filters } from './domain/filter';
+import { navigationFilters, type Filters } from './domain/filter';
 import { api, snapshot } from './services/api';
 import { BookEditor } from './components/BookEditor';
 import { RecordDialog, type RecordRequest } from './components/RecordDialog';
@@ -169,18 +169,10 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, [editor, record]);
   const navigate = (view: string) => {
-    setRoute(view);
+    setRoute(['Finished', 'Unread'].includes(view) ? 'Library' : view);
     setDetail(null);
     setQuery('');
-    setFilters(
-      view === 'Currently Reading'
-        ? { status: 'Reading' }
-        : view === 'Want to Read'
-          ? { status: 'Want to Read' }
-          : view === 'Favorites'
-            ? { favorite: 'yes' }
-            : {},
-    );
+    setFilters(navigationFilters(view));
   };
   const openBook = (b: Book) => setDetail(b.id);
   const selected = data?.books.find((b) => b.id === detail);

@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react';
 import { ArrowDownUp, Columns3, Grid2X2, List, SlidersHorizontal, Star } from 'lucide-react';
 import {
   author,
-  copyName,
-  copyState,
   conditions,
   locationName,
   statuses,
   type Book,
   type Snapshot,
 } from '../domain/types';
-import { filterBooks, type Filters } from '../domain/filter';
+import { editionCards, filterBooks, type Filters } from '../domain/filter';
 import { Cover, Empty, Field } from '../components/common';
 export function Library({
   data,
@@ -32,7 +30,7 @@ export function Library({
   const [view, setView] = useState(localStorage.getItem('view') || 'grid');
   const [sort, setSort] = useState(localStorage.getItem('sort') || 'title');
   const [desc, setDesc] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(Object.values(filters).some(Boolean));
   const [selected, setSelected] = useState<string[]>([]);
   const [columns, setColumns] = useState<string[]>(() => {
     try {
@@ -64,14 +62,24 @@ export function Library({
     };
   }, []);
   const books = filterBooks(data, filters, sort, desc);
+  const cards = editionCards(books, data.books, trash);
+  const matchingIds = (id: string) => cards.find((b) => b.id === id)?.matchingIds || [id];
+  const copyLabel = (b: (typeof cards)[number]) =>
+    `${b.copyCount} ${b.copyCount === 1 ? 'copy' : 'copies'}`;
   const bookIds = new Set(books.map((b) => b.id));
   const ids = selected.filter((id) => bookIds.has(id));
-  const pages = Math.max(1, Math.ceil(books.length / 60));
+  const pages = Math.max(1, Math.ceil(cards.length / 60));
   const currentPage = Math.min(page, pages);
-  const visible = books.slice((currentPage - 1) * 60, currentPage * 60);
+  const visible = cards.slice((currentPage - 1) * 60, currentPage * 60);
   const setFilter = (key: string, value: string) => setFilters({ ...filters, [key]: value });
-  const toggle = (id: string) =>
-    setSelected(selected.includes(id) ? selected.filter((v) => v !== id) : [...selected, id]);
+  const toggle = (id: string) => {
+    const group = matchingIds(id);
+    setSelected(
+      group.every((v) => selected.includes(v))
+        ? selected.filter((v) => !group.includes(v))
+        : [...new Set([...selected, ...group])],
+    );
+  };
   const choices = (key: string, label: string, values: string[]) => (
     <Field label={label}>
       <select value={filters[key] || ''} onChange={(e) => setFilter(key, e.target.value)}>
@@ -114,9 +122,10 @@ export function Library({
     <>
       <div className="toolbar">
         <span className="muted">
-          {books.length} {books.length === 1 ? 'copy' : 'copies'}
+          {cards.length} {trash ? 'copies' : 'editions'} · {books.length} matching copies
           {Object.values(filters).some(Boolean) && ' · filtered'}
         </span>
+        {filters.status && <span className="badge">Reading status: {filters.status}</span>}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={showFilters ? 'selected' : ''}
@@ -298,7 +307,10 @@ export function Library({
           />{' '}
           Select all
         </label>
-        <span>{ids.length ? `${ids.length} selected` : ''}</span>
+        <span>{ids.length ? `${ids.length} copies selected` : ''}</span>
+        {!trash && (
+          <small className="muted">Selection includes matching copies of each edition.</small>
+        )}
         <span className="spacer" />
         <button
           onClick={() => onExport(ids.length ? books.filter((b) => ids.includes(b.id)) : books)}
@@ -404,10 +416,10 @@ export function Library({
           {visible.map((b) => (
             <article
               key={b.id}
-              className={`book-card ${ids.includes(b.id) ? 'is-selected' : ''}`}
+              className={`book-card ${b.matchingIds.every((id) => ids.includes(id)) ? 'is-selected' : ''}`}
               onContextMenu={(e) => {
                 e.preventDefault();
-                setSelected([b.id]);
+                setSelected(b.matchingIds);
                 setMenu({
                   book: b,
                   x: Math.min(e.clientX, window.innerWidth - 220),
@@ -422,7 +434,7 @@ export function Library({
                 <input
                   type="checkbox"
                   aria-label={`Select ${b.title}`}
-                  checked={ids.includes(b.id)}
+                  checked={b.matchingIds.every((id) => ids.includes(id))}
                   onChange={() => toggle(b.id)}
                 />
                 {b.favorite && <Star className="favorite" size={16} fill="currentColor" />}
@@ -432,11 +444,12 @@ export function Library({
               </button>
               <p>{author(b) || 'Author not specified'}</p>
               <p>
-                {copyName(b)} · {copyState(b, data.loans)}
+                {copyLabel(b)}
+                {b.matchingIds.length < b.copyCount ? ` · ${b.matchingIds.length} matching` : ''}
               </p>
               <div className="card-bottom">
                 <span className={`badge status-${b.status.toLowerCase().replaceAll(' ', '-')}`}>
-                  {b.status}
+                  {b.readingLabel}
                 </span>
                 {b.rating !== null && <span className="rating">{b.rating} ★</span>}
               </div>
@@ -479,7 +492,7 @@ export function Library({
                   key={b.id}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setSelected([b.id]);
+                    setSelected(b.matchingIds);
                     setMenu({
                       book: b,
                       x: Math.min(e.clientX, window.innerWidth - 220),
@@ -491,7 +504,7 @@ export function Library({
                     <input
                       type="checkbox"
                       aria-label={`Select ${b.title}`}
-                      checked={ids.includes(b.id)}
+                      checked={b.matchingIds.every((id) => ids.includes(id))}
                       onChange={() => toggle(b.id)}
                     />
                   </td>
@@ -499,12 +512,10 @@ export function Library({
                     <button className="text-button" onClick={() => onOpen(b)}>
                       {b.title}
                     </button>
-                    <small className="block">
-                      {copyName(b)} · {copyState(b, data.loans)}
-                    </small>
+                    <small className="block">{copyLabel(b)}</small>
                   </td>
                   {columns.map((c) => (
-                    <td key={c}>{cell(b, c)}</td>
+                    <td key={c}>{c === 'status' ? b.readingLabel : cell(b, c)}</td>
                   ))}
                 </tr>
               ))}
@@ -512,7 +523,7 @@ export function Library({
           </table>
         </div>
       )}
-      {books.length > 60 && (
+      {cards.length > 60 && (
         <div className="pagination">
           <button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
             Previous
@@ -532,17 +543,20 @@ export function Library({
           </button>
           <button
             role="menuitem"
-            onClick={() => onBulk([menu.book.id], 'favorite', !menu.book.favorite)}
+            onClick={() => onBulk(matchingIds(menu.book.id), 'favorite', !menu.book.favorite)}
           >
             {menu.book.favorite ? 'Remove favorite' : 'Mark favorite'}
           </button>
-          <button role="menuitem" onClick={() => onExport([menu.book])}>
-            Export this copy…
+          <button
+            role="menuitem"
+            onClick={() => onExport(books.filter((b) => matchingIds(menu.book.id).includes(b.id)))}
+          >
+            Export matching copies…
           </button>
           <button
             role="menuitem"
             className="danger-text"
-            onClick={() => onBulk([menu.book.id], trash ? 'untrash' : 'trash', null)}
+            onClick={() => onBulk(matchingIds(menu.book.id), trash ? 'untrash' : 'trash', null)}
           >
             {trash ? 'Restore from Trash' : 'Move to Trash…'}
           </button>

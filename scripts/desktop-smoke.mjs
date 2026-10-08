@@ -471,6 +471,63 @@ try {
     },
   );
   await check(
+    'edition grouping and Dashboard Finished navigation retain independent copies',
+    async () => {
+      await nav('Library');
+      assert.equal(await page.locator('.book-card').count(), 1);
+      await page.locator('.book-card').getByText('2 copies', { exact: true }).waitFor();
+      await nav('Dashboard');
+      await button(/^Finished/, page.locator('.stats')).click();
+      assert.equal(
+        await page
+          .locator('main')
+          .getByLabel(/^Reading status/)
+          .inputValue(),
+        'Finished',
+      );
+      await page.getByRole('heading', { name: 'No matching books', exact: true }).waitFor();
+      const setFirstStatus = async (status) => {
+        await openFirst();
+        await button('Copies', page.locator('main .tabs')).click();
+        await button(
+          'View copy / book',
+          page.getByRole('article', { name: 'Copy #1', exact: true }),
+        ).click();
+        await button('Edit book').click();
+        await button('Reading', dialog()).click();
+        await dialog()
+          .getByLabel(/^Reading status/)
+          .selectOption(status);
+        await page.keyboard.press('Control+s');
+        await saved();
+      };
+      await setFirstStatus('Finished');
+      await nav('Dashboard');
+      await button(/^Finished/, page.locator('.stats')).click();
+      assert.equal(await page.locator('.book-card').count(), 1);
+      await page.locator('.book-card').getByText('Finished', { exact: true }).waitFor();
+      await page
+        .locator('.book-card')
+        .getByText('2 copies · 1 matching', { exact: true })
+        .waitFor();
+      await page.screenshot({ animations: 'disabled', path: join(runDir, 'finished-edition.png') });
+      await setFirstStatus('Reading');
+      await nav('Library');
+      await page.getByLabel('Search entire library').fill('NoMatchingEditionSearch');
+      await page.getByRole('heading', { name: 'No matching books', exact: true }).waitFor();
+      await page.getByLabel('Search entire library').fill('Quiet Shelf');
+      await page.locator('.book-card').waitFor();
+      assert.equal(await page.locator('.book-card').count(), 1);
+      await page.getByLabel('Search entire library').fill('');
+      await button('Filters').click();
+      await page
+        .getByLabel('Location (includes children)')
+        .selectOption({ label: 'Study / Bookcase 1 / Shelf 2' });
+      assert.equal(await page.locator('.book-card').count(), 1);
+      await button('Reset').click();
+    },
+  );
+  await check(
     'occupied location deletion, empty removal and copy archive cancellation',
     async () => {
       await nav('Locations');
@@ -525,7 +582,7 @@ try {
   await check('grid, table, search, filters, sorting and bulk tag', async () => {
     await nav('Library');
     await page.getByLabel('table view').click();
-    assert.equal(await page.locator('tbody tr').count(), 2);
+    assert.equal(await page.locator('tbody tr').count(), 1);
     await page.getByLabel('Sort books').selectOption('author');
     await button('Filters').click();
     await page
@@ -538,7 +595,10 @@ try {
     await page.getByLabel('Search entire library').fill('quotation');
     await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 1);
     await page.getByLabel('Search entire library').fill('');
-    await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 2);
+    await page
+      .locator('.toolbar')
+      .getByText('1 editions · 2 matching copies', { exact: true })
+      .waitFor();
     await page.getByLabel('Select all', { exact: true }).check();
     await page.getByLabel('Bulk operation').selectOption('add_tag');
     await page.getByPlaceholder('Tag name').fill('Verified');
@@ -983,6 +1043,20 @@ try {
       await button('Dismiss').click();
     },
   );
+  await check('same-title distinct editions remain separate library entries', async () => {
+    await nav('Library');
+    assert.equal(await page.locator('.book-card').count(), 1);
+    await button('Quick add').click();
+    await dialog().getByLabel('Title *', { exact: true }).fill('Verification — The Quiet Shelf');
+    await dialog().getByLabel('This is intentional; save as a separate record.').check();
+    await page.keyboard.press('Control+s');
+    await saved();
+    await nav('Library');
+    assert.equal(await page.locator('.book-card').count(), 2);
+    const s = await snapshot();
+    assert.equal(new Set(s.books.map((b) => b.edition_id)).size, 2);
+    assert.equal(new Set(s.books.map((b) => b.title)).size, 1);
+  });
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
   assert.deepEqual(report.network, [], 'Core workflows must not make network requests');
   report.passed = true;

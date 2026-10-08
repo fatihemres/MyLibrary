@@ -2,6 +2,8 @@
 
 ## 1.0.0 release candidate — awaiting user verification
 
+- Fixed Dashboard Finished/Unread navigation to apply the matching reading-status filter while preserving counts.
+- Grouped Library grid/table entries by edition after copy-level filtering, with concise copy counts, explicit mixed reading states and matching-copy bulk/export selection. Different editions remain separate; no data migration or reading-model change.
 - Refined desktop typography, light/dark surfaces, focus treatment, command bars and restrained motion, with reduced-motion support.
 - Consolidated global navigation into the sidebar, pinned Settings, removed duplicate Locations controls and retained labels at narrow widths.
 - Rebalanced Dashboard into primary/secondary metrics, featured reading, compact recent additions and expandable insights; polished location and physical-copy surfaces without changing persistence behavior.

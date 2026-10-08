@@ -1,5 +1,27 @@
 import { author, locationName, type Book, type Snapshot } from './types';
 export type Filters = Record<string, string>;
+export function navigationFilters(view: string): Filters {
+  if (view === 'Finished' || view === 'Unread' || view === 'Want to Read') return { status: view };
+  if (view === 'Currently Reading') return { status: 'Reading' };
+  if (view === 'Favorites') return { favorite: 'yes' };
+  return {};
+}
+// Filter copies first: every active criterion must match the same physical copy.
+// Group only by the stored edition relationship, never by title or ISBN.
+export function editionCards(matching: Book[], all: Book[], trash = false) {
+  const groups = new Map<string, Book[]>();
+  const totals = new Map<string, number>();
+  const key = (b: Book) => (trash ? b.id : b.edition_id || b.id);
+  all.forEach((b) => totals.set(key(b), (totals.get(key(b)) || 0) + 1));
+  matching.forEach((b) => groups.set(key(b), [...(groups.get(key(b)) || []), b]));
+  return [...groups.entries()].map(([id, copies]) => ({
+    ...copies[0],
+    copyCount: totals.get(id) || copies.length,
+    matchingIds: copies.map((b) => b.id),
+    readingLabel:
+      new Set(copies.map((b) => b.status)).size === 1 ? copies[0].status : 'Mixed reading statuses',
+  }));
+}
 export function filterBooks(data: Snapshot, filters: Filters, sort: string, desc: boolean) {
   const active = new Set(data.loans.filter((l) => !l.returned_date).map((l) => l.copy_id));
   const matches = data.searchIds ? new Set(data.searchIds) : null;
