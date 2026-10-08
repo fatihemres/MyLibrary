@@ -9,7 +9,7 @@ Branch `v2`, application 2.0.0-alpha.1, schema 2. This is an unreleased foundati
 - Frozen V1 SQL and synthetic fixture preserve every value in 18 domain tables. No Work table, reset or inferred relationship was introduced. Upgrade safety snapshots and V1 ZIP staged migration passed.
 - Windows production frontend/Tauri/NSIS build passes. Final installer: `src-tauri/target/release/bundle/nsis/MyLibrary_2.0.0-alpha.1_x64-setup.exe`. Unsigned; no production updater configured. Vite reports a non-fatal ~511 kB chunk-size advisory; code splitting remains future performance work.
 - The actual Tauri/WebView2 executable passed 26 desktop workflow groups. The final executable passed the full repeat after the wording/accessibility fixes.
-- GitHub Actions is configured for Windows x64, macOS ARM64/Intel and Linux x64. Results are pending publication of the verified milestone; see `docs/testing/v2-platform-matrix.md` for final status.
+- GitHub Actions is configured for Windows x64, macOS ARM64/Intel and Linux x64. The first actual run failed at workflow startup before any jobs existed; all platform CI results remain unverified. See `docs/testing/v2-platform-matrix.md` for diagnostics.
 
 ## Desktop scope and safety
 
@@ -26,7 +26,7 @@ Final local desktop report: `.cache/desktop-check-1791481281264/report.json`, 26
 Installer SHA-256: `65f928fc90c135f7c2b4455629b4f94352439437e7d81edd8a1f518769dc66ea`.
 Executable SHA-256: `fbd12d2586b576e2d1fa60e0cb2d96f52035afe61079e92622db4a364525097f`.
 
-Source audit: 620 English/Turkish keys with parity, no missing literal component keys. No database, personal media, runtime/build output or credential-pattern hits in the 88 audited source files. Ignore rules also exclude portable ZIP and installer formats. V1 refs retain their original release hashes. CI results remain pending the first V2 push; no non-Windows pass is claimed.
+Source audit: 620 English/Turkish keys with parity, no missing literal component keys. No database, personal media, runtime/build output or credential-pattern hits in the 88 audited source files. Ignore rules also exclude portable ZIP and installer formats. V1 refs retain their original release hashes. The source milestone `b2d5817` was pushed normally. GitHub run 37818719436 returned startup_failure with no jobs/logs/annotations; retry was rejected. Official actionlint 1.7.12 passes. No platform CI pass is claimed; resolving GitHub startup and completing macOS/Linux builds remains an outstanding verification item.
 
 ---
 
