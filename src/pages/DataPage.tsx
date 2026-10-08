@@ -1,5 +1,6 @@
+import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
-import { open, save } from '@tauri-apps/plugin-dialog';
+import { chooseFile as open, chooseDestination as save } from '../services/platform';
 import { Download, Upload, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -12,6 +13,7 @@ import {
   preview,
 } from '../services/transfer';
 import { today, type Book, type Snapshot } from '../domain/types';
+import { ErrorText } from '../components/ErrorText';
 import { Field } from '../components/common';
 export async function exportBooks(books: Book[], format: 'csv' | 'json', data?: Snapshot) {
   const path = await save({
@@ -57,8 +59,8 @@ export function DataPage({
     const path = await open({
       multiple: false,
       filters: [
-        { name: 'Library records (CSV / JSON)', extensions: ['csv', 'json'] },
-        { name: 'All files', extensions: ['*'] },
+        { name: t('ui.libraryRecordsCsvJson'), extensions: ['csv', 'json'] },
+        { name: t('ui.allFiles'), extensions: ['*'] },
       ],
     });
     if (typeof path !== 'string') return;
@@ -103,7 +105,7 @@ export function DataPage({
         'import',
         valid.map((r) => r.book),
       );
-      setMessage(`Imported ${count} copies. Existing books were preserved.`);
+      setMessage(t('data.imported', { count }));
       setRows([]);
       setJsonBooks(null);
       setStage(false);
@@ -118,67 +120,68 @@ export function DataPage({
       <div className="hero-panel">
         <ShieldCheck size={34} />
         <div>
-          <h2>A safe copy of your library.</h2>
+          <h2>{t('ui.aSafeCopyOfYourLibrary')}</h2>
           <p>
-            Backup archives preserve your complete library, covers, attachments and settings. Keep a
-            copy on another drive for protection from disk failure.
+            {t(
+              'ui.backupArchivesPreserveYourCompleteLibraryCoversAttachmentsAndSettingsKeepACopyOnAnotherDriveForProtectionFromDiskFailure',
+            )}{' '}
           </p>
         </div>
       </div>
       <div className="two-col">
         <section className="panel" hidden={section !== 'Create Backup'}>
-          <h2>Create Backup</h2>
-          <p>Creates a complete recovery archive, including while the application is open.</p>
+          <h2>{t('ui.createBackup')}</h2>
+          <p>{t('ui.createsACompleteRecoveryArchiveIncludingWhileTheApplicationIsOpen')}</p>
           <button
             className="primary"
             onClick={() =>
               onAction(async () => {
                 const path = await save({
                   defaultPath: `mylibrary-backup-${today()}.zip`,
-                  filters: [{ name: 'MyLibrary backup', extensions: ['zip'] }],
+                  filters: [{ name: t('ui.mylibraryBackup'), extensions: ['zip'] }],
                 });
                 if (path) {
                   await api('backup', { path });
-                  setMessage(`Backup saved to ${path}`);
+                  setMessage(t('data.backupSaved', { path }));
                 }
               })
             }
           >
             <Download size={17} />
-            Create Backup…
+            {t('ui.createBackupAlt')}{' '}
           </button>
-          <h3>Automatic backups</h3>
-          <Field label="While MyLibrary is open">
+          <h3>{t('ui.automaticBackups')}</h3>
+          <Field label={t('ui.whileMylibraryIsOpen')}>
             <select
               value={data.settings.find((s) => s.key === 'backup_days')?.value || '0'}
               onChange={(e) => onAction(() => api('settings', { backup_days: e.target.value }))}
             >
-              <option value="0">Off</option>
-              <option value="1">Daily</option>
-              <option value="7">Weekly</option>
-              <option value="30">Every 30 days</option>
+              <option value="0">{t('ui.off')}</option>
+              <option value="1">{t('ui.daily')}</option>
+              <option value="7">{t('ui.weekly')}</option>
+              <option value="30">{t('ui.every30Days')}</option>
             </select>
           </Field>
           <p className="muted">
-            Stored in the backups folder. Old backups are never removed automatically.
+            {t('ui.storedInTheBackupsFolderOldBackupsAreNeverRemovedAutomatically')}{' '}
           </p>
           <button onClick={() => onAction(() => api('auto_backup'))}>
-            Check scheduled backup now
+            {t('ui.checkScheduledBackupNow')}{' '}
           </button>
         </section>
         <section className="panel" hidden={section !== 'Restore Backup'}>
-          <h2>Restore Backup</h2>
+          <h2>{t('ui.restoreBackup')}</h2>
           <p>
-            Restoring replaces the current library. The archive is validated first, then a mandatory
-            safety backup preserves the current library. Select the original ZIP directly. Do not
-            extract it or select manifest.json.
+            {t(
+              'ui.restoringReplacesTheCurrentLibraryTheArchiveIsValidatedFirstThenAMandatorySafetyBackupPreservesTheCurrentLibrarySelectTheOriginalZipDirectlyDoNotExtractItOrSelectManifestJson',
+            )}{' '}
           </p>
           <button
             onClick={() =>
               onAction(async () => {
                 const path = await open({
                   multiple: false,
-                  filters: [{ name: 'MyLibrary backup', extensions: ['zip'] }],
+                  filters: [{ name: t('ui.mylibraryBackup'), extensions: ['zip'] }],
                 });
                 if (typeof path === 'string') {
                   setRestorePath(path);
@@ -188,12 +191,12 @@ export function DataPage({
             }
           >
             <Upload size={17} />
-            Choose Backup ZIP…
+            {t('ui.chooseBackupZip')}{' '}
           </button>
           {restorePath && (
             <div className="notice">
               <p className="break">{restorePath}</p>
-              <Field label="Type RESTORE to confirm replacing your current library">
+              <Field label={t('ui.typeRestoreToConfirmReplacingYourCurrentLibrary')}>
                 <input value={restoreConfirm} onChange={(e) => setRestoreConfirm(e.target.value)} />
               </Field>
               <button
@@ -204,9 +207,7 @@ export function DataPage({
                     setBusy(true);
                     try {
                       const safety = await api<string>('restore', { path: restorePath });
-                      setMessage(
-                        `Restore completed. Your previous library is preserved at ${safety}`,
-                      );
+                      setMessage(t('data.restored', { path: safety }));
                       setRestorePath('');
                       await onReload();
                     } finally {
@@ -215,7 +216,7 @@ export function DataPage({
                   })
                 }
               >
-                Validate & restore
+                {t('ui.validateRestore')}{' '}
               </button>
             </div>
           )}
@@ -230,64 +231,71 @@ export function DataPage({
   ) : (
     <>
       <div className="notice">
-        Data exchange adds catalogue records to a library. To recover a full library from a backup
-        ZIP, use <button onClick={() => onNavigate('Restore Backup')}>Restore Backup</button>.
+        {t('ui.dataExchangeAddsCatalogueRecordsToALibraryToRecoverAFullLibraryFromABackupZipUse')}{' '}
+        <button onClick={() => onNavigate('Restore Backup')}>{t('ui.restoreBackup')}</button>.
       </div>
       <div className="two-col">
         <section className="panel" hidden={section !== 'Import CSV/JSON'}>
-          <h2>Import CSV/JSON</h2>
+          <h2>{t('ui.importCsvJson')}</h2>
           <p>
-            Import CSV or JSON. Map columns, review errors and duplicates, then confirm. Each
-            imported row becomes a separate physical copy; existing records are never overwritten.
+            {t(
+              'ui.importCsvOrJsonMapColumnsReviewErrorsAndDuplicatesThenConfirmEachImportedRowBecomesASeparatePhysicalCopyExistingRecordsAreNeverOverwritten',
+            )}{' '}
           </p>
           <button className="primary" onClick={() => onAction(read)}>
             <Upload size={16} />
-            Import CSV/JSON…
+            {t('ui.importCsvJsonAlt')}{' '}
           </button>
           <small className="block">
-            CSV: UTF-8, one book per row; multiple names/tags separated with semicolons. JSON
-            catalogue exports contain book fields, not media or related notes/loans. Use Restore
-            Backup for a complete transfer.
+            {t(
+              'ui.csvUtf8OneBookPerRowMultipleNamesTagsSeparatedWithSemicolonsJsonCatalogueExportsContainBookFieldsNotMediaOrRelatedNotesLoansUseRestoreBackupForACompleteTransfer',
+            )}{' '}
           </small>
         </section>
         <section className="panel" hidden={section !== 'Export CSV/JSON'}>
-          <h2>Export CSV/JSON</h2>
-          <p>
-            Export all active books here, or use Library to export selected or filtered results.
-          </p>
+          <h2>{t('ui.exportCsvJson')}</h2>
+          <p>{t('ui.exportAllActiveBooksHereOrUseLibraryToExportSelectedOrFilteredResults')} </p>
           <div className="inline">
             <button onClick={() => onAction(() => exportBooks(data.books, 'csv', data))}>
               <Download size={16} />
-              CSV
+              {t('ui.csv')}{' '}
             </button>
             <button onClick={() => onAction(() => exportBooks(data.books, 'json', data))}>
-              JSON
+              {t('ui.json')}{' '}
             </button>
           </div>
           <small className="block">
-            Exports use a new filename to avoid overwriting existing files. JSON preserves nested
-            book fields; CSV is a portable catalogue subset.
+            {t(
+              'ui.exportsUseANewFilenameToAvoidOverwritingExistingFilesJsonPreservesNestedBookFieldsCsvIsAPortableCatalogueSubset',
+            )}{' '}
           </small>
         </section>
       </div>
       {errors.length > 0 && <div className="alert">{errors.join('\n')}</div>}
       {!!rows.length && !stage && (
         <section className="panel">
-          <h2>Map your columns</h2>
-          <p>{rows.length} rows found. Unmapped columns will be ignored.</p>
+          <h2>{t('ui.mapYourColumns')}</h2>
+          <p>
+            {rows.length} {t('ui.rowsFoundUnmappedColumnsWillBeIgnored')}
+          </p>
           <div className="form-grid">
             {Object.entries(mapping).map(([column, value]) => (
               <Field
                 key={column}
-                label={`${column} · e.g. ${rows[0][column]?.slice(0, 50) || 'empty'}`}
+                label={t('data.columnExample', {
+                  column,
+                  example: rows[0][column]?.slice(0, 50) || t('data.empty'),
+                })}
               >
                 <select
                   value={value}
                   onChange={(e) => setMapping({ ...mapping, [column]: e.target.value })}
                 >
-                  <option value="">Ignore</option>
+                  <option value="">{t('ui.ignore')}</option>
                   {importFields.map((f) => (
-                    <option key={f}>{f}</option>
+                    <option key={f} value={f}>
+                      {trLabel(f.replaceAll('_', ' '))}
+                    </option>
                   ))}
                 </select>
               </Field>
@@ -301,17 +309,17 @@ export function DataPage({
               setConfirmed(false);
             }}
           >
-            Validate & preview
+            {t('ui.validatePreview')}{' '}
           </button>
         </section>
       )}
       {stage && (
         <section className="panel">
-          <h2>Review import</h2>
+          <h2>{t('ui.reviewImport')}</h2>
           <p>
-            {checked.length} rows · {checked.filter((r) => r.errors.length).length} invalid ·{' '}
-            {checked.filter((r) => r.duplicates.length).length} possible duplicates · {valid.length}{' '}
-            ready
+            {checked.length} {t('ui.rows')} {checked.filter((r) => r.errors.length).length}{' '}
+            {t('ui.invalid')} {checked.filter((r) => r.duplicates.length).length}{' '}
+            {t('ui.possibleDuplicates')} {valid.length} {t('ui.readyAlt')}{' '}
           </p>
           <label className="check">
             <input
@@ -322,28 +330,30 @@ export function DataPage({
                 setConfirmed(false);
               }}
             />
-            Skip likely duplicates
+            {t('ui.skipLikelyDuplicates')}{' '}
           </label>
           <div className="table-scroll import-preview">
             <table>
               <thead>
                 <tr>
-                  <th>Row</th>
-                  <th>Title</th>
-                  <th>Review</th>
+                  <th>{t('ui.row')}</th>
+                  <th>{t('ui.title')}</th>
+                  <th>{t('ui.review')}</th>
                 </tr>
               </thead>
               <tbody>
                 {checked.slice(0, 500).map((r) => (
                   <tr key={r.row}>
                     <td>{r.row}</td>
-                    <td>{r.book.title || '(missing)'}</td>
+                    <td>{r.book.title || t('data.missing')}</td>
                     <td>
-                      {r.errors.length
-                        ? r.errors.join('; ')
-                        : r.duplicates.length
-                          ? 'Possible duplicate — separate copy'
-                          : 'Ready'}
+                      {r.errors.length ? (
+                        <ErrorText message={r.errors.join('; ')} />
+                      ) : r.duplicates.length ? (
+                        t('ui.possibleDuplicateSeparateCopy')
+                      ) : (
+                        t('ui.ready')
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -351,7 +361,9 @@ export function DataPage({
             </table>
           </div>
           {checked.length > 500 && (
-            <p>Showing the first 500 rows; all {checked.length} rows were validated.</p>
+            <p>
+              {t('ui.showingTheFirst500RowsAll')} {checked.length} {t('ui.rowsWereValidated')}
+            </p>
           )}
           <label className="check">
             <input
@@ -359,7 +371,7 @@ export function DataPage({
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
             />
-            Import {valid.length} valid rows; skip invalid rows
+            {t('ui.import')} {valid.length} {t('ui.validRowsSkipInvalidRows')}{' '}
             {skipDuplicates
               ? ' and duplicates'
               : '; intentional duplicates will be separate copies'}
@@ -371,7 +383,7 @@ export function DataPage({
               className="primary"
               onClick={() => onAction(importNow)}
             >
-              {busy ? 'Importing…' : 'Confirm import'}
+              {busy ? t('ui.importing') : t('ui.confirmImport')}
             </button>
             <button
               onClick={() => {
@@ -380,7 +392,7 @@ export function DataPage({
                 if (jsonBooks) setJsonBooks(null);
               }}
             >
-              Back / cancel
+              {t('ui.backCancel')}{' '}
             </button>
           </div>
         </section>

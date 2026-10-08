@@ -1,3 +1,4 @@
+import { label, t } from '../i18n';
 export type Extra = Record<string, string | number | boolean>;
 export interface Person {
   id?: string;
@@ -108,9 +109,11 @@ export const conditions = ['New', 'Like New', 'Very Good', 'Good', 'Acceptable',
 export const copyName = (book: Book) =>
   String(book.copy_extra.inventory_code || `Copy #${book.copy_number || 1}`);
 export const copyState = (book: Book, loans: Loan[]) => {
-  if (book.deleted_at) return 'Archived';
+  if (book.deleted_at) return t('copy.archived');
   const loan = loans.find((l) => l.copy_id === book.id && !l.returned_date);
-  return loan ? `Lent to ${loan.borrower}` : String(book.copy_extra.copy_state || 'Owned');
+  return loan
+    ? t('copy.lent', { name: loan.borrower })
+    : label(String(book.copy_extra.copy_state || 'Owned'));
 };
 export function withinLocation(id: string, parent: string, locations: Entity[]) {
   const seen = new Set<string>();

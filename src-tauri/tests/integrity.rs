@@ -11,6 +11,27 @@ fn book(title: &str) -> Value {
     json!({"title":title,"status":"Unread","pages":200,"current_page":0,"extra":{},"copy_extra":{},"contributors":[{"name":"Ursula Le Guin","role":"Author"},{"name":"Translator Person","role":"Translator"}],"terms":{"genre":["Fantasy"],"tag":["Keep"]},"custom":{}})
 }
 #[test]
+fn managed_paths_are_portable_and_reject_escape_syntax() {
+    let (_dir, store) = store();
+    assert_eq!(
+        mylibrary_lib::db::safe_file(&store.root, "covers/example.png").unwrap(),
+        store.root.join("covers").join("example.png")
+    );
+    for path in [
+        "",
+        "../outside",
+        "/absolute",
+        "C:/private",
+        "covers\\private",
+        "covers/../../outside",
+    ] {
+        assert!(
+            mylibrary_lib::db::safe_file(&store.root, path).is_err(),
+            "{path}"
+        );
+    }
+}
+#[test]
 fn create_edit_restart_relationships_and_search() {
     let (dir, s) = store();
     let key = s.save(&book("Earthsea")).unwrap();
@@ -467,7 +488,7 @@ fn catalogue_import_preserves_edition_groups_without_merging_existing_data() {
 }
 
 #[test]
-fn existing_v1_database_copy_remains_editable_without_migration() {
+fn current_database_copy_remains_editable_without_remigration() {
     let (dir, original) = store();
     let key = original.save(&book("Legacy copy")).unwrap();
     let root = dir.path().join("compatibility-copy");
@@ -492,7 +513,7 @@ fn existing_v1_database_copy_remains_editable_without_migration() {
             .unwrap()
             .query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))
             .unwrap(),
-        1
+        mylibrary_lib::migrations::CURRENT_SCHEMA
     );
     assert_eq!(
         original.snapshot("", false).unwrap()["books"][0]["condition"],

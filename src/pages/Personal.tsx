@@ -1,3 +1,4 @@
+import { t, label as trLabel, date } from '../i18n';
 import { useState } from 'react';
 import { copyName } from '../domain/types';
 import { Plus } from 'lucide-react';
@@ -47,21 +48,31 @@ export function Personal({
     <>
       <div className="toolbar">
         <input
-          placeholder={`Search ${section.toLowerCase()}…`}
-          aria-label={`Search ${section}`}
+          placeholder={t('actions.search', { section: trLabel(section) }) + '…'}
+          aria-label={t('actions.search', { section: trLabel(section) })}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {kind === 'loan' ? (
-          <select aria-label="Loan status" value={mode} onChange={(e) => setMode(e.target.value)}>
+          <select
+            aria-label={t('ui.loanStatus')}
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+          >
             {['All', 'Active', 'Overdue', 'Returned'].map((m) => (
-              <option key={m}>{m}</option>
+              <option key={m} value={m}>
+                {trLabel(m)}
+              </option>
             ))}
           </select>
         ) : kind === 'quote' ? (
-          <select aria-label="Quote filter" value={mode} onChange={(e) => setMode(e.target.value)}>
-            <option>All</option>
-            <option>Favorites</option>
+          <select
+            aria-label={t('ui.quoteFilter')}
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+          >
+            <option value="All">{t('ui.all')}</option>
+            <option value="Favorites">{t('ui.favorites')}</option>
           </select>
         ) : null}
         <span className="spacer" />
@@ -71,7 +82,7 @@ export function Personal({
           onClick={() => onRecord({ type: kind })}
         >
           <Plus size={16} />
-          Add {kind}
+          {t('actions.addKind', { kind: trLabel(kind) })}
         </button>
       </div>
       {kind === 'loan' ? (
@@ -91,24 +102,26 @@ export function Personal({
                   <small className="block">{l.notes}</small>
                 </div>
                 <span>
-                  {l.loan_date} → {l.due_date || 'No due date'}
+                  {l.loan_date} → {l.due_date || t('ui.noDueDate')}
                 </span>
                 <span
                   className={`badge ${!l.returned_date && l.due_date && l.due_date < today() ? 'overdue' : ''}`}
                 >
                   {l.returned_date
-                    ? `Returned ${l.returned_date}`
+                    ? t('copy.returned', { date: date(l.returned_date) })
                     : l.due_date && l.due_date < today()
-                      ? 'Overdue'
-                      : 'On loan'}
+                      ? t('ui.overdue')
+                      : t('ui.onLoan')}
                 </span>
                 {!l.returned_date && (
                   <>
-                    <button onClick={() => onRecord({ type: 'loan', loan: l })}>Edit</button>
+                    <button onClick={() => onRecord({ type: 'loan', loan: l })}>
+                      {t('ui.edit')}
+                    </button>
                     <button
                       onClick={() => onAction(() => api('return', { id: l.id, date: today() }))}
                     >
-                      Return today
+                      {t('ui.returnToday')}{' '}
                     </button>
                   </>
                 )}
@@ -116,8 +129,8 @@ export function Personal({
             ))}
           </section>
         ) : (
-          <Empty title="No loans to show">
-            <p>Lend a book to start a history of where it has been.</p>
+          <Empty title={t('ui.noLoansToShow')}>
+            <p>{t('ui.lendABookToStartAHistoryOfWhereItHasBeen')}</p>
           </Empty>
         )
       ) : entries.length ? (
@@ -125,7 +138,7 @@ export function Personal({
           {entries.map((e) => (
             <article className="panel" key={e.id}>
               <div className="eyebrow">
-                {kind === 'quote' ? 'WORDS TO KEEP' : String(e.extra.note_type || 'NOTE')}{' '}
+                {kind === 'quote' ? t('ui.wordsToKeep') : String(e.extra.note_type || 'NOTE')}{' '}
                 {e.extra.favorite ? '★' : ''}
               </div>
               <h3>{e.title}</h3>
@@ -135,16 +148,16 @@ export function Personal({
                 {books.get(e.copy_id)?.title}
               </button>
               <small className="block">
-                {e.page !== null ? `Page ${e.page} · ` : ''}
-                {e.created_at.slice(0, 10)}
+                {e.page !== null ? t('entry.page', { page: e.page }) : ''}
+                {date(e.created_at)}
               </small>
-              <button onClick={() => onRecord({ type: kind, entry: e })}>Edit</button>
+              <button onClick={() => onRecord({ type: kind, entry: e })}>{t('ui.edit')}</button>
             </article>
           ))}
         </div>
       ) : (
-        <Empty title={`No ${section.toLowerCase()} to show`}>
-          <p>Keep the passages and ideas that stay with you.</p>
+        <Empty title={t('empty.show', { section: trLabel(section).toLocaleLowerCase() })}>
+          <p>{t('ui.keepThePassagesAndIdeasThatStayWithYou')}</p>
         </Empty>
       )}
     </>

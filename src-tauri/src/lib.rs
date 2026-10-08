@@ -2,16 +2,20 @@ pub mod backup;
 mod copies;
 pub mod db;
 mod metadata;
+pub mod migrations;
+mod platform;
 use db::{Result, Store};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};
 use tauri::Manager;
+use tauri_plugin_opener::OpenerExt;
 struct State {
     store: Mutex<Option<Store>>,
     startup_error: Option<String>,
 }
 #[tauri::command]
 async fn database(
+    app: tauri::AppHandle,
     state: tauri::State<'_, State>,
     action: String,
     payload: Value,
@@ -28,6 +32,7 @@ async fn database(
                 .unwrap_or("The library could not be opened. Restart the application.")
         })?;
         match action.as_str() {
+            "platform" => Ok(platform::info(&store.root)),
             "snapshot" => store.snapshot(
                 db::s(&payload, "query"),
                 payload["trash"].as_bool().unwrap_or(false),
@@ -148,9 +153,8 @@ async fn database(
                 Ok(json!(true))
             }
             "open_folder" => {
-                std::process::Command::new("explorer.exe")
-                    .arg(&store.root)
-                    .spawn()?;
+                app.opener()
+                    .open_path(&store.root.to_string_lossy().to_string(), None::<&str>)?;
                 Ok(json!(true))
             }
             _ => store.mutate(&action, &payload),
@@ -161,6 +165,7 @@ async fn database(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let root = std::env::var_os("MYLIBRARY_DATA_DIR")
                 .map(PathBuf::from)

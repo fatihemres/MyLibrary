@@ -1,3 +1,4 @@
+import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
 import {
   copyName,
@@ -40,15 +41,15 @@ export function Locations({
       .map((l) => (
         <div key={l.id}>
           <button
-            aria-label={`${l.name} ${String(l.extra?.kind || 'Location')}`}
+            aria-label={`${l.name} ${trLabel(String(l.extra?.kind || 'Location'))}`}
             className={selected === l.id ? 'active' : ''}
-            style={{ paddingLeft: 12 + depth * 18 }}
+            style={{ paddingInlineStart: 12 + depth * 18 }}
             onClick={() => setSelected(l.id)}
           >
             <span>
               {depth > 0 && <span aria-hidden="true">└─ </span>}
               {l.name}
-              <small className="block">{String(l.extra?.kind || 'Location')}</small>
+              <small className="block">{trLabel(String(l.extra?.kind || 'Location'))}</small>
             </span>
             <small>
               {data.books.filter((b) => withinLocation(b.location_id, l.id, data.locations)).length}
@@ -60,72 +61,76 @@ export function Locations({
   return (
     <>
       <p className="location-guidance">
-        Organize your library: Room → Bookcase → Shelf. Select a room to add a bookcase, then select
-        the bookcase to add a shelf.
+        {t(
+          'ui.organizeYourLibraryRoomBookcaseShelfSelectARoomToAddABookcaseThenSelectTheBookcaseToAddAShelf',
+        )}{' '}
       </p>
       <div className="toolbar">
         <button className="primary" onClick={() => create('Room')}>
-          Add Room
+          {t('ui.addRoom')}{' '}
         </button>
         <button onClick={() => onRecord({ type: 'locations', locationKind: 'Home' })}>
-          Create Home / Library
+          {t('ui.createHomeLibrary')}{' '}
         </button>
         {['Bookcase', 'Shelf'].map((kind) => (
           <button
             key={kind}
-            disabled={!place || place.extra?.kind !== (kind === 'Bookcase' ? 'Room' : 'Bookcase')}
+            disabled={
+              !place ||
+              place.extra?.kind !== (kind === 'Bookcase' ? t('ui.room') : t('ui.bookcase'))
+            }
             onClick={() =>
               onRecord({ type: 'locations', locationKind: kind, locationParent: place })
             }
           >
-            Add {kind}
+            {t('actions.addKind', { kind: trLabel(kind) })}
           </button>
         ))}
       </div>
       <div className="explorer location-workspace">
         <section className="panel entity-list">
-          <h2 className="tree-heading">Your locations</h2>
+          <h2 className="tree-heading">{t('ui.yourLocations')}</h2>
           <button className={!selected ? 'active' : ''} onClick={() => setSelected('')}>
-            Unassigned
+            {t('ui.unassigned')}{' '}
           </button>
           {tree('')}
           {!data.locations.length && (
-            <p>No locations yet. Create your first room with Add Room above.</p>
+            <p>{t('ui.noLocationsYetCreateYourFirstRoomWithAddRoomAbove')}</p>
           )}
         </section>
         <section className="panel">
           <div className="section-heading">
-            <h2>{place ? locationName(place.id, data.locations) : 'Unassigned copies'}</h2>
+            <h2>{place ? locationName(place.id, data.locations) : t('ui.unassignedCopies')}</h2>
             {place && (
               <div className="inline">
                 <button onClick={() => onRecord({ type: 'locations', entity: place })}>
-                  Rename {String(place.extra?.kind || 'location')}
+                  {t('actions.renameKind', {
+                    kind: trLabel(String(place.extra?.kind || 'location')),
+                  })}
                 </button>
                 <button
                   className="danger-text"
                   onClick={async () => {
-                    if (
-                      await confirmAction(
-                        `Remove ${place.name}? Locations with copies or child locations cannot be removed.`,
-                      )
-                    )
+                    if (await confirmAction(t('confirm.location', { name: place.name })))
                       onAction(async () => {
                         await api('delete_location', { id: place.id });
                         setSelected('');
                       });
                   }}
                 >
-                  Remove location
+                  {t('ui.removeLocation')}{' '}
                 </button>
               </div>
             )}
           </div>
           {place && (
             <p className="muted">
-              {String(place.extra?.notes || 'Includes copies on shelves within this location.')}
+              {String(place.extra?.notes || t('ui.includesCopiesOnShelvesWithinThisLocation'))}
             </p>
           )}
-          <h3>{books.length} physical copies</h3>
+          <h3>
+            {books.length} {t('ui.physicalCopies')}
+          </h3>
           {books.map((b) => (
             <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
               <span>
@@ -133,20 +138,21 @@ export function Locations({
                   {b.title} · {copyName(b)}
                 </strong>
                 <small className="block">
-                  {locationName(b.location_id, data.locations) || 'Unassigned'}
-                  {b.copy_extra.shelf_position ? ` · Position ${b.copy_extra.shelf_position}` : ''}
+                  {locationName(b.location_id, data.locations) || t('ui.unassigned')}
+                  {b.copy_extra.shelf_position
+                    ? t('copy.position', { position: b.copy_extra.shelf_position })
+                    : ''}
                 </small>
               </span>
               <span>
-                {b.condition} · {copyState(b, data.loans)}
+                {trLabel(b.condition)} · {copyState(b, data.loans)}
               </span>
             </button>
           ))}
           {!books.length && (
-            <Empty title="No copies here yet">
+            <Empty title={t('ui.noCopiesHereYet')}>
               <p>
-                Assign a copy in its Copies tab, or select copies in Library and choose Move
-                Location.
+                {t('ui.assignACopyInItsCopiesTabOrSelectCopiesInLibraryAndChooseMoveLocation')}{' '}
               </p>
             </Empty>
           )}

@@ -1,3 +1,4 @@
+import { t, label as trLabel } from '../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from './common';
 
@@ -31,14 +32,14 @@ export function ConfirmationHost() {
     setRequests((current) => current.slice(1));
   };
   return (
-    <Modal title="Please confirm" onClose={() => answer(false)}>
-      <p>{request.message}</p>
+    <Modal title={t('ui.pleaseConfirm')} onClose={() => answer(false)}>
+      <p>{trLabel(request.message)}</p>
       <footer className="modal-footer">
         <button ref={cancel} autoFocus onClick={() => answer(false)}>
-          Cancel
+          {t('ui.cancel')}{' '}
         </button>
         <button className="primary" onClick={() => answer(true)}>
-          Continue
+          {t('ui.continue')}{' '}
         </button>
       </footer>
     </Modal>

@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, X } from 'lucide-react';
 import type { Book } from '../domain/types';
@@ -37,7 +38,7 @@ export function Modal({
     >
       <header>
         <h2 id={titleId}>{title}</h2>
-        <button className="icon" onClick={onClose} aria-label="Close dialog">
+        <button className="icon" onClick={onClose} aria-label={t('ui.closeDialog')}>
           <X size={20} />
         </button>
       </header>
@@ -76,12 +77,12 @@ export function Cover({
   return (
     <div className={`cover ${large ? 'large' : ''}`}>
       {url ? (
-        <img src={url} alt={`Cover of ${book.title}`} />
+        <img src={url} alt={t('copy.cover', { title: book.title })} />
       ) : (
         <>
           <BookOpen size={large ? 44 : 28} />
-          <span>{book.title || 'Your next book'}</span>
-          <i>MY LIBRARY</i>
+          <span>{book.title || t('ui.yourNextBook')}</span>
+          <i>{t('ui.myLibrary')}</i>
         </>
       )}
     </div>
@@ -119,9 +120,9 @@ export function Confirm({
     <Modal title={title} onClose={onClose}>
       <div className="dialog-body">{children}</div>
       <footer>
-        <button onClick={onClose}>Cancel</button>
+        <button onClick={onClose}>{t('ui.cancel')}</button>
         <button className="danger" onClick={onYes}>
-          Confirm
+          {t('ui.confirm')}{' '}
         </button>
       </footer>
     </Modal>

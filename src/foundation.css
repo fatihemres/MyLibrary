@@ -1,0 +1,50 @@
+/* Foundation accessibility and directional layout; preserve V1's visual language. */
+html {
+  font-size: 100%;
+}
+[dir='rtl'] .lucide-arrow-left,
+[dir='rtl'] .lucide-arrow-right,
+[dir='rtl'] .lucide-panel-left-open,
+[dir='rtl'] .lucide-panel-left-close {
+  transform: scaleX(-1);
+}
+[dir='rtl'] .location-workspace [aria-hidden='true'] {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+.code,
+input[type='number'],
+input[type='date'] {
+  unicode-bidi: plaintext;
+}
+dialog {
+  text-align: start;
+}
+pre.break {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (forced-colors: active) {
+  button,
+  input,
+  select,
+  textarea,
+  .panel,
+  dialog {
+    border: 1px solid ButtonText;
+  }
+  button.active,
+  [aria-current='page'] {
+    outline: 2px solid Highlight;
+  }
+  :focus-visible {
+    outline: 3px solid Highlight;
+  }
+  .muted {
+    color: CanvasText;
+  }
+}

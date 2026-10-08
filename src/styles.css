@@ -133,7 +133,7 @@ button.text-button {
   padding: 0;
   background: none;
   color: var(--accent);
-  text-align: left;
+  text-align: start;
   white-space: normal;
 }
 .spacer {
@@ -249,7 +249,7 @@ small {
 }
 .sidebar {
   background: var(--sidebar);
-  border-right: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -314,7 +314,7 @@ small {
   background: var(--soft);
 }
 .nav-group button small {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 .sidebar-bottom {
   margin-top: auto;
@@ -332,7 +332,7 @@ small {
   height: 6px;
   border-radius: 50%;
   background: #68a17b;
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 .workspace {
   display: flex;
@@ -430,7 +430,7 @@ main {
   flex-direction: column;
   padding: 18px 20px;
   border-radius: 9px;
-  text-align: left;
+  text-align: start;
   white-space: normal;
 }
 .stat span {
@@ -509,7 +509,7 @@ main {
   border-bottom: 1px solid var(--line);
   padding: 15px 0;
   background: none;
-  text-align: left;
+  text-align: start;
   width: 100%;
   gap: 16px;
   border-radius: 0;
@@ -575,7 +575,7 @@ main {
   border-radius: 4px;
 }
 .chart-row strong {
-  text-align: right;
+  text-align: end;
   font-size: 11px;
   font-weight: 500;
 }
@@ -717,10 +717,10 @@ main {
 .cover::after {
   content: '';
   position: absolute;
-  left: 7px;
+  inset-inline-start: 7px;
   top: 0;
   height: 100%;
-  border-left: 1px solid #ffffff15;
+  border-inline-start: 1px solid #ffffff15;
 }
 .cover svg {
   opacity: 0.5;
@@ -764,7 +764,7 @@ main {
 .card-cover > input {
   position: absolute;
   top: 8px;
-  left: 8px;
+  inset-inline-start: 8px;
   width: 17px;
   height: 17px;
   box-shadow: 0 1px 4px #0005;
@@ -772,7 +772,7 @@ main {
 .card-cover .favorite {
   position: absolute;
   top: 9px;
-  right: 9px;
+  inset-inline-end: 9px;
   color: #e2c98c;
   filter: drop-shadow(0 1px 2px #0008);
 }
@@ -782,7 +782,7 @@ main {
   font-weight: 650;
   white-space: normal;
   display: block;
-  text-align: left;
+  text-align: start;
   background: none;
   border: 0;
   padding: 0;
@@ -846,7 +846,7 @@ table {
   border-collapse: collapse;
   width: 100%;
   font-size: 12px;
-  text-align: left;
+  text-align: start;
 }
 th {
   background: var(--soft);
@@ -1110,7 +1110,7 @@ tr:last-child td {
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   background: none;
-  text-align: left;
+  text-align: start;
   justify-content: space-between;
   white-space: normal;
 }
@@ -1142,7 +1142,7 @@ tr:last-child td {
   justify-content: space-between;
   border: 0;
   background: none;
-  text-align: left;
+  text-align: start;
   white-space: normal;
   padding: 13px;
 }

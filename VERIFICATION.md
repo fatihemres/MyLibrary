@@ -1,3 +1,35 @@
+# V2 Milestone 1 verification — 2026-10-08
+
+Branch `v2`, application 2.0.0-alpha.1, schema 2. This is an unreleased foundation, not V2 product acceptance. The historical V1 report below remains evidence for the immutable V1 tag only.
+
+## Foundation checks
+
+- TypeScript, ESLint and 23 frontend tests pass (16 existing domain regressions + 7 foundation tests).
+- 24 native tests pass: 21 integrity/path tests, 2 V1 migration/ZIP integration tests and 1 migration rollback unit test. Rustfmt and all-target locked Cargo check pass.
+- Frozen V1 SQL and synthetic fixture preserve every value in 18 domain tables. No Work table, reset or inferred relationship was introduced. Upgrade safety snapshots and V1 ZIP staged migration passed.
+- Windows production frontend/Tauri/NSIS build passes. Final installer: `src-tauri/target/release/bundle/nsis/MyLibrary_2.0.0-alpha.1_x64-setup.exe`. Unsigned; no production updater configured. Vite reports a non-fatal ~511 kB chunk-size advisory; code splitting remains future performance work.
+- The actual Tauri/WebView2 executable passed 26 desktop workflow groups. The final executable passed the full repeat after the wording/accessibility fixes.
+- GitHub Actions is configured for Windows x64, macOS ARM64/Intel and Linux x64. Results are pending publication of the verified milestone; see `docs/testing/v2-platform-matrix.md` for final status.
+
+## Desktop scope and safety
+
+The suite exercises copies/edition grouping, Finished navigation, hierarchical locations and occupied deletion, nested unsaved drafts, loans, notes, quotes, attachments, covers, CSV/JSON round trips, ZIP restore/failed restore, Trash, settings, narrow/normal layout, reduced motion and restart. New checks exercise Turkish system detection, explicit English selection, Turkish/English switching, saved preference after restart, localized formatting, inactive update status, V1 fixture startup, data-folder path and native folder-open action.
+
+Language checks compare all snapshot domain collections, including reading status, names, notes/quotes and media references. UI language is independent of the fixture's French default book language. No runtime errors or external core WebView requests were observed in the passed run. Production data was neither opened nor modified; `.cache/desktop-check-*` holds synthetic libraries, exports, screenshots and reports only and is ignored.
+
+Test harness uses a loopback WebView2 connection and substitutes native file-picker return paths. It does not certify OS picker interaction, install/uninstall, macOS/Linux native UI or full assistive-technology support. Open-folder action checks backend/UI success, not Explorer shell internals. RTL readiness is a source/layout baseline, not a completed Arabic localization.
+
+## Final evidence
+
+Final local desktop report: `.cache/desktop-check-1791481281264/report.json`, 26/26 passed, errors=[], network=[]. Synthetic artifacts remain ignored.
+
+Installer SHA-256: `65f928fc90c135f7c2b4455629b4f94352439437e7d81edd8a1f518769dc66ea`.
+Executable SHA-256: `fbd12d2586b576e2d1fa60e0cb2d96f52035afe61079e92622db4a364525097f`.
+
+Source audit: 620 English/Turkish keys with parity, no missing literal component keys. No database, personal media, runtime/build output or credential-pattern hits in the 88 audited source files. Ignore rules also exclude portable ZIP and installer formats. V1 refs retain their original release hashes. CI results remain pending the first V2 push; no non-Windows pass is claimed.
+
+---
+
 # MyLibrary v1.0.0 release verification — 2026-10-08
 
 Verified on Windows x64 using the actual Tauri release executable and its Rust/SQLite backend. Production application data was neither opened nor modified. Every desktop run used a fresh repository-local test library and WebView2 profile.

@@ -1,3 +1,4 @@
+import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { author, locationName, type Book, type Entity, type Snapshot } from '../domain/types';
@@ -56,8 +57,8 @@ export function Explore({
     <>
       <div className="toolbar">
         <input
-          placeholder={`Find ${section.toLowerCase()}…`}
-          aria-label={`Find ${section}`}
+          placeholder={t('actions.find', { section: trLabel(section) }) + '…'}
+          aria-label={t('actions.find', { section: trLabel(section) })}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -65,7 +66,11 @@ export function Explore({
         {kind && (
           <button className="primary" onClick={() => onRecord({ type: kind })}>
             <Plus size={16} />
-            Add {section === 'Authors' ? 'person' : section === 'Series' ? 'series' : 'location'}
+            {t('actions.addKind', {
+              kind: trLabel(
+                section === 'Authors' ? 'person' : section === 'Series' ? 'series' : 'location',
+              ),
+            })}
           </button>
         )}
       </div>
@@ -86,8 +91,8 @@ export function Explore({
           {!entities.length && (
             <p className="muted">
               {kind
-                ? 'Create a record to get started.'
-                : 'Add these classifications in the book editor.'}
+                ? t('ui.createARecordToGetStarted')
+                : t('ui.addTheseClassificationsInTheBookEditor')}
             </p>
           )}
         </section>
@@ -97,7 +102,9 @@ export function Explore({
               <div className="section-heading">
                 <h2>{entity.name}</h2>
                 {kind && (
-                  <button onClick={() => onRecord({ type: kind, entity })}>Edit details</button>
+                  <button onClick={() => onRecord({ type: kind, entity })}>
+                    {t('ui.editDetails')}
+                  </button>
                 )}
               </div>
               <dl className="details-grid">
@@ -105,18 +112,20 @@ export function Explore({
                   .filter(([, v]) => v)
                   .map(([k, v]) => (
                     <div className="info" key={k}>
-                      <dt>{k.replaceAll('_', ' ')}</dt>
+                      <dt>{trLabel(k.replaceAll('_', ' '))}</dt>
                       <dd className="prose">{String(v)}</dd>
                     </div>
                   ))}
               </dl>
               {section === 'Series' && missing.length > 0 && (
                 <div className="notice">
-                  Missing integer volumes up to {max}: {missing.join(', ')}. This is inferred from
-                  your collection, not a complete publisher catalogue.
+                  {t('ui.missingIntegerVolumesUpTo')} {max}: {missing.join(', ')}
+                  {t('ui.thisIsInferredFromYourCollectionNotACompletePublisherCatalogue')}{' '}
                 </div>
               )}
-              <h3>{books.length} copies in your library</h3>
+              <h3>
+                {books.length} {t('ui.copiesInYourLibrary')}
+              </h3>
               {books.map((b) => (
                 <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
                   <span>
@@ -124,13 +133,13 @@ export function Explore({
                     {b.title}
                     <small className="block">{author(b)}</small>
                   </span>
-                  <span className="badge">{b.status}</span>
+                  <span className="badge">{trLabel(b.status)}</span>
                 </button>
               ))}
             </>
           ) : (
-            <Empty title={`Explore your ${section.toLowerCase()}`}>
-              <p>Select a record to see its details and books.</p>
+            <Empty title={t('actions.explore', { section: trLabel(section).toLocaleLowerCase() })}>
+              <p>{t('ui.selectARecordToSeeItsDetailsAndBooks')}</p>
             </Empty>
           )}
         </section>

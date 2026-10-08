@@ -1,3 +1,5 @@
+import { ErrorText } from './ErrorText';
+import { t, label as trLabel } from '../i18n';
 import { confirmAction } from './Confirmation';
 import { useState } from 'react';
 import {
@@ -59,7 +61,7 @@ export function RecordDialog({
   };
   const extra = (values.extra || {}) as Record<string, string | boolean>;
   const input = (key: string, label: string, inputType = 'text', inExtra = false) => (
-    <Field key={key} label={label}>
+    <Field key={key} label={trLabel(label)}>
       {inputType === 'textarea' ? (
         <textarea
           value={String((inExtra ? extra[key] : values[key]) ?? '')}
@@ -115,7 +117,9 @@ export function RecordDialog({
   };
   return (
     <Modal
-      title={`${entity || entry || loan ? 'Edit' : 'Add'} ${type.replace('_', ' ')}`}
+      title={t(entity || entry || loan ? 'actions.editKind' : 'actions.addKind', {
+        kind: trLabel(type.replace('_', ' ')),
+      })}
       onClose={close}
     >
       <form
@@ -127,22 +131,22 @@ export function RecordDialog({
         <div className="dialog-body form-grid">
           {error && (
             <div role="alert" className="alert span2">
-              {error}
+              <ErrorText message={error} />
             </div>
           )}
           {(isEntry || type === 'loan') && (
-            <Field label="Book">
+            <Field label={t('ui.book')}>
               <select
                 required
                 disabled={!!entry || !!loan}
                 value={String(values.copy_id)}
                 onChange={(e) => set('copy_id', e.target.value)}
               >
-                <option value="">Choose a book</option>
+                <option value="">{t('ui.chooseABook')}</option>
                 {data.books.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.title} · {copyName(b)} ·{' '}
-                    {locationName(b.location_id, data.locations) || 'Unassigned'}
+                    {locationName(b.location_id, data.locations) || t('ui.unassigned')}
                   </option>
                 ))}
               </select>
@@ -160,7 +164,7 @@ export function RecordDialog({
                 </>
               )}
               {type === 'note' && (
-                <Field label="Note type">
+                <Field label={t('ui.noteType')}>
                   <select
                     value={String(extra.note_type || 'general')}
                     onChange={(e) => set('extra', { ...extra, note_type: e.target.value })}
@@ -173,7 +177,9 @@ export function RecordDialog({
                       'vocabulary',
                       'personal',
                     ].map((n) => (
-                      <option key={n}>{n}</option>
+                      <option key={n} value={n}>
+                        {trLabel(n)}
+                      </option>
                     ))}
                   </select>
                 </Field>
@@ -218,22 +224,24 @@ export function RecordDialog({
           {type === 'series' && input('notes', 'Series notes', 'textarea', true)}
           {type === 'locations' && (
             <>
-              <Field label="Location type">
+              <Field label={t('ui.locationType')}>
                 <select
                   value={String(extra.kind || 'Location')}
                   onChange={(e) => set('extra', { ...extra, kind: e.target.value })}
                 >
                   {['Home', 'Room', 'Bookcase', 'Shelf', 'Location'].map((kind) => (
-                    <option key={kind}>{kind}</option>
+                    <option key={kind} value={kind}>
+                      {trLabel(kind)}
+                    </option>
                   ))}
                 </select>
               </Field>
-              <Field label="Parent location">
+              <Field label={t('ui.parentLocation')}>
                 <select
                   value={String(values.parent_id || '')}
                   onChange={(e) => set('parent_id', e.target.value)}
                 >
-                  <option value="">Top level</option>
+                  <option value="">{t('ui.topLevel')}</option>
                   {data.locations
                     .filter((l) => l.id !== entity?.id)
                     .map((l) => (
@@ -248,7 +256,7 @@ export function RecordDialog({
           )}
           {type === 'custom_fields' && (
             <>
-              <Field label="Field type">
+              <Field label={t('ui.fieldType')}>
                 <select
                   disabled={!!entity}
                   value={String(values.kind)}
@@ -256,7 +264,9 @@ export function RecordDialog({
                 >
                   {['text', 'multiline', 'integer', 'decimal', 'date', 'checkbox', 'dropdown'].map(
                     (k) => (
-                      <option key={k}>{k}</option>
+                      <option key={k} value={k}>
+                        {trLabel(k)}
+                      </option>
                     ),
                   )}
                 </select>
@@ -264,17 +274,17 @@ export function RecordDialog({
               {values.kind === 'dropdown' &&
                 input('options', 'Options (separate with |)', 'text', true)}
               <p className="muted span2">
-                Field types stay fixed once created to protect existing values.
+                {t('ui.fieldTypesStayFixedOnceCreatedToProtectExistingValues')}{' '}
               </p>
             </>
           )}
         </div>
         <footer>
           <button type="button" onClick={close}>
-            Cancel
+            {t('ui.cancel')}{' '}
           </button>
           <button className="primary" disabled={busy} type="submit">
-            {busy ? 'Saving…' : 'Save'}
+            {busy ? t('ui.saving') : t('ui.save')}
           </button>
         </footer>
       </form>

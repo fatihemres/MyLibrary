@@ -1,3 +1,6 @@
+import { ErrorText } from './ErrorText';
+import { t, label as trLabel } from '../i18n';
+import { commandPressed } from '../services/platform';
 import { useRef, useState } from 'react';
 import {
   conditions,
@@ -74,7 +77,7 @@ export function CopyEditor({
     }
   };
   const input = (key: string, label: string, type = 'text') => (
-    <Field label={label}>
+    <Field label={trLabel(label)}>
       <input
         type={type}
         value={String(value[key as keyof Book] || '')}
@@ -86,10 +89,10 @@ export function CopyEditor({
     <Modal
       title={
         mode === 'add'
-          ? 'Add Physical Copy'
+          ? t('ui.addPhysicalCopy')
           : mode === 'move'
-            ? `Move ${copyName(book)}`
-            : `Edit ${copyName(book)}`
+            ? t('actions.moveKind', { kind: copyName(book) })
+            : t('actions.editKind', { kind: copyName(book) })
       }
       onClose={() => void close()}
       wide
@@ -100,7 +103,7 @@ export function CopyEditor({
           void submit();
         }}
         onKeyDown={(e) => {
-          if (e.ctrlKey && e.key.toLowerCase() === 's') {
+          if (commandPressed(e) && e.key.toLowerCase() === 's') {
             e.preventDefault();
             void submit();
           }
@@ -108,8 +111,8 @@ export function CopyEditor({
       >
         <div className="dialog-body">
           <p>
-            <strong>{book.title}</strong> · Physical copy details. Edition information stays
-            unchanged.
+            <strong>{book.title}</strong>{' '}
+            {t('ui.physicalCopyDetailsEditionInformationStaysUnchanged')}{' '}
           </p>
           <nav className="tabs">
             {['Identity', 'Location', 'Ownership', 'Physical', 'Notes'].map((t) => (
@@ -119,50 +122,51 @@ export function CopyEditor({
                 className={tab === t ? 'active' : ''}
                 onClick={() => setTab(t)}
               >
-                {t}
+                {trLabel(t)}
               </button>
             ))}
           </nav>
           {error && (
             <div className="alert" role="alert">
-              {error}
+              <ErrorText message={error} />
             </div>
           )}
           <div className="form-grid">
             {tab === 'Identity' && (
               <>
-                <Field label="Copy identifier / inventory code">
+                <Field label={t('ui.copyIdentifierInventoryCode')}>
                   <input
                     autoFocus
                     value={String(value.copy_extra.inventory_code || '')}
-                    placeholder="Automatic Copy # if left blank"
+                    placeholder={t('ui.automaticCopyIfLeftBlank')}
                     onChange={(e) => extra('inventory_code', e.target.value)}
                   />
                 </Field>
                 {input('barcode', 'Barcode')}
-                <Field label="Copy state">
+                <Field label={t('ui.copyState')}>
                   <select
                     value={String(value.copy_extra.copy_state || 'Owned')}
                     onChange={(e) => extra('copy_state', e.target.value)}
                   >
-                    <option>Owned</option>
-                    <option>Missing</option>
+                    <option value="Owned">{t('ui.owned')}</option>
+                    <option value="Missing">{t('ui.missing')}</option>
                   </select>
                 </Field>
                 <p className="muted">
-                  Lent status follows the loan record. Archive uses Trash and keeps this copy’s
-                  history. Manage attachments from View copy → Attachments.
+                  {t(
+                    'ui.lentStatusFollowsTheLoanRecordArchiveUsesTrashAndKeepsThisCopySHistoryManageAttachmentsFromViewCopyAttachments',
+                  )}{' '}
                 </p>
               </>
             )}
             {tab === 'Location' && (
               <>
-                <Field label="Room → Bookcase → Shelf">
+                <Field label={t('ui.roomBookcaseShelf')}>
                   <select
                     value={value.location_id}
                     onChange={(e) => set('location_id', e.target.value)}
                   >
-                    <option value="">Unassigned</option>
+                    <option value="">{t('ui.unassigned')}</option>
                     {data.locations.map((l) => (
                       <option value={l.id} key={l.id}>
                         {locationName(l.id, data.locations).replaceAll(' / ', ' → ')}
@@ -172,12 +176,14 @@ export function CopyEditor({
                 </Field>
                 <p className="muted">
                   {data.locations.length
-                    ? 'Select a room to add a bookcase, or a bookcase to add a shelf. Select the final shelf to assign this copy.'
-                    : 'No locations yet. Create your first room below. Your copy draft will stay open.'}
+                    ? t(
+                        'ui.selectARoomToAddABookcaseOrABookcaseToAddAShelfSelectTheFinalShelfToAssignThisCopy',
+                      )
+                    : t('ui.noLocationsYetCreateYourFirstRoomBelowYourCopyDraftWillStayOpen')}
                 </p>
                 <section className="location-create-surface">
-                  <h3>Create a location</h3>
-                  <p className="muted">Your copy stays open while you organize its home.</p>
+                  <h3>{t('ui.createALocation')}</h3>
+                  <p className="muted">{t('ui.yourCopyStaysOpenWhileYouOrganizeItsHome')}</p>
                   <div className="inline wrap">
                     <button
                       type="button"
@@ -185,7 +191,7 @@ export function CopyEditor({
                         setLocationRequest({ type: 'locations', locationKind: 'Room' })
                       }
                     >
-                      Add Room
+                      {t('ui.addRoom')}{' '}
                     </button>
                     {['Bookcase', 'Shelf'].map((kind) => (
                       <button
@@ -193,7 +199,7 @@ export function CopyEditor({
                         key={kind}
                         disabled={
                           selectedLocation?.extra?.kind !==
-                          (kind === 'Bookcase' ? 'Room' : 'Bookcase')
+                          (kind === 'Bookcase' ? t('ui.room') : t('ui.bookcase'))
                         }
                         onClick={() =>
                           setLocationRequest({
@@ -203,7 +209,7 @@ export function CopyEditor({
                           })
                         }
                       >
-                        Add {kind}
+                        {t('actions.addKind', { kind: trLabel(kind) })}
                       </button>
                     ))}
                   </div>
@@ -217,10 +223,12 @@ export function CopyEditor({
               </>
             )}
             {tab === 'Physical' && (
-              <Field label="Condition">
+              <Field label={t('ui.condition')}>
                 <select value={value.condition} onChange={(e) => set('condition', e.target.value)}>
                   {conditions.map((c) => (
-                    <option key={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {trLabel(c)}
+                    </option>
                   ))}
                 </select>
               </Field>
@@ -228,7 +236,7 @@ export function CopyEditor({
             {(copyFields[tab] || [])
               .filter((f) => f.key !== 'spoiler_notes')
               .map((f) => (
-                <Field key={f.key} label={f.label}>
+                <Field key={f.key} label={trLabel(f.label)}>
                   {f.type === 'textarea' ? (
                     <textarea
                       value={String(value.copy_extra[f.key] || '')}
@@ -239,9 +247,11 @@ export function CopyEditor({
                       value={String(value.copy_extra[f.key] || '')}
                       onChange={(e) => extra(f.key, e.target.value)}
                     >
-                      <option value="">Not specified</option>
+                      <option value="">{t('ui.notSpecified')}</option>
                       {f.options?.map((o) => (
-                        <option key={o}>{o}</option>
+                        <option key={o} value={o}>
+                          {trLabel(o)}
+                        </option>
                       ))}
                     </select>
                   ) : f.type === 'checkbox' ? (
@@ -265,10 +275,10 @@ export function CopyEditor({
         </div>
         <footer>
           <button type="button" onClick={() => void close()} disabled={busy}>
-            Cancel
+            {t('ui.cancel')}{' '}
           </button>
           <button type="submit" className="primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save physical copy'}
+            {busy ? t('ui.saving') : t('ui.savePhysicalCopy')}
           </button>
         </footer>
       </form>

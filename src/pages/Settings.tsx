@@ -1,3 +1,5 @@
+import { FoundationSettings } from '../components/FoundationSettings';
+import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
 import type { Snapshot } from '../domain/types';
 import { locationName } from '../domain/types';
@@ -19,36 +21,37 @@ export function Settings({
   const [result, setResult] = useState('');
   return (
     <>
+      <FoundationSettings onAction={onAction} />
       <div className="two-col">
         <section className="panel">
-          <h2>General & appearance</h2>
-          <Field label="Theme">
+          <h2>{t('ui.generalAppearance')}</h2>
+          <Field label={t('ui.theme')}>
             <select
               value={prefs.theme || 'system'}
               onChange={(e) => onAction(() => api('settings', { theme: e.target.value }))}
             >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
+              <option value="system">{t('ui.system')}</option>
+              <option value="light">{t('ui.light')}</option>
+              <option value="dark">{t('ui.dark')}</option>
             </select>
           </Field>
-          <Field label="Default book language">
+          <Field label={t('ui.defaultBookLanguage')}>
             <input value={language} onChange={(e) => setLanguage(e.target.value)} />
           </Field>
-          <Field label="Default currency">
+          <Field label={t('ui.defaultCurrency')}>
             <input value={currency} onChange={(e) => setCurrency(e.target.value)} />
           </Field>
           <button onClick={() => onAction(() => api('settings', { language, currency }))}>
-            Save defaults
+            {t('ui.saveDefaults')}{' '}
           </button>
-          <Field label="Default library location">
+          <Field label={t('ui.defaultLibraryLocation')}>
             <select
               value={prefs.default_location || ''}
               onChange={(e) =>
                 onAction(() => api('settings', { default_location: e.target.value }))
               }
             >
-              <option value="">Unassigned</option>
+              <option value="">{t('ui.unassigned')}</option>
               {data.locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {locationName(l.id, data.locations)}
@@ -56,67 +59,68 @@ export function Settings({
               ))}
             </select>
           </Field>
-          <p className="muted">
-            The interface is in English. Default book language applies to newly added books.
-          </p>
+          <p className="muted">{t('foundation.languageHelp')} </p>
         </section>
         <section className="panel">
-          <h2>Your data stays here</h2>
+          <h2>{t('ui.yourDataStaysHere')}</h2>
           <p className="code break">{data.dataDir}</p>
           <p>
-            Database: library.sqlite3
-            <br />
-            Images: covers/
-            <br />
-            Files: attachments/
-            <br />
-            Safety archives: backups/
+            {t('ui.databaseLibrarySqlite3')} <br />
+            {t('ui.imagesCovers')} <br />
+            {t('ui.filesAttachments')} <br />
+            {t('ui.safetyArchivesBackups')}{' '}
           </p>
-          <button onClick={() => onAction(() => api('open_folder'))}>Open data folder</button>
-          <h3>Database maintenance</h3>
-          <p>Check the database and foreign-key relationships without changing your records.</p>
+          <button onClick={() => onAction(() => api('open_folder'))}>
+            {t('ui.openDataFolder')}
+          </button>
+          <h3>{t('ui.databaseMaintenance')}</h3>
+          <p>{t('ui.checkTheDatabaseAndForeignKeyRelationshipsWithoutChangingYourRecords')}</p>
           <button onClick={() => onAction(async () => setResult(await api<string>('integrity')))}>
-            Run integrity check
+            {t('ui.runIntegrityCheck')}{' '}
           </button>
           {result && <p role="status">{result}</p>}
           <p className="muted">
-            Deleted books are retained in Trash. Automatic permanent purging is deliberately
-            disabled.
+            {t(
+              'ui.deletedBooksAreRetainedInTrashAutomaticPermanentPurgingIsDeliberatelyDisabled',
+            )}{' '}
           </p>
         </section>
       </div>
       <section className="panel">
         <div className="section-heading">
           <div>
-            <h2>Custom fields</h2>
-            <p>Make room for the details that matter to you.</p>
+            <h2>{t('ui.customFieldsAlt')}</h2>
+            <p>{t('ui.makeRoomForTheDetailsThatMatterToYou')}</p>
           </div>
           <button className="primary" onClick={() => onRecord({ type: 'custom_fields' })}>
-            Create field
+            {t('ui.createField')}{' '}
           </button>
         </div>
         {data.fields.map((f) => (
           <div className="list-row" key={f.id}>
             <strong>{f.name}</strong>
-            <span>{f.kind}</span>
+            <span>{trLabel(f.kind || 'text')}</span>
             <span>{String(f.extra?.options || '')}</span>
-            <button onClick={() => onRecord({ type: 'custom_fields', entity: f })}>Edit</button>
+            <button onClick={() => onRecord({ type: 'custom_fields', entity: f })}>
+              {t('ui.edit')}
+            </button>
           </div>
         ))}
         {!data.fields.length && (
-          <p className="muted">Try “Recommended by”, “Bought in city”, or “Storage box”.</p>
+          <p className="muted">{t('ui.tryRecommendedByBoughtInCityOrStorageBox')}</p>
         )}
       </section>
       <section className="panel">
-        <h2>MyLibrary 1.0.0</h2>
+        <h2>{t('foundation.version', { version: '2.0.0-alpha.1' })}</h2>
         <p>
-          A private catalogue for a physical collection. Built with Tauri, React, TypeScript and
-          SQLite.
+          {t(
+            'ui.aPrivateCatalogueForAPhysicalCollectionBuiltWithTauriReactTypescriptAndSqlite',
+          )}{' '}
         </p>
         <p>
-          No accounts, analytics, remote logging or background network requests. Optional ISBN
-          lookup contacts Open Library only when requested. Local backups are not encrypted; store
-          them somewhere private.
+          {t(
+            'ui.noAccountsAnalyticsRemoteLoggingOrBackgroundNetworkRequestsOptionalIsbnLookupContactsOpenLibraryOnlyWhenRequestedLocalBackupsAreNotEncryptedStoreThemSomewherePrivate',
+          )}{' '}
         </p>
       </section>
     </>

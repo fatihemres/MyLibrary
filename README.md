@@ -1,5 +1,7 @@
 # MyLibrary
 
+This branch is **V2 Milestone 1 / 2.0.0-alpha.1**, an unreleased foundation. The stable V1 source and installer remain at immutable tag/release [v1.0.0](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0). Do not use prerelease builds on your only library copy.
+
 A private Windows desktop catalogue for physical books, built with Tauri 2, React 19, TypeScript, Vite and embedded SQLite. No server, account, Docker, telemetry or cloud database. Production starts with an empty library.
 
 ## Features
@@ -64,7 +66,7 @@ npm run desktop:build
 
 Executable: `src-tauri/target/release/mylibrary.exe`.
 
-NSIS installer: `src-tauri/target/release/bundle/nsis/MyLibrary_1.0.0_x64-setup.exe`.
+NSIS installer: `src-tauri/target/release/bundle/nsis/MyLibrary_2.0.0-alpha.1_x64-setup.exe`.
 
 The installer is unsigned; no signing certificate is configured. WebView2 must be available on the destination; installer bootstrapping may need an internet connection if it is missing. Build wrappers use `.cache/cargo`, `.cache/tmp`, `.cache/npm` and Tauri's `useLocalToolsDir`, avoiding global package installations. Existing rustup/MSVC installations are used. Initial native builds are considerably slower than incremental builds.
 
@@ -83,7 +85,7 @@ The persistent root is Tauri's application-data directory for `com.mylibrary.des
   .library.lock            Exclusive application-instance lock
 ```
 
-Settings displays the exact path and opens it in Explorer. `MYLIBRARY_DATA_DIR` can override the root for controlled development/portable use. Only one instance may open a particular library. Images are files, not SQLite blobs. Removing/replacing covers retains old files for safety. Book deletion moves a copy to Trash and retains relationships and files; active loans must be returned first. No automatic purge removes user data or archives.
+Settings displays the exact path and opens it in the platform file manager. `MYLIBRARY_DATA_DIR` can override the root for controlled development/portable use. Only one instance may open a particular library. Images are files, not SQLite blobs. Removing/replacing covers retains old files for safety. Book deletion moves a copy to Trash and retains relationships and files; active loans must be returned first. No automatic purge removes user data or archives.
 
 Do not copy only a live `.sqlite3` file: current writes may be in its WAL. Use the Backup screen.
 
@@ -181,3 +183,9 @@ Development/build scripts never push code or library data. Publishing a verified
 **MyLibrary v1.0.0** was approved by the owner on 2026-10-08. [Release notes](docs/releases/v1.0.0.md) document the stable baseline. Download the historical installer and SHA256SUMS.txt from the [GitHub Release](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0); access requires authorization to this private repository.
 
 The annotated v1.0.0 tag permanently identifies the release source. main holds the stable baseline, v1-maintenance receives compatible V1 fixes, and v2 is reserved for future development. All three initially point to the same release commit. No source folders are duplicated and no V2 features are included. See [versioning policy](docs/versioning.md) for Semantic Versioning, maintenance, forward-porting and V2 promotion procedures. Never move published tags or replace historical release assets.
+
+## V2 foundation
+
+English/Turkish UI is selected in Settings → Language & region and persists independently of book language. Schema 2 adds a migration ledger without changing editions/copies. V1 upgrades create a SQLite safety snapshot; V1 ZIP restores migrate staging before replacing live data. Keep a complete V1 ZIP for downgrade. Updates remain unconfigured/inactive and make no background requests.
+
+See [assessment](docs/v2/foundation-assessment.md), [platform](docs/architecture/platform-abstraction.md), [localization](docs/architecture/i18n.md), [migrations](docs/architecture/migrations.md), [provider/update boundaries](docs/architecture/metadata-providers.md), [acceptance cases](docs/testing/v2-acceptance-tests.md) and [platform matrix](docs/testing/v2-platform-matrix.md). macOS/Linux CI configuration is not a claim of native desktop acceptance. No Milestone 2 feature work is included.

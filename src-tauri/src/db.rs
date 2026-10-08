@@ -30,7 +30,14 @@ pub struct Store {
 impl Store {
     pub fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
-        for d in ["covers", "attachments", "backups"] {
+        for d in [
+            "covers",
+            "attachments",
+            "backups",
+            "thumbnails",
+            "cache",
+            "cache/tmp",
+        ] {
             fs::create_dir_all(root.join(d))?;
         }
         let lock = fs::OpenOptions::new()
@@ -42,32 +49,7 @@ impl Store {
         lock.try_lock().map_err(|_|"This library is already open in another MyLibrary window. Close that window before opening it again.")?;
         let store = Self { root, _lock: lock };
         let mut c = store.conn()?;
-        let version: i64 = c.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-        if version > 1 {
-            return Err(
-                "This library was created by a newer version of MyLibrary. Please update the app."
-                    .into(),
-            );
-        }
-        if version < 1 {
-            let populated: bool = c.query_row(
-                "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table')",
-                [],
-                |r| r.get(0),
-            )?;
-            if populated {
-                c.backup(
-                    "main",
-                    store
-                        .root
-                        .join(format!("backups/pre-migration-{}.sqlite3", id())),
-                    None,
-                )?;
-            }
-            let tx = c.transaction()?;
-            tx.execute_batch(include_str!("schema.sql"))?;
-            tx.commit()?;
-        }
+        crate::migrations::migrate(&mut c, &store.root)?;
         Ok(store)
     }
     pub fn conn(&self) -> Result<Connection> {
@@ -797,7 +779,8 @@ pub fn reindex(c: &Connection) -> Result<()> {
     Ok(())
 }
 pub fn safe_file(root: &Path, relative: &str) -> Result<PathBuf> {
-    if relative.contains('\\')
+    if relative.is_empty()
+        || relative.contains('\\')
         || relative.contains(':')
         || Path::new(relative)
             .components()
@@ -806,5 +789,12 @@ pub fn safe_file(root: &Path, relative: &str) -> Result<PathBuf> {
         return Err("Invalid file path".into());
     }
     let p = root.join(relative);
+    let mut ancestor = p.as_path();
+    while ancestor != root {
+        if std::fs::symlink_metadata(ancestor).is_ok_and(|m| m.file_type().is_symlink()) {
+            return Err("Invalid file path".into());
+        }
+        ancestor = ancestor.parent().ok_or("Invalid file path")?;
+    }
     Ok(p)
 }

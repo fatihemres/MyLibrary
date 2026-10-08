@@ -60,3 +60,12 @@ Thumbs.db
 .env-check/
 *.tsbuildinfo
 
+# Portable backups, exports and installer artifacts must never be source commits
+*.zip
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.deb
+*.app/
+

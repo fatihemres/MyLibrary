@@ -1,3 +1,4 @@
+import { t, label as trLabel } from '../i18n';
 import { useEffect, useState } from 'react';
 import { ArrowDownUp, Columns3, Grid2X2, List, SlidersHorizontal, Star } from 'lucide-react';
 import {
@@ -64,8 +65,7 @@ export function Library({
   const books = filterBooks(data, filters, sort, desc);
   const cards = editionCards(books, data.books, trash);
   const matchingIds = (id: string) => cards.find((b) => b.id === id)?.matchingIds || [id];
-  const copyLabel = (b: (typeof cards)[number]) =>
-    `${b.copyCount} ${b.copyCount === 1 ? 'copy' : 'copies'}`;
+  const copyLabel = (b: (typeof cards)[number]) => t('library.copyCount', { count: b.copyCount });
   const bookIds = new Set(books.map((b) => b.id));
   const ids = selected.filter((id) => bookIds.has(id));
   const pages = Math.max(1, Math.ceil(cards.length / 60));
@@ -81,14 +81,16 @@ export function Library({
     );
   };
   const choices = (key: string, label: string, values: string[]) => (
-    <Field label={label}>
+    <Field label={trLabel(label)}>
       <select value={filters[key] || ''} onChange={(e) => setFilter(key, e.target.value)}>
-        <option value="">Any</option>
+        <option value="">{t('ui.any')}</option>
         {[...new Set(values)]
           .filter(Boolean)
           .sort()
           .map((v) => (
-            <option key={v}>{v}</option>
+            <option key={v} value={v}>
+              {['status', 'condition', 'lent'].includes(key) ? trLabel(v) : v}
+            </option>
           ))}
       </select>
     </Field>
@@ -122,16 +124,20 @@ export function Library({
     <>
       <div className="toolbar">
         <span className="muted">
-          {cards.length} {trash ? 'copies' : 'editions'} · {books.length} matching copies
-          {Object.values(filters).some(Boolean) && ' · filtered'}
+          {cards.length} {trash ? t('ui.copiesAlt') : t('library.editions')} · {books.length}{' '}
+          {t('ui.matchingCopies')} {Object.values(filters).some(Boolean) && t('library.filtered')}
         </span>
-        {filters.status && <span className="badge">Reading status: {filters.status}</span>}
+        {filters.status && (
+          <span className="badge">
+            {t('ui.readingStatusAlt')} {trLabel(filters.status)}
+          </span>
+        )}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={showFilters ? 'selected' : ''}
         >
           <SlidersHorizontal size={16} />
-          Filters
+          {t('ui.filters')}{' '}
         </button>
         <button
           onClick={() => {
@@ -139,11 +145,11 @@ export function Library({
             setSelected([]);
           }}
         >
-          Reset
+          {t('ui.reset')}{' '}
         </button>
         <span className="spacer" />
         <select
-          aria-label="Sort books"
+          aria-label={t('ui.sortBooks')}
           value={sort}
           onChange={(e) => {
             setSort(e.target.value);
@@ -162,13 +168,13 @@ export function Library({
             ['series_order', 'Series order'],
           ].map(([k, v]) => (
             <option key={k} value={k}>
-              {v}
+              {trLabel(v)}
             </option>
           ))}
         </select>
         <button
-          title="Reverse sort order"
-          aria-label="Reverse sort order"
+          title={t('ui.reverseSortOrder')}
+          aria-label={t('ui.reverseSortOrder')}
           onClick={() => setDesc(!desc)}
         >
           <ArrowDownUp size={16} />
@@ -177,7 +183,7 @@ export function Library({
           {['grid', 'table'].map((v) => (
             <button
               key={v}
-              aria-label={`${v} view`}
+              aria-label={t('library.view', { view: t(`library.${v}`) })}
               className={view === v ? 'active' : ''}
               onClick={() => {
                 setView(v);
@@ -189,7 +195,7 @@ export function Library({
           ))}
         </div>
         {view === 'table' && (
-          <button aria-label="Choose columns" onClick={() => setShowColumns(!showColumns)}>
+          <button aria-label={t('ui.chooseColumns')} onClick={() => setShowColumns(!showColumns)}>
             <Columns3 size={16} />
           </button>
         )}
@@ -207,7 +213,7 @@ export function Library({
                   localStorage.setItem('columns', JSON.stringify(next));
                 }}
               />
-              {c.replaceAll('_', ' ')}
+              {trLabel(c.replaceAll('_', ' '))}
             </label>
           ))}
         </div>
@@ -247,7 +253,7 @@ export function Library({
           {choices('status', 'Reading status', statuses)}
           {choices('condition', 'Condition', conditions)}
           {['minYear', 'maxYear', 'acquisitionYear'].map((key, i) => (
-            <Field key={key} label={['Year from', 'Year to', 'Acquired in year'][i]}>
+            <Field key={key} label={trLabel(['Year from', 'Year to', 'Acquired in year'][i])}>
               <input
                 type="number"
                 value={filters[key] || ''}
@@ -268,12 +274,12 @@ export function Library({
             '4.5',
             '5',
           ])}
-          <Field label="Location (includes children)">
+          <Field label={t('ui.locationIncludesChildren')}>
             <select
               value={filters.location_id || ''}
               onChange={(e) => setFilter('location_id', e.target.value)}
             >
-              <option value="">Anywhere</option>
+              <option value="">{t('ui.anywhere')}</option>
               {data.locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {locationName(l.id, data.locations)}
@@ -293,7 +299,7 @@ export function Library({
                 checked={!!filters[k]}
                 onChange={(e) => setFilter(k, e.target.checked ? 'yes' : '')}
               />
-              {l}
+              {trLabel(l)}
             </label>
           ))}
         </div>
@@ -305,53 +311,55 @@ export function Library({
             checked={books.length > 0 && ids.length === books.length}
             onChange={(e) => setSelected(e.target.checked ? books.map((b) => b.id) : [])}
           />{' '}
-          Select all
+          {t('ui.selectAll')}{' '}
         </label>
-        <span>{ids.length ? `${ids.length} copies selected` : ''}</span>
+        <span>{ids.length ? t('library.selected', { count: ids.length }) : ''}</span>
         {!trash && (
-          <small className="muted">Selection includes matching copies of each edition.</small>
+          <small className="muted">{t('ui.selectionIncludesMatchingCopiesOfEachEdition')}</small>
         )}
         <span className="spacer" />
         <button
           onClick={() => onExport(ids.length ? books.filter((b) => ids.includes(b.id)) : books)}
         >
-          Export {ids.length ? 'selected' : 'results'}
+          {t(ids.length ? 'actions.exportSelected' : 'actions.exportResults')}
         </button>
       </div>
       {ids.length > 0 && (
         <div className="bulkbar">
           <select
-            aria-label="Bulk operation"
+            aria-label={t('ui.bulkOperation')}
             value={bulkField}
             onChange={(e) => {
               setBulkField(e.target.value);
               setBulkValue('');
             }}
           >
-            <option value="status">Reading status</option>
-            <option value="location_id">Move Location</option>
-            <option value="favorite">Favorite</option>
-            <option value="add_tag">Add tag</option>
-            <option value="remove_tag">Remove tag</option>
+            <option value="status">{t('ui.readingStatus')}</option>
+            <option value="location_id">{t('ui.moveLocation')}</option>
+            <option value="favorite">{t('ui.favorite')}</option>
+            <option value="add_tag">{t('ui.addTag')}</option>
+            <option value="remove_tag">{t('ui.removeTag')}</option>
           </select>
           {bulkField === 'status' ? (
             <select
-              aria-label="New reading status"
+              aria-label={t('ui.newReadingStatus')}
               value={bulkValue}
               onChange={(e) => setBulkValue(e.target.value)}
             >
-              <option value="">Choose status</option>
+              <option value="">{t('ui.chooseStatus')}</option>
               {statuses.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>
+                  {trLabel(s)}
+                </option>
               ))}
             </select>
           ) : bulkField === 'location_id' ? (
             <select
-              aria-label="New location"
+              aria-label={t('ui.newLocation')}
               value={bulkValue}
               onChange={(e) => setBulkValue(e.target.value)}
             >
-              <option value="">Unassigned</option>
+              <option value="">{t('ui.unassigned')}</option>
               {data.locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {locationName(l.id, data.locations)}
@@ -360,17 +368,17 @@ export function Library({
             </select>
           ) : bulkField === 'favorite' ? (
             <select
-              aria-label="Favorite"
+              aria-label={t('ui.favorite')}
               value={bulkValue}
               onChange={(e) => setBulkValue(e.target.value)}
             >
-              <option value="">Choose</option>
-              <option value="true">Favorite</option>
-              <option value="false">Not favorite</option>
+              <option value="">{t('ui.choose')}</option>
+              <option value="true">{t('ui.favorite')}</option>
+              <option value="false">{t('ui.notFavorite')}</option>
             </select>
           ) : (
             <input
-              placeholder="Tag name"
+              placeholder={t('ui.tagName')}
               value={bulkValue}
               onChange={(e) => setBulkValue(e.target.value)}
             />
@@ -381,7 +389,7 @@ export function Library({
               onBulk(ids, bulkField, bulkField === 'favorite' ? bulkValue === 'true' : bulkValue)
             }
           >
-            Apply
+            {t('ui.apply')}{' '}
           </button>
           <span className="spacer" />
           <button
@@ -391,7 +399,7 @@ export function Library({
               setSelected([]);
             }}
           >
-            {trash ? 'Restore from Trash' : 'Move to Trash'}
+            {trash ? t('ui.restoreFromTrash') : t('ui.moveToTrash')}
           </button>
         </div>
       )}
@@ -399,16 +407,16 @@ export function Library({
         <Empty
           title={
             trash
-              ? 'Trash is empty'
+              ? t('ui.trashIsEmpty')
               : data.books.length
-                ? 'No matching books'
-                : 'Your library starts here'
+                ? t('ui.noMatchingBooks')
+                : t('ui.yourLibraryStartsHere')
           }
         >
           <p>
             {data.books.length
-              ? 'Try resetting your filters or changing your search.'
-              : 'Add your first book or import an existing catalogue.'}
+              ? t('ui.tryResettingYourFiltersOrChangingYourSearch')
+              : t('ui.addYourFirstBookOrImportAnExistingCatalogue')}
           </p>
         </Empty>
       ) : view === 'grid' ? (
@@ -433,7 +441,7 @@ export function Library({
                 </button>
                 <input
                   type="checkbox"
-                  aria-label={`Select ${b.title}`}
+                  aria-label={t('library.select', { title: b.title })}
                   checked={b.matchingIds.every((id) => ids.includes(id))}
                   onChange={() => toggle(b.id)}
                 />
@@ -442,14 +450,16 @@ export function Library({
               <button className="book-title" onClick={() => onOpen(b)}>
                 {b.title}
               </button>
-              <p>{author(b) || 'Author not specified'}</p>
+              <p>{author(b) || t('ui.authorNotSpecified')}</p>
               <p>
                 {copyLabel(b)}
-                {b.matchingIds.length < b.copyCount ? ` · ${b.matchingIds.length} matching` : ''}
+                {b.matchingIds.length < b.copyCount
+                  ? t('library.matching', { count: b.matchingIds.length })
+                  : ''}
               </p>
               <div className="card-bottom">
                 <span className={`badge status-${b.status.toLowerCase().replaceAll(' ', '-')}`}>
-                  {b.readingLabel}
+                  {trLabel(b.readingLabel)}
                 </span>
                 {b.rating !== null && <span className="rating">{b.rating} ★</span>}
               </div>
@@ -469,7 +479,7 @@ export function Library({
                       setDesc(!desc);
                     }}
                   >
-                    Title
+                    {t('ui.title')}{' '}
                   </button>
                 </th>
                 {columns.map((c) => (
@@ -480,7 +490,7 @@ export function Library({
                         setDesc(!desc);
                       }}
                     >
-                      {c.replaceAll('_', ' ')}
+                      {trLabel(c.replaceAll('_', ' '))}
                     </button>
                   </th>
                 ))}
@@ -503,7 +513,7 @@ export function Library({
                   <td>
                     <input
                       type="checkbox"
-                      aria-label={`Select ${b.title}`}
+                      aria-label={t('library.select', { title: b.title })}
                       checked={b.matchingIds.every((id) => ids.includes(id))}
                       onChange={() => toggle(b.id)}
                     />
@@ -515,7 +525,7 @@ export function Library({
                     <small className="block">{copyLabel(b)}</small>
                   </td>
                   {columns.map((c) => (
-                    <td key={c}>{c === 'status' ? b.readingLabel : cell(b, c)}</td>
+                    <td key={c}>{c === 'status' ? trLabel(b.readingLabel) : cell(b, c)}</td>
                   ))}
                 </tr>
               ))}
@@ -526,39 +536,39 @@ export function Library({
       {cards.length > 60 && (
         <div className="pagination">
           <button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
-            Previous
+            {t('ui.previous')}{' '}
           </button>
           <span>
-            Page {currentPage} of {pages} · 60 per page
+            {t('ui.page')} {currentPage} {t('ui.of')} {pages} {t('ui.60PerPage')}{' '}
           </span>
           <button disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>
-            Next
+            {t('ui.next')}{' '}
           </button>
         </div>
       )}
       {menu && (
         <div className="context-menu" role="menu" style={{ left: menu.x, top: menu.y }}>
           <button role="menuitem" onClick={() => onOpen(menu.book)}>
-            Open book details
+            {t('ui.openBookDetails')}{' '}
           </button>
           <button
             role="menuitem"
             onClick={() => onBulk(matchingIds(menu.book.id), 'favorite', !menu.book.favorite)}
           >
-            {menu.book.favorite ? 'Remove favorite' : 'Mark favorite'}
+            {menu.book.favorite ? t('ui.removeFavorite') : t('ui.markFavorite')}
           </button>
           <button
             role="menuitem"
             onClick={() => onExport(books.filter((b) => matchingIds(menu.book.id).includes(b.id)))}
           >
-            Export matching copies…
+            {t('ui.exportMatchingCopies')}{' '}
           </button>
           <button
             role="menuitem"
             className="danger-text"
             onClick={() => onBulk(matchingIds(menu.book.id), trash ? 'untrash' : 'trash', null)}
           >
-            {trash ? 'Restore from Trash' : 'Move to Trash…'}
+            {trash ? t('ui.restoreFromTrash') : t('ui.moveToTrashAlt')}
           </button>
         </div>
       )}

@@ -1,3 +1,7 @@
+import { commandPressed, shortcutLabel } from './services/platform';
+import { ErrorText } from './components/ErrorText';
+import { useTranslation } from 'react-i18next';
+import { t, label as trLabel, setLanguage, locale } from './i18n';
 import { confirmAction, ConfirmationHost } from './components/Confirmation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -91,6 +95,7 @@ const navigation = [
   },
 ] as const;
 export default function App() {
+  useTranslation();
   const [data, setData] = useState<Snapshot | null>(null);
   const [route, setRoute] = useState('Dashboard');
   const [query, setQuery] = useState('');
@@ -143,6 +148,10 @@ export default function App() {
     const timer = setInterval(() => void check(), 60 * 60 * 1000);
     return () => clearInterval(timer);
   }, []);
+  const uiLanguage = data?.settings.find((s) => s.key === 'ui_language')?.value;
+  useEffect(() => {
+    void setLanguage(uiLanguage || locale());
+  }, [uiLanguage]);
   const theme = data?.settings.find((s) => s.key === 'theme')?.value || 'system';
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -155,11 +164,11 @@ export default function App() {
   }, [theme]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+      if (commandPressed(e) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         if (!editor && !record) setEditor({ quick: false });
       }
-      if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+      if (commandPressed(e) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         searchRef.current?.focus();
         searchRef.current?.select();
@@ -181,8 +190,8 @@ export default function App() {
       if (
         !(await confirmAction(
           field === 'trash'
-            ? `Move ${ids.length} copies to Trash? Their records and files will be retained.`
-            : `Restore ${ids.length} copies from Trash?`,
+            ? t('confirm.trash', { count: ids.length })
+            : t('confirm.restore', { count: ids.length }),
         ))
       )
         return;
@@ -198,35 +207,35 @@ export default function App() {
             <BookOpen size={24} />
           </div>
           <div>
-            <strong>MyLibrary</strong>
-            <small>A home for your books</small>
+            <strong>{t('ui.mylibraryAlt')}</strong>
+            <small>{t('ui.aHomeForYourBooks')}</small>
           </div>
         </div>
         <button
           className="navigation-toggle"
-          aria-label="Toggle sidebar"
-          title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          aria-label={t('ui.toggleSidebar')}
+          title={collapsed ? t('ui.expandNavigation') : t('ui.collapseNavigation')}
           aria-expanded={!collapsed}
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          <span>Navigation</span>
+          <span>{t('ui.navigation')}</span>
         </button>
-        <nav aria-label="Main navigation">
+        <nav aria-label={t('ui.mainNavigation')}>
           {navigation.map((group) => (
             <div className="nav-group" key={group.label}>
-              {group.label && <h2>{group.label}</h2>}
+              {group.label && <h2>{trLabel(group.label)}</h2>}
               {group.items.map(([name, Icon]) => (
                 <button
                   key={name}
-                  title={name}
-                  aria-label={name}
+                  title={trLabel(name)}
+                  aria-label={trLabel(name)}
                   aria-current={route === name ? 'page' : undefined}
                   className={route === name ? 'active' : ''}
                   onClick={() => navigate(name)}
                 >
                   <Icon size={18} />
-                  <span>{name}</span>
+                  <span>{trLabel(name)}</span>
                   {name === 'Library' && <small>{data?.books.length || 0}</small>}
                 </button>
               ))}
@@ -235,13 +244,13 @@ export default function App() {
         </nav>
         <div className="sidebar-bottom">
           <button
-            title="Settings"
-            aria-label="Settings"
+            title={t('ui.settings')}
+            aria-label={t('ui.settings')}
             aria-current={route === 'Settings' ? 'page' : undefined}
             onClick={() => navigate('Settings')}
           >
             <SettingsIcon size={18} />
-            <span>Settings</span>
+            <span>{t('ui.settings')}</span>
           </button>
         </div>
       </aside>
@@ -251,8 +260,8 @@ export default function App() {
             <Search size={18} />
             <input
               ref={searchRef}
-              aria-label="Search entire library"
-              placeholder="Search your library…"
+              aria-label={t('ui.searchEntireLibrary')}
+              placeholder={t('ui.searchYourLibrary')}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -267,52 +276,54 @@ export default function App() {
                 }
               }}
             />
-            <kbd>Ctrl F</kbd>
+            <kbd>{shortcutLabel('F')}</kbd>
           </div>
           <button disabled={!data} onClick={() => setEditor({ quick: true })}>
-            Quick add
+            {t('ui.quickAdd')}{' '}
           </button>
           <button className="primary" disabled={!data} onClick={() => setEditor({ quick: false })}>
             <Plus size={17} />
-            Add book
+            {t('ui.addBook')}{' '}
           </button>
         </header>
         <main data-page={selected ? 'Book detail' : route}>
           {error && (
             <div className="alert global-error" role="alert">
-              <span>{error}</span>
-              <button onClick={() => setError('')}>Dismiss</button>
+              <span>
+                <ErrorText message={error} />
+              </span>
+              <button onClick={() => setError('')}>{t('ui.dismiss')}</button>
             </div>
           )}
           {(loading || busy) && (
             <div className="loading" role="status">
-              <RefreshCw size={14} /> {busy ? 'Saving your changes…' : 'Loading library…'}
+              <RefreshCw size={14} /> {busy ? t('ui.savingYourChanges') : t('ui.loadingLibrary')}
             </div>
           )}
           {!data ? (
             <div className="empty">
               <BookOpen size={44} />
-              <h1>{error ? 'Could not open your library' : 'Opening your library…'}</h1>
-              <p>The desktop application is required for local database access.</p>
-              {error && <button onClick={() => void action(reload)}>Retry</button>}
+              <h1>{error ? t('ui.couldNotOpenYourLibrary') : t('ui.openingYourLibrary')}</h1>
+              <p>{t('ui.theDesktopApplicationIsRequiredForLocalDatabaseAccess')}</p>
+              {error && <button onClick={() => void action(reload)}>{t('ui.retry')}</button>}
             </div>
           ) : (
             <>
               {!selected && route !== 'Dashboard' && (
                 <div className="page-heading">
-                  <h1>{route === 'Library' ? 'All books' : route}</h1>
+                  <h1>{route === 'Library' ? t('ui.allBooks') : trLabel(route)}</h1>
                   <p className="muted">
                     {route === 'Locations'
-                      ? 'A place for every copy. Organize rooms, bookcases and shelves.'
+                      ? t('ui.aPlaceForEveryCopyOrganizeRoomsBookcasesAndShelves')
                       : route === 'Library'
-                        ? 'Browse, find and care for your collection.'
+                        ? t('ui.browseFindAndCareForYourCollection')
                         : route === 'Settings'
-                          ? 'Make MyLibrary work the way you do.'
+                          ? t('ui.makeMylibraryWorkTheWayYouDo')
                           : ['Create Backup', 'Restore Backup'].includes(route)
-                            ? 'Protect your complete library and managed files.'
+                            ? t('ui.protectYourCompleteLibraryAndManagedFiles')
                             : ['Import CSV/JSON', 'Export CSV/JSON'].includes(route)
-                              ? 'Exchange catalogue records while keeping your library safe.'
-                              : 'Your library, organized in one place.'}
+                              ? t('ui.exchangeCatalogueRecordsWhileKeepingYourLibrarySafe')
+                              : t('ui.yourLibraryOrganizedInOnePlace')}
                   </p>
                 </div>
               )}
@@ -393,8 +404,10 @@ export default function App() {
           )}
         </main>
         <div className="statusbar">
-          <span>MYLIBRARY · {data?.books.length ?? 0} copies</span>
-          <span>{busy ? 'Working…' : 'Stored on this computer'}</span>
+          <span>
+            {t('ui.mylibrary')} {data?.books.length ?? 0} {t('ui.copiesAlt')}
+          </span>
+          <span>{busy ? t('ui.working') : t('ui.storedOnThisComputer')}</span>
         </div>
       </div>
       {editor && data && (
@@ -416,13 +429,14 @@ export default function App() {
       )}
       {exportSelection && (
         <Modal
-          title={`Export ${exportSelection.length} copies`}
+          title={t('data.export', { count: exportSelection.length })}
           onClose={() => setExportSelection(null)}
         >
           <div className="dialog-body">
             <p>
-              JSON includes all book fields; CSV contains common catalogue columns. Use Backup for a
-              complete archive including files, notes and loans.
+              {t(
+                'ui.jsonIncludesAllBookFieldsCsvContainsCommonCatalogueColumnsUseBackupForACompleteArchiveIncludingFilesNotesAndLoans',
+              )}{' '}
             </p>
           </div>
           <footer>
@@ -434,7 +448,7 @@ export default function App() {
                 })
               }
             >
-              Export CSV
+              {t('ui.exportCsv')}{' '}
             </button>
             <button
               className="primary"
@@ -445,7 +459,7 @@ export default function App() {
                 })
               }
             >
-              Export JSON
+              {t('ui.exportJson')}{' '}
             </button>
           </footer>
         </Modal>

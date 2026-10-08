@@ -1,7 +1,7 @@
 /* global window, document */
 // End-to-end checks against the real Windows executable and Rust/SQLite backend.
 // Only OS file pickers are substituted with deterministic paths in the isolated test folder.
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir, readFile, writeFile, stat, readdir } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -24,12 +24,29 @@ const report = {
   network: [],
 };
 let processHandle, browser, page;
+let profileInitialized = false;
 const acceptDialogs = true;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function check(name, fn) {
   await fn();
   report.checks.push(name);
   console.log(`PASS ${name}`);
+}
+function assertDomainUnchanged(after, before) {
+  for (const key of [
+    'books',
+    'people',
+    'publishers',
+    'series',
+    'locations',
+    'sources',
+    'fields',
+    'terms',
+    'loans',
+    'entries',
+    'attachments',
+  ])
+    assert.deepEqual(after[key], before[key], key + ' changed with UI language');
 }
 function assertCopyDetails(snapshot) {
   const first = snapshot.books.find((b) => b.copy_extra.inventory_code === 'Copy #1');
@@ -56,7 +73,7 @@ async function freePort() {
   await new Promise((resolve) => server.close(resolve));
   return port;
 }
-async function launch() {
+async function launch(language = 'en') {
   const port = await freePort();
   processHandle = spawn(exe, [], {
     cwd: root,
@@ -101,7 +118,23 @@ async function launch() {
     if (acceptDialogs) await d.accept();
     else await d.dismiss();
   });
-  await page.getByRole('heading', { name: 'Your library, at a glance.' }).waitFor();
+  if (!profileInitialized) {
+    await page
+      .getByRole('heading', { name: /Your library, at a glance\.|Bir bakışta kütüphaneniz\./ })
+      .waitFor();
+    if ((await page.locator('html').getAttribute('lang')) === 'tr') {
+      await page.locator('.sidebar').getByTitle('Ayarlar', { exact: true }).click();
+      await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+      await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+      await page.locator('.sidebar').getByTitle('Dashboard', { exact: true }).click();
+    }
+    profileInitialized = true;
+  }
+  await page
+    .getByRole('heading', {
+      name: language === 'tr' ? 'Bir bakışta kütüphaneniz.' : 'Your library, at a glance.',
+    })
+    .waitFor();
   await page.evaluate(() => {
     window.__testFilePaths = { open: [], save: [] };
     const original = window.fetch.bind(window);
@@ -1057,6 +1090,89 @@ try {
     assert.equal(new Set(s.books.map((b) => b.edition_id)).size, 2);
     assert.equal(new Set(s.books.map((b) => b.title)).size, 1);
   });
+  await check('English/Turkish language switch preserves data and survives restart', async () => {
+    const before = await snapshot();
+    await nav('Settings');
+    await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+    await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'tr');
+    await page.getByText('12.345,67', { exact: true }).waitFor();
+    await page.getByText('08.10.2026', { exact: true }).waitFor();
+    await page.getByText('₺1.250,50', { exact: true }).waitFor();
+    assertDomainUnchanged(await snapshot(), before);
+    await nav('Konumlar');
+    await page.getByRole('heading', { name: 'Konumlar', exact: true }).waitFor();
+    await nav('Kütüphane');
+    assert.equal(await page.locator('.book-card').count(), 2);
+    await button('Sonuçları dışa aktar').waitFor();
+    await page.screenshot({ path: join(runDir, 'turkish-library.png') });
+    await close();
+    await launch('tr');
+    await nav('Ayarlar');
+    assert.equal(await page.getByLabel('Uygulama dili', { exact: true }).inputValue(), 'tr');
+    await button('Şimdi denetle').click();
+    await page.getByRole('status').filter({ hasText: 'ağ isteği gönderilmedi' }).waitFor();
+    await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+    await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+    assertDomainUnchanged(await snapshot(), before);
+  });
+  await check(
+    'frozen V1 library migrates in real desktop with records and managed paths intact',
+    async () => {
+      await close();
+      dataDir = join(runDir, 'v1-migration');
+      await mkdir(join(dataDir, 'covers'), { recursive: true });
+      await mkdir(join(dataDir, 'attachments'), { recursive: true });
+      execFileSync('python', [
+        '-X',
+        'utf8',
+        '-c',
+        'import sqlite3,sys,pathlib; c=sqlite3.connect(sys.argv[1]); c.executescript(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8-sig")); c.executescript(pathlib.Path(sys.argv[3]).read_text(encoding="utf-8-sig")); c.close()',
+        join(dataDir, 'library.sqlite3'),
+        join(root, 'src-tauri/tests/fixtures/v1-schema.sql'),
+        join(root, 'src-tauri/tests/fixtures/v1-library.sql'),
+      ]);
+      await writeFile(
+        join(dataDir, 'covers/fixture.png'),
+        await readFile(join(runDir, 'test-cover.png')),
+      );
+      await writeFile(join(dataDir, 'attachments/fixture.txt'), 'synthetic receipt');
+      await launch();
+      const s = await snapshot();
+      assert.equal(s.books.length, 2);
+      assert.equal(s.locations.length, 3);
+      assert.equal(s.loans.length, 1);
+      assert.equal(s.entries.length, 3);
+      assert.equal(s.books.find((b) => b.id === 'copy1').current_page, 50);
+      await nav('Library');
+      assert.equal(await page.locator('.book-card').count(), 1);
+      await page.getByText('2 copies', { exact: true }).waitFor();
+      await page.locator('.book-card').click();
+      await button('Copies', page.locator('main .tabs')).click();
+      assert.equal(await page.locator('.copy-card').count(), 2);
+      await nav('Locations');
+      await selectPlace('Shelf 1');
+      await page.getByRole('button', { name: /V1 preserved/ }).waitFor();
+      const platform = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', { action: 'platform', payload: {} }),
+      );
+      assert.equal(platform.schema, 2);
+      assert.equal(resolve(platform.paths.data), resolve(dataDir));
+      await nav('Settings');
+      await button('Open data folder').click();
+      await page.locator('.loading').waitFor({ state: 'hidden' });
+      assert.equal(await page.getByRole('alert').count(), 0);
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor();
+      assert.equal((await snapshot()).settings.find((v) => v.key === 'language').value, 'French');
+      await close();
+      await launch('tr');
+      assertDomainUnchanged(await snapshot(), s);
+      await nav('Ayarlar');
+      await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+      await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+    },
+  );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
   assert.deepEqual(report.network, [], 'Core workflows must not make network requests');
   report.passed = true;

@@ -1,7 +1,8 @@
+import { t, label as trLabel, date, currency } from '../i18n';
 import { confirmAction } from '../components/Confirmation';
 import { useState } from 'react';
 import { ArrowLeft, Edit3, Plus, Star, Trash2 } from 'lucide-react';
-import { save } from '@tauri-apps/plugin-dialog';
+import { chooseDestination as save } from '../services/platform';
 import {
   author,
   copyName,
@@ -47,33 +48,33 @@ export function Detail({
   const [page, setPage] = useState(String(b.current_page));
   const info = (label: string, value: unknown) =>
     value !== undefined && value !== null && value !== '' ? (
-      <div className="info" key={label}>
-        <dt>{label}</dt>
-        <dd>{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</dd>
+      <div className="info" key={trLabel(String(label))}>
+        <dt>{trLabel(String(label))}</dt>
+        <dd>{typeof value === 'boolean' ? (value ? t('ui.yes') : t('ui.no')) : String(value)}</dd>
       </div>
     ) : null;
   return (
     <>
       <button className="back" onClick={onBack}>
         <ArrowLeft size={16} />
-        Back to library
+        {t('ui.backToLibrary')}{' '}
       </button>
       <div className="detail-hero">
         <Cover book={b} large />
         <div>
           <div className="eyebrow">
             {b.series
-              ? `${b.series}${b.series_order !== null ? ` · Volume ${b.series_order}` : ''}`
-              : 'YOUR COLLECTION'}
+              ? `${b.series}${b.series_order !== null ? t('copy.volume', { volume: b.series_order }) : ''}`
+              : t('ui.yourCollection')}
           </div>
           <h1>{b.title}</h1>
           {b.subtitle && <p className="subtitle">{b.subtitle}</p>}
-          <p className="detail-author">{author(b) || 'Author not specified'}</p>
+          <p className="detail-author">{author(b) || t('ui.authorNotSpecified')}</p>
           <div className="inline">
-            <span className="badge">{b.status}</span>
+            <span className="badge">{trLabel(b.status)}</span>
             {b.rating !== null && <span className="rating">{b.rating} / 5 ★</span>}
             <button
-              aria-label={b.favorite ? 'Remove favorite' : 'Mark favorite'}
+              aria-label={b.favorite ? t('ui.removeFavorite') : t('ui.markFavorite')}
               className="icon"
               onClick={() => onAction(() => api('save', { ...b, favorite: !b.favorite }))}
             >
@@ -81,17 +82,19 @@ export function Detail({
             </button>
           </div>
           <p className="muted">
-            {locationName(b.location_id, data.locations) || 'No location assigned'}
-            {b.copy_extra.shelf_position ? ` · Position ${b.copy_extra.shelf_position}` : ''}
+            {locationName(b.location_id, data.locations) || t('ui.noLocationAssigned')}
+            {b.copy_extra.shelf_position
+              ? t('copy.position', { position: b.copy_extra.shelf_position })
+              : ''}
           </p>
           <div className="inline">
             <button className="primary" onClick={onEdit}>
               <Edit3 size={16} />
-              Edit book
+              {t('ui.editBook')}{' '}
             </button>
             <button onClick={() => setCopyEditor({ book: b, mode: 'add' })}>
               <Plus size={16} />
-              Add Physical Copy
+              {t('ui.addPhysicalCopy')}{' '}
             </button>
             <button
               onClick={() => onRecord({ type: 'loan', book: b })}
@@ -101,13 +104,13 @@ export function Detail({
                 loans.some((l) => !l.returned_date)
               }
             >
-              Lend book
+              {t('ui.lendBook')}{' '}
             </button>
           </div>
           <p className="block">
             <strong>{copyName(b)}</strong> · {copyState(b, data.loans)}{' '}
             <button onClick={() => setCopyEditor({ book: b, mode: 'edit' })}>
-              Edit physical copy
+              {t('ui.editPhysicalCopy')}{' '}
             </button>
           </p>
         </div>
@@ -125,7 +128,7 @@ export function Detail({
           'Details',
         ].map((t) => (
           <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
-            {t}
+            {trLabel(t)}
           </button>
         ))}
       </nav>
@@ -133,10 +136,10 @@ export function Detail({
         {tab === 'Overview' && (
           <div className="two-col">
             <section className="panel">
-              <h2>About this book</h2>
+              <h2>{t('ui.aboutThisBook')}</h2>
               <p className="prose">
                 {String(
-                  b.extra.synopsis || b.extra.personal_description || 'No description added yet.',
+                  b.extra.synopsis || b.extra.personal_description || t('ui.noDescriptionAddedYet'),
                 )}
               </p>
               <div className="chips">
@@ -150,19 +153,19 @@ export function Detail({
               </div>
               {b.copy_extra.personal_notes && (
                 <>
-                  <h3>Personal notes</h3>
+                  <h3>{t('ui.personalNotes')}</h3>
                   <p className="prose">{String(b.copy_extra.personal_notes)}</p>
                 </>
               )}
               {b.copy_extra.spoiler_notes && (
                 <details>
-                  <summary>Spoiler notes</summary>
+                  <summary>{t('ui.spoilerNotes')}</summary>
                   <p className="prose">{String(b.copy_extra.spoiler_notes)}</p>
                 </details>
               )}
             </section>
             <section className="panel">
-              <h2>At a glance</h2>
+              <h2>{t('ui.atAGlance')}</h2>
               <dl>
                 {info('Publisher', b.publisher)}
                 {info('Published', b.publication_year)}
@@ -186,7 +189,7 @@ export function Detail({
               {info('ISBN-13', b.isbn13)}
               {info('Language', b.language)}
               {info('Pages', b.pages)}
-              {b.contributors.map((p, i) => info(`${p.role} ${i + 1}`, p.name))}
+              {b.contributors.map((p, i) => info(`${trLabel(p.role)} ${i + 1}`, p.name))}
               {Object.values(editionFields)
                 .flat()
                 .map((f) => info(f.label, b.extra[f.key]))}
@@ -196,16 +199,16 @@ export function Detail({
         {tab === 'Reading' && (
           <>
             <div className="panel">
-              <h2>Your reading journey</h2>
+              <h2>{t('ui.yourReadingJourney')}</h2>
               <div className="progress">
                 <span style={{ width: `${progress(b)}%` }} />
               </div>
               <p>
-                {b.current_page} / {b.pages ?? '?'} pages · {progress(b)}%
+                {b.current_page} / {b.pages ?? '?'} {t('ui.pagesAlt')} {progress(b)}%
               </p>
               <div className="inline">
                 <input
-                  aria-label="Current page"
+                  aria-label={t('ui.currentPage')}
                   type="number"
                   min="0"
                   max={b.pages ?? undefined}
@@ -227,7 +230,7 @@ export function Detail({
                     )
                   }
                 >
-                  Update progress
+                  {t('ui.updateProgress')}{' '}
                 </button>
                 <button
                   onClick={() =>
@@ -247,10 +250,10 @@ export function Detail({
                     )
                   }
                 >
-                  Mark finished
+                  {t('ui.markFinished')}{' '}
                 </button>
                 <button onClick={() => onRecord({ type: 'reading', book: b })}>
-                  Log reading session
+                  {t('ui.logReadingSession')}{' '}
                 </button>
               </div>
               <dl className="details-grid">
@@ -261,14 +264,15 @@ export function Detail({
               .filter((e) => e.kind === 'reading')
               .map((e) => (
                 <article className="panel" key={e.id}>
-                  <h3>{e.title || 'Reading session'}</h3>
+                  <h3>{e.title || t('ui.readingSession')}</h3>
                   <p className="prose">{e.content}</p>
                   <small>
-                    {String(e.extra.started || e.created_at.slice(0, 10))} —{' '}
-                    {String(e.extra.finished || '')} · {String(e.extra.minutes || '—')} minutes
+                    {String(e.extra.started || date(e.created_at))} —{' '}
+                    {String(e.extra.finished || '')} · {String(e.extra.minutes || '—')}{' '}
+                    {t('ui.minutes')}{' '}
                   </small>
                   <button onClick={() => onRecord({ type: 'reading', book: b, entry: e })}>
-                    Edit
+                    {t('ui.edit')}{' '}
                   </button>
                 </article>
               ))}
@@ -282,11 +286,11 @@ export function Detail({
                 onClick={() => onRecord({ type: tab === 'Notes' ? 'note' : 'quote', book: b })}
               >
                 <Plus size={16} />
-                Add {tab === 'Notes' ? 'note' : 'quote'}
+                {t(tab === 'Notes' ? 'actions.addNote' : 'actions.addQuote')}
               </button>
             </div>
             {!entries.some((e) => e.kind === (tab === 'Notes' ? 'note' : 'quote')) && (
-              <Empty title={`No ${tab.toLowerCase()} yet`} />
+              <Empty title={t('empty.section', { section: trLabel(tab).toLocaleLowerCase() })} />
             )}
             <div className="entry-grid">
               {entries
@@ -294,14 +298,14 @@ export function Detail({
                 .map((e) => (
                   <article className="panel" key={e.id}>
                     <h3>
-                      {e.title || e.extra.note_type || 'Saved quotation'}{' '}
+                      {e.title || e.extra.note_type || t('ui.savedQuotation')}{' '}
                       {e.extra.favorite ? '★' : ''}
                     </h3>
                     <p className={e.kind === 'quote' ? 'quote prose' : 'prose'}>{e.content}</p>
                     {e.extra.note && <p>{String(e.extra.note)}</p>}
                     <small>
-                      {e.page !== null ? `Page ${e.page} · ` : ''}
-                      {e.created_at.slice(0, 10)}
+                      {e.page !== null ? t('entry.page', { page: e.page }) : ''}
+                      {date(e.created_at)}
                     </small>
                     <div className="inline">
                       <button
@@ -309,7 +313,7 @@ export function Detail({
                           onRecord({ type: e.kind as 'note' | 'quote', book: b, entry: e })
                         }
                       >
-                        Edit
+                        {t('ui.edit')}{' '}
                       </button>
                       <button
                         className="danger-text"
@@ -320,7 +324,7 @@ export function Detail({
                             onAction(() => api('delete_entry', { id: e.id }));
                         }}
                       >
-                        Delete
+                        {t('ui.delete')}{' '}
                       </button>
                     </div>
                   </article>
@@ -331,17 +335,19 @@ export function Detail({
         {tab === 'Copies' && (
           <section className="panel">
             <h2>
-              {copies.length} physical {copies.length === 1 ? 'copy' : 'copies'}
+              {copies.length} {t('ui.physicalAlt')}{' '}
+              {copies.length === 1 ? t('copy.singular') : t('ui.copiesAlt')}
             </h2>
             <p>
-              These copies share bibliographic metadata. Ownership, reading, location and loans are
-              independent.
+              {t(
+                'ui.theseCopiesShareBibliographicMetadataOwnershipReadingLocationAndLoansAreIndependent',
+              )}{' '}
             </p>
             <button className="primary" onClick={() => setCopyEditor({ book: b, mode: 'add' })}>
-              Add Copy
+              {t('ui.addCopy')}{' '}
             </button>
             {!copies.length && (
-              <p>Add your first physical copy to record its shelf, condition and acquisition.</p>
+              <p>{t('ui.addYourFirstPhysicalCopyToRecordItsShelfConditionAndAcquisition')}</p>
             )}
             {copies.map((c) => {
               const loan = data.loans.find((l) => l.copy_id === c.id && !l.returned_date);
@@ -352,19 +358,20 @@ export function Detail({
                     <span className="badge">{copyState(c, data.loans)}</span>
                   </div>
                   <p>
-                    {locationName(c.location_id, data.locations) || 'Unassigned'}
+                    {locationName(c.location_id, data.locations) || t('ui.unassigned')}
                     {c.copy_extra.shelf_position
-                      ? ` · Position ${c.copy_extra.shelf_position}`
+                      ? t('copy.position', { position: c.copy_extra.shelf_position })
                       : ''}
                   </p>
                   <p>
-                    {c.condition} · {c.acquisition_date || 'Acquisition date not recorded'}{' '}
+                    {trLabel(c.condition)} ·{' '}
+                    {c.acquisition_date || t('ui.acquisitionDateNotRecorded')}{' '}
                     {c.source && ` · ${c.source}`}
                   </p>
                   <p className="muted">
                     {String(c.copy_extra.location_note || '')}
                     {c.copy_extra.purchase_price !== undefined
-                      ? ` · ${c.copy_extra.purchase_price} ${c.copy_extra.currency || ''}`
+                      ? ` · ${c.copy_extra.currency && /^[A-Z]{3}$/.test(String(c.copy_extra.currency)) ? currency(Number(c.copy_extra.purchase_price), String(c.copy_extra.currency)) : c.copy_extra.purchase_price}`
                       : ''}
                   </p>
                   <div className="inline wrap">
@@ -374,34 +381,34 @@ export function Detail({
                         setTab('Overview');
                       }}
                     >
-                      View copy / book
+                      {t('ui.viewCopyBook')}{' '}
                     </button>
-                    <button onClick={() => setCopyEditor({ book: c, mode: 'edit' })}>Edit</button>
-                    <button onClick={() => setCopyEditor({ book: c, mode: 'move' })}>Move</button>
+                    <button onClick={() => setCopyEditor({ book: c, mode: 'edit' })}>
+                      {t('ui.edit')}
+                    </button>
+                    <button onClick={() => setCopyEditor({ book: c, mode: 'move' })}>
+                      {t('ui.move')}
+                    </button>
                     {loan ? (
                       <button
                         onClick={() =>
                           onAction(() => api('return', { id: loan.id, date: today() }))
                         }
                       >
-                        Mark returned
+                        {t('ui.markReturned')}{' '}
                       </button>
                     ) : (
                       <button
                         disabled={c.copy_extra.copy_state === 'Missing'}
                         onClick={() => onRecord({ type: 'loan', book: c })}
                       >
-                        Loan
+                        {t('ui.loan')}{' '}
                       </button>
                     )}
                     <button
                       className="danger-text"
                       onClick={async () => {
-                        if (
-                          await confirmAction(
-                            `Archive ${copyName(c)}? Its history and attachments will be kept in Trash.`,
-                          )
-                        )
+                        if (await confirmAction(t('copy.archive', { name: copyName(c) })))
                           onAction(async () => {
                             await api('trash', { ids: [c.id] });
                             if (c.id === b.id) {
@@ -412,7 +419,7 @@ export function Detail({
                           });
                       }}
                     >
-                      Archive
+                      {t('ui.archive')}{' '}
                     </button>
                   </div>
                 </article>
@@ -422,8 +429,8 @@ export function Detail({
         )}
         {tab === 'Lending' && (
           <section className="panel">
-            <h2>Lending history</h2>
-            {!loans.length && <p>No loans recorded.</p>}
+            <h2>{t('ui.lendingHistory')}</h2>
+            {!loans.length && <p>{t('ui.noLoansRecorded')}</p>}
             {loans.map((l) => (
               <div className="list-row" key={l.id}>
                 <div>
@@ -433,20 +440,20 @@ export function Detail({
                   </small>
                 </div>
                 <span>
-                  {l.loan_date} → {l.due_date || 'No due date'}
+                  {l.loan_date} → {l.due_date || t('ui.noDueDate')}
                 </span>
                 <span>
                   {l.returned_date
-                    ? `Returned ${l.returned_date}`
+                    ? t('copy.returned', { date: date(l.returned_date) })
                     : l.due_date && l.due_date < today()
-                      ? 'Overdue'
-                      : 'On loan'}
+                      ? t('ui.overdue')
+                      : t('ui.onLoan')}
                 </span>
                 {!l.returned_date && (
                   <button
                     onClick={() => onAction(() => api('return', { id: l.id, date: today() }))}
                   >
-                    Return today
+                    {t('ui.returnToday')}{' '}
                   </button>
                 )}
               </div>
@@ -455,9 +462,9 @@ export function Detail({
         )}
         {tab === 'Attachments' && (
           <section className="panel">
-            <h2>Files & receipts</h2>
+            <h2>{t('ui.filesReceipts')}</h2>
             <label className="button">
-              Add attachment
+              {t('ui.addAttachment')}{' '}
               <input
                 type="file"
                 hidden
@@ -481,7 +488,7 @@ export function Detail({
                       })
                     }
                   >
-                    Save a copy…
+                    {t('ui.saveACopy')}{' '}
                   </button>
                 </div>
               ))}
@@ -519,7 +526,7 @@ export function Detail({
               }}
             >
               <Trash2 size={16} />
-              Move copy to Trash
+              {t('ui.moveCopyToTrash')}{' '}
             </button>
           </>
         )}

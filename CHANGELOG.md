@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-alpha.1 — V2 foundation (unreleased)
+
+- Added forward transactional schema versioning, pre-migration snapshots and staged V1 archive upgrades; preserved edition/copy data without a Work table.
+- Added English/Turkish UI preferences, plural/Intl formatting, logical layout and accessibility baseline.
+- Centralized native paths, folder opening, pickers and OS shortcut labels; added macOS/Linux package configuration and CI matrix.
+- Introduced normalized metadata-provider and inactive, fail-closed updater boundaries.
+- Added frozen synthetic V1 compatibility tests and desktop language/migration checks. V1 release/tag remain unchanged; no Milestone 2 features.
+
 ## 1.0.0
 
 Released 2026-10-08 following owner acceptance. Stable baseline for V1 maintenance and future V2 development; no V2 features included.

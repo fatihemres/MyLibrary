@@ -1,3 +1,4 @@
+import { t, label as trLabel, number, date } from '../i18n';
 import { author, progress, today, type Book, type Snapshot } from '../domain/types';
 import { Cover, Empty } from '../components/common';
 export function Dashboard({
@@ -28,8 +29,8 @@ export function Dashboard({
     values.filter(Boolean).forEach((v) => count.set(v, (count.get(v) || 0) + 1));
     const items = [...count].sort((a, b) => b[1] - a[1]).slice(0, 7);
     return (
-      <section className="panel" key={label}>
-        <h2>{label}</h2>
+      <section className="panel" key={trLabel(String(label))}>
+        <h2>{trLabel(String(label))}</h2>
         {items.length ? (
           items.map(([name, n]) => (
             <div className="chart-row" key={name}>
@@ -41,7 +42,7 @@ export function Dashboard({
             </div>
           ))
         ) : (
-          <p className="muted">Add books to see this breakdown.</p>
+          <p className="muted">{t('ui.addBooksToSeeThisBreakdown')}</p>
         )}
       </section>
     );
@@ -49,8 +50,8 @@ export function Dashboard({
   return (
     <>
       <div className="dashboard-heading">
-        <h1>Your library, at a glance.</h1>
-        <p>Pick up where you left off, or find your next read.</p>
+        <h1>{t('ui.yourLibraryAtAGlance')}</h1>
+        <p>{t('ui.pickUpWhereYouLeftOffOrFindYourNextRead')}</p>
       </div>
       <div className="stats">
         {[
@@ -59,13 +60,17 @@ export function Dashboard({
           ['Currently reading', reading.length, 'Currently Reading'],
           ['On loan', active.length, 'Loans'],
         ].map(([label, n, route]) => (
-          <button className="stat" key={label} onClick={() => onNavigate(String(route))}>
-            <span>{label}</span>
-            <strong>{Number(n).toLocaleString()}</strong>
+          <button
+            className="stat"
+            key={trLabel(String(label))}
+            onClick={() => onNavigate(String(route))}
+          >
+            <span>{trLabel(String(label))}</span>
+            <strong>{number(Number(n))}</strong>
           </button>
         ))}
       </div>
-      <div className="secondary-stats" aria-label="More library statistics">
+      <div className="secondary-stats" aria-label={t('ui.moreLibraryStatistics')}>
         {[
           ['Pages', books.reduce((n, b) => n + (b.pages || 0), 0), 'Library'],
           ['Unread', books.filter((b) => b.status === 'Unread').length, 'Unread'],
@@ -78,24 +83,24 @@ export function Dashboard({
             'Library',
           ],
         ].map(([label, n, route]) => (
-          <button key={label} onClick={() => onNavigate(String(route))}>
-            <span>{label}</span>
-            <strong>{Number(n).toLocaleString()}</strong>
+          <button key={trLabel(String(label))} onClick={() => onNavigate(String(route))}>
+            <span>{trLabel(String(label))}</span>
+            <strong>{number(Number(n))}</strong>
           </button>
         ))}
       </div>
       <div className="dashboard-primary">
         <section className="panel reading-feature">
           <div className="section-heading">
-            <h2>On your reading table</h2>
+            <h2>{t('ui.onYourReadingTable')}</h2>
             <button className="text-button" onClick={() => onNavigate('Currently Reading')}>
-              View all →
+              {t('ui.viewAll')}{' '}
             </button>
           </div>
           {!reading.length ? (
-            <Empty title="Room for your next read">
-              <p>Mark a book as Reading to track it here.</p>
-              <button onClick={() => onNavigate('Library')}>Browse your books</button>
+            <Empty title={t('ui.roomForYourNextRead')}>
+              <p>{t('ui.markABookAsReadingToTrackItHere')}</p>
+              <button onClick={() => onNavigate('Library')}>{t('ui.browseYourBooks')}</button>
             </Empty>
           ) : (
             reading.slice(0, 4).map((b) => (
@@ -108,7 +113,7 @@ export function Dashboard({
                     <span style={{ width: `${progress(b)}%` }} />
                   </div>
                   <small>
-                    {b.current_page} / {b.pages ?? '?'} pages · {progress(b)}%
+                    {b.current_page} / {b.pages ?? '?'} {t('ui.pagesAlt')} {progress(b)}%
                   </small>
                 </div>
               </button>
@@ -116,39 +121,41 @@ export function Dashboard({
           )}
         </section>
         <section className="panel">
-          <h2>Recently added</h2>
+          <h2>{t('ui.recentlyAdded')}</h2>
           {recent.length ? (
             recent.map((b) => (
               <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
                 <Cover book={b} />
                 <span>
                   <strong>{b.title}</strong>
-                  <small className="block">{author(b) || 'Unknown author'}</small>
+                  <small className="block">{author(b) || t('ui.unknownAuthor')}</small>
                 </span>
-                <span className="muted">{b.created_at.slice(0, 10)}</span>
+                <span className="muted">{date(b.created_at)}</span>
               </button>
             ))
           ) : (
-            <Empty title="Your first chapter awaits">
-              <p>Use Add book to begin.</p>
+            <Empty title={t('ui.yourFirstChapterAwaits')}>
+              <p>{t('ui.useAddBookToBegin')}</p>
               <button className="primary" onClick={onAdd}>
-                Add your first book
+                {t('ui.addYourFirstBook')}{' '}
               </button>
             </Empty>
           )}
-          {finished.length > 0 && <h3>Recently finished</h3>}
+          {finished.length > 0 && <h3>{t('ui.recentlyFinished')}</h3>}
           {finished.map((b) => (
             <button className="list-row full" key={b.id} onClick={() => onOpen(b)}>
               <span>{b.title}</span>
-              <span className="rating">{b.rating !== null ? `${b.rating} ★` : 'Finished'}</span>
+              <span className="rating">
+                {b.rating !== null ? `${b.rating} ★` : t('ui.finished')}
+              </span>
             </button>
           ))}
         </section>
       </div>
       <details className="insights" open={books.length > 0}>
         <summary>
-          Collection insights{' '}
-          <span className="muted">Genres, languages, authors and reading history</span>
+          {t('ui.collectionInsights')}{' '}
+          <span className="muted">{t('ui.genresLanguagesAuthorsAndReadingHistory')}</span>
         </summary>
         <div className="chart-grid">
           {chart(

@@ -155,7 +155,7 @@ textarea:focus {
   height: 18px;
   border-radius: 2px;
   background: var(--accent);
-  left: 0;
+  inset-inline-start: 0;
   top: 9px;
 }
 .sidebar-bottom {
@@ -178,7 +178,7 @@ textarea:focus {
   width: auto;
   flex: 1;
   max-width: 560px;
-  margin-right: auto;
+  margin-inline-end: auto;
   background: var(--input);
   border-radius: 6px;
 }
@@ -243,14 +243,14 @@ main[data-page='Restore Backup'] .two-col {
 }
 .stat {
   border: 0;
-  border-right: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   border-radius: 0;
   padding: 20px 24px;
   gap: 9px;
   background: transparent;
 }
 .stat:last-child {
-  border-right: 0;
+  border-inline-end: 0;
 }
 .stat span {
   min-height: auto;
@@ -344,7 +344,7 @@ main[data-page='Restore Backup'] .two-col {
 .insights summary span {
   font-size: 12px;
   font-weight: 400;
-  margin-left: 12px;
+  margin-inline-start: 12px;
 }
 .chart-grid {
   margin-top: 4px;
@@ -471,7 +471,7 @@ main[data-page='Restore Backup'] .two-col {
 }
 .notice[role='status'] {
   animation: page-arrive 180ms ease-out;
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
 }
 .statusbar {
   font-size: 10px;

@@ -25,7 +25,7 @@ impl Store {
                 SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
             zip.start_file("manifest.json", opts)?;
             zip.write_all(
-                json!({"application":"MyLibrary","format":1,"schema":1,"created_at":now()})
+                json!({"application":"MyLibrary","format":1,"schema":crate::migrations::CURRENT_SCHEMA,"app_version":env!("CARGO_PKG_VERSION"),"included_assets":["covers","attachments"],"created_at":now()})
                     .to_string()
                     .as_bytes(),
             )?;
@@ -97,7 +97,9 @@ impl Store {
                 serde_json::from_slice(&fs::read(stage.join("manifest.json"))?)?;
             if manifest["application"] != "MyLibrary"
                 || manifest["format"] != 1
-                || manifest["schema"] != 1
+                || !manifest["schema"]
+                    .as_i64()
+                    .is_some_and(|v| (1..=crate::migrations::CURRENT_SCHEMA).contains(&v))
             {
                 return Err("Unsupported backup format or version.".into());
             }
@@ -106,7 +108,7 @@ impl Store {
                 let version: i64 = c.query_row("PRAGMA user_version", [], |r| r.get(0))?;
                 let check: String = c.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
                 let foreign: bool = c.prepare("PRAGMA foreign_key_check")?.exists([])?;
-                if version != 1 || check != "ok" || foreign {
+                if Some(version) != manifest["schema"].as_i64() || check != "ok" || foreign {
                     return Err("Backup database failed integrity validation.".into());
                 }
                 let mut books = crate::db::list(&c, false)?;

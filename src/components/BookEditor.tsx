@@ -1,3 +1,6 @@
+import { ErrorText } from './ErrorText';
+import { t, label as trLabel } from '../i18n';
+import { commandPressed } from '../services/platform';
 import { confirmAction } from './Confirmation';
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Save, Upload, X } from 'lucide-react';
@@ -89,7 +92,7 @@ export function BookEditor({
   saveRef.current = save;
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 's') {
+      if (commandPressed(e) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         void saveRef.current();
       }
@@ -110,7 +113,7 @@ export function BookEditor({
   };
   const extraFields = (fields: FieldDef[], scope: 'extra' | 'copy_extra') =>
     fields.map((f) => (
-      <Field key={f.key} label={f.label}>
+      <Field key={f.key} label={trLabel(f.label)}>
         {f.type === 'textarea' ? (
           <textarea
             value={String(book[scope][f.key] ?? '')}
@@ -121,9 +124,11 @@ export function BookEditor({
             value={String(book[scope][f.key] ?? '')}
             onChange={(e) => update(scope, { ...book[scope], [f.key]: e.target.value })}
           >
-            <option value="">Not specified</option>
+            <option value="">{t('ui.notSpecified')}</option>
             {f.options?.map((o) => (
-              <option key={o}>{o}</option>
+              <option key={o} value={o}>
+                {trLabel(o)}
+              </option>
             ))}
           </select>
         ) : (
@@ -143,9 +148,11 @@ export function BookEditor({
       </Field>
     ));
   const simple = (key: keyof Book, label: string, type = 'text') => (
-    <Field label={label}>
+    <Field label={trLabel(label)}>
       <input
         autoFocus={key === 'title'}
+        required={key === 'title'}
+        aria-invalid={(key === 'title' && !!error && !book.title.trim()) || undefined}
         type={type}
         step={key === 'rating' ? '0.5' : key === 'series_order' ? 'any' : undefined}
         value={String(book[key] ?? '')}
@@ -163,7 +170,7 @@ export function BookEditor({
     </Field>
   );
   const terms = (kind: string, label: string) => (
-    <Field label={`${label} (separate with ;)`}>
+    <Field label={t('fields.separate', { field: trLabel(label) })}>
       <input
         value={book.terms[kind]?.join('; ') || ''}
         onChange={(e) =>
@@ -173,9 +180,9 @@ export function BookEditor({
     </Field>
   );
   const location = (
-    <Field label="Physical location">
+    <Field label={t('ui.physicalLocation')}>
       <select value={book.location_id} onChange={(e) => update('location_id', e.target.value)}>
-        <option value="">Not assigned</option>
+        <option value="">{t('ui.notAssigned')}</option>
         {data.locations.map((l) => (
           <option key={l.id} value={l.id}>
             {locationName(l.id, data.locations)}
@@ -235,7 +242,7 @@ export function BookEditor({
   return (
     <Modal
       wide
-      title={initial ? 'Edit book & copy' : full ? 'Add a book' : 'Quick add'}
+      title={initial ? t('ui.editBookCopy') : full ? t('ui.addABook') : t('ui.quickAdd')}
       onClose={close}
     >
       <form
@@ -245,13 +252,13 @@ export function BookEditor({
         }}
       >
         <div className="editor-intro">
-          <span>Only the title is required. Everything else can come later.</span>
+          <span>{t('ui.onlyTheTitleIsRequiredEverythingElseCanComeLater')}</span>
           {initial && data.books.filter((b) => b.edition_id === initial.edition_id).length > 1 && (
-            <strong>Shared edition: bibliographic edits update all copies.</strong>
+            <strong>{t('ui.sharedEditionBibliographicEditsUpdateAllCopies')}</strong>
           )}
         </div>
         {full && (
-          <nav className="tabs" aria-label="Editor sections">
+          <nav className="tabs" aria-label={t('ui.editorSections')}>
             {[
               'General',
               'Publication',
@@ -270,7 +277,7 @@ export function BookEditor({
                 key={t}
                 onClick={() => setTab(t)}
               >
-                {t}
+                {trLabel(t)}
               </button>
             ))}
           </nav>
@@ -278,7 +285,7 @@ export function BookEditor({
         <div className="editor-body">
           {error && (
             <div className="alert" role="alert">
-              {error}
+              <ErrorText message={error} />
             </div>
           )}
           {(tab === 'General' || !full) && (
@@ -294,7 +301,7 @@ export function BookEditor({
                 <Cover book={book} large />
                 <label className="button">
                   <Upload size={15} />
-                  Choose cover
+                  {t('ui.chooseCover')}{' '}
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
@@ -302,17 +309,17 @@ export function BookEditor({
                     onChange={(e) => void image(e.target.files?.[0])}
                   />
                 </label>
-                <small>Or drop an image here</small>
+                <small>{t('ui.orDropAnImageHere')}</small>
                 {book.cover && (
                   <button type="button" onClick={() => update('cover', '')}>
-                    Remove cover
+                    {t('ui.removeCover')}{' '}
                   </button>
                 )}
               </div>
               <div className="form-grid">
                 {simple('title', 'Title *')}
                 {full && simple('subtitle', 'Subtitle')}
-                <Field label="Authors (separate with ;)">
+                <Field label={t('ui.authorsSeparateWith')}>
                   <input
                     list="people-list"
                     value={book.contributors
@@ -339,10 +346,10 @@ export function BookEditor({
                     disabled={busy || !(book.isbn13 || book.isbn10)}
                     onClick={() => void getMetadata()}
                   >
-                    Look up ISBN online…
+                    {t('ui.lookUpIsbnOnline')}{' '}
                   </button>
                   <small className="block">
-                    Optional: sends only the ISBN to Open Library. Review before applying.
+                    {t('ui.optionalSendsOnlyTheIsbnToOpenLibraryReviewBeforeApplying')}{' '}
                   </small>
                 </div>
                 {full && extraFields(editionFields.General, 'extra')}
@@ -362,11 +369,11 @@ export function BookEditor({
               )}
               {tab === 'Contributors' && (
                 <div className="span2">
-                  <p>People are shared records. Separate roles can refer to the same person.</p>
+                  <p>{t('ui.peopleAreSharedRecordsSeparateRolesCanReferToTheSamePerson')}</p>
                   {book.contributors.map((p, i) => (
                     <div className="inline" key={i}>
                       <select
-                        aria-label="Contributor role"
+                        aria-label={t('ui.contributorRole')}
                         value={p.role}
                         onChange={(e) =>
                           update(
@@ -378,11 +385,13 @@ export function BookEditor({
                         }
                       >
                         {roles.map((r) => (
-                          <option key={r}>{r}</option>
+                          <option key={r} value={r}>
+                            {trLabel(r)}
+                          </option>
                         ))}
                       </select>
                       <input
-                        aria-label="Contributor name"
+                        aria-label={t('ui.contributorName')}
                         list="people-list"
                         value={p.name}
                         onChange={(e) =>
@@ -396,7 +405,7 @@ export function BookEditor({
                       />
                       <button
                         type="button"
-                        aria-label="Remove contributor"
+                        aria-label={t('ui.removeContributor')}
                         onClick={() =>
                           update(
                             'contributors',
@@ -415,7 +424,7 @@ export function BookEditor({
                     }
                   >
                     <Plus size={16} />
-                    Add contributor
+                    {t('ui.addContributor')}{' '}
                   </button>
                 </div>
               )}
@@ -431,22 +440,24 @@ export function BookEditor({
               )}
               {tab === 'Reading' && (
                 <>
-                  <Field label="Reading status">
+                  <Field label={t('ui.readingStatus')}>
                     <select value={book.status} onChange={(e) => update('status', e.target.value)}>
                       {statuses.map((s) => (
-                        <option key={s}>{s}</option>
+                        <option key={s} value={s}>
+                          {trLabel(s)}
+                        </option>
                       ))}
                     </select>
                   </Field>
                   {simple('current_page', 'Current page', 'number')}
-                  <Field label="Rating">
+                  <Field label={t('ui.rating')}>
                     <select
                       value={book.rating ?? ''}
                       onChange={(e) =>
                         update('rating', e.target.value === '' ? null : Number(e.target.value))
                       }
                     >
-                      <option value="">Unrated</option>
+                      <option value="">{t('ui.unrated')}</option>
                       {Array.from({ length: 11 }, (_, i) => i / 2).map((n) => (
                         <option key={n} value={n}>
                           {n} / 5
@@ -454,7 +465,7 @@ export function BookEditor({
                       ))}
                     </select>
                   </Field>
-                  <Field label="Favorite">
+                  <Field label={t('ui.favorite')}>
                     <input
                       type="checkbox"
                       checked={book.favorite}
@@ -480,13 +491,15 @@ export function BookEditor({
               )}
               {tab === 'Physical' && (
                 <>
-                  <Field label="Condition">
+                  <Field label={t('ui.condition')}>
                     <select
                       value={book.condition}
                       onChange={(e) => update('condition', e.target.value)}
                     >
                       {conditions.map((c) => (
-                        <option key={c}>{c}</option>
+                        <option key={c} value={c}>
+                          {trLabel(c)}
+                        </option>
                       ))}
                     </select>
                   </Field>
@@ -497,8 +510,9 @@ export function BookEditor({
                 <>
                   {extraFields(copyFields.Notes, 'copy_extra')}
                   <p className="muted span2">
-                    After saving, add unlimited individual notes, quotes and reading sessions on the
-                    book detail page.
+                    {t(
+                      'ui.afterSavingAddUnlimitedIndividualNotesQuotesAndReadingSessionsOnTheBookDetailPage',
+                    )}{' '}
                   </p>
                 </>
               )}
@@ -513,7 +527,7 @@ export function BookEditor({
                             update('custom', { ...book.custom, [f.id]: e.target.value })
                           }
                         >
-                          <option value="">Not specified</option>
+                          <option value="">{t('ui.notSpecified')}</option>
                           {String(f.extra?.options || '')
                             .split('|')
                             .map((o) => (
@@ -553,13 +567,16 @@ export function BookEditor({
                     </Field>
                   ))
                 ) : (
-                  <p>Create your own fields in Settings → Custom fields.</p>
+                  <p>{t('ui.createYourOwnFieldsInSettingsCustomFields')}</p>
                 ))}
             </div>
           )}
           {dup.length > 0 && (
             <div className="notice">
-              <strong>Possible duplicate{dup.length > 1 ? 's' : ''}</strong>
+              <strong>
+                {t('ui.possibleDuplicate')}
+                {dup.length > 1 ? 's' : ''}
+              </strong>
               <p>
                 {dup
                   .slice(0, 4)
@@ -572,10 +589,10 @@ export function BookEditor({
                   checked={duplicateOk}
                   onChange={(e) => setDuplicateOk(e.target.checked)}
                 />{' '}
-                This is intentional; save as a separate record.
+                {t('ui.thisIsIntentionalSaveAsASeparateRecord')}{' '}
               </label>
               <small className="block">
-                To share edition metadata, use “Add another copy” on the existing book instead.
+                {t('ui.toShareEditionMetadataUseAddAnotherCopyOnTheExistingBookInstead')}{' '}
               </small>
             </div>
           )}
@@ -583,16 +600,16 @@ export function BookEditor({
         <footer>
           {!full && (
             <button type="button" onClick={() => setFull(true)}>
-              Open full editor
+              {t('ui.openFullEditor')}{' '}
             </button>
           )}
           <span className="spacer" />
           <button type="button" onClick={close}>
-            Cancel
+            {t('ui.cancel')}{' '}
           </button>
           <button className="primary" disabled={busy} type="submit">
             <Save size={16} />
-            {busy ? 'Working…' : 'Save book'}
+            {busy ? t('ui.working') : t('ui.saveBook')}
           </button>
         </footer>
         <datalist id="people-list">
@@ -602,11 +619,12 @@ export function BookEditor({
         </datalist>
       </form>
       {metadata && (
-        <Modal title="Choose metadata to apply" onClose={() => setMetadata(null)}>
+        <Modal title={t('ui.chooseMetadataToApply')} onClose={() => setMetadata(null)}>
           <div className="dialog-body">
             <p>
-              Selected fields replace the current form values. Nothing is saved until you save the
-              book.
+              {t(
+                'ui.selectedFieldsReplaceTheCurrentFormValuesNothingIsSavedUntilYouSaveTheBook',
+              )}{' '}
             </p>
             {[
               'title',
@@ -634,10 +652,10 @@ export function BookEditor({
                     }
                   />
                   <span>
-                    <strong>{k.replaceAll('_', ' ')}</strong>
+                    <strong>{trLabel(k.replaceAll('_', ' '))}</strong>
                     <br />
                     {k === 'cover'
-                      ? 'Download and use the Open Library cover as a managed local image'
+                      ? t('ui.downloadAndUseTheOpenLibraryCoverAsAManagedLocalImage')
                       : Array.isArray(metadata[k])
                         ? (metadata[k] as { name: string }[]).map((v) => v.name).join(', ')
                         : String(metadata[k])}
@@ -646,9 +664,9 @@ export function BookEditor({
               ))}
           </div>
           <footer>
-            <button onClick={() => setMetadata(null)}>Cancel</button>
+            <button onClick={() => setMetadata(null)}>{t('ui.cancel')}</button>
             <button className="primary" disabled={busy} onClick={() => void applyMetadata()}>
-              {busy ? 'Applying…' : 'Apply selected fields'}
+              {busy ? t('ui.applying') : t('ui.applySelectedFields')}
             </button>
           </footer>
         </Modal>
