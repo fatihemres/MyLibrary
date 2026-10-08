@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.0.0 release candidate — awaiting user verification
+## 1.0.0
+
+Released 2026-10-08 following owner acceptance. Stable baseline for V1 maintenance and future V2 development; no V2 features included.
 
 - Fixed Dashboard Finished/Unread navigation to apply the matching reading-status filter while preserving counts.
 - Grouped Library grid/table entries by edition after copy-level filtering, with concise copy counts, explicit mixed reading states and matching-copy bulk/export selection. Different editions remain separate; no data migration or reading-model change.

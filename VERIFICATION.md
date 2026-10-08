@@ -1,4 +1,4 @@
-# Windows release-candidate verification — 2026-10-08
+# MyLibrary v1.0.0 release verification — 2026-10-08
 
 Verified on Windows x64 using the actual Tauri release executable and its Rust/SQLite backend. Production application data was neither opened nor modified. Every desktop run used a fresh repository-local test library and WebView2 profile.
 
@@ -34,7 +34,7 @@ Rust commands used `CARGO_HOME=.cache/cargo` and repository-local temporary dire
 - ZIP backup, reversible Trash, recovery, validated restore and automatic pre-restore safety archive. Import rejected both the ZIP and a backup manifest with Restore Backup guidance, leaving records intact.
 - Settings, dark appearance, database integrity, placeholder-cover wrapping and restart persistence of books, covers, entries, loans, attachments and preferences. Copy conditions, acquisition data, shared edition, shelf position and location assignments were asserted after restore and restart.
 
-Final local report and screenshots: `.cache/desktop-check-1791444067324/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
+Final local report and screenshots: `.cache/desktop-check-1791445174425/`. The report recorded zero frontend runtime errors and zero external WebView requests during core workflows. Test artifacts are ignored by Git.
 
 The clean-library desktop test initially exposed CSV exports containing local location IDs. Exports now use portable name paths; the regression test and final real desktop round trip pass. Native tests also verify malformed manifests, unsupported schemas, unsafe archives and missing assets are rejected without changing the current library. A snapshot copy of an existing v1 database remains editable with stable records; no schema migration or reset was needed.
 
@@ -79,10 +79,10 @@ Grouping occurs after copy-level filtering, using edition IDs rather than titles
 ## Build artifacts
 
 - Executable: `src-tauri/target/release/mylibrary.exe`
-- SHA-256: `8064886060e69fba840c68130a3cb145a50d9f85462cc9d32aca24c26a13301c`
+- SHA-256: `41d1d9b327e1aa3b5f2401425ec055bd229ff597ab580a98876c91ec6a6c7885`
 - Installer: `src-tauri/target/release/bundle/nsis/MyLibrary_1.0.0_x64-setup.exe`
-- Installer size: 4,035,689 bytes
-- Installer SHA-256: `9f96ac388d4258eab541fa105425fae53341a2060321a91aaf184e33b5ced2a4`
+- Installer size: 4,031,221 bytes
+- Installer SHA-256: `a00ee203fcf3bbb31c9387c62a7642ebc2e65940c371c6d6dd2aff417c6077e0`
 
 ## Audit and verification boundaries
 
@@ -90,4 +90,4 @@ The source audit found no analytics, telemetry, remote logging or backend servic
 
 The desktop harness connects to the real application's WebView2 runtime over loopback. It supplies deterministic responses only to native file pickers; file reads/writes and database operations are real. Native file-picker interaction, NSIS install/uninstall and live Open Library responses were not exercised. The installer is unsigned. Large-collection performance and crash/power-loss restoration behavior are not certified; see README for operational limits.
 
-This remains a release candidate pending the owner's manual verification of the corrected workflows. No `v1.0.0` tag was created or moved.
+The owner approved this codebase as stable MyLibrary v1.0.0 on 2026-10-08 after manual acceptance testing. All checks above were rerun for release preparation; only release documentation changed from the approved product source. The annotated v1.0.0 tag freezes this source and evidence. See docs/testing/v1.0.0-acceptance-tests.md for stable test IDs and individual coverage limits, and docs/releases/v1.0.0.md for canonical installer details. Publication and branch refs are verified after this document is committed; no V2 product changes are included.

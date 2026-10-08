@@ -52,7 +52,7 @@ cargo fmt --manifest-path src-tauri/Cargo.toml
 
 Frontend tests cover filtering, sorting, progress, duplicate handling, CSV mapping, validation and formula-safe exports. Rust integration tests use real SQLite and cover persistence, relationships, independent copies, rollback, loans, search, custom fields, hierarchy, atomic imports, portable restore and rejected unsafe archives. Temporary test libraries live under `src-tauri/target/test-data`.
 
-See [VERIFICATION.md](VERIFICATION.md) for the verified Windows release, exact results, artifact hashes and testing boundaries.
+See [VERIFICATION.md](VERIFICATION.md) for the verified Windows release, exact results, artifact hashes and testing boundaries. Permanent V1 cases are in [acceptance tests](docs/testing/v1.0.0-acceptance-tests.md) and the [release checklist](docs/testing/v1.0.0-release-checklist.md).
 
 Build the release executable before `npm run test:desktop`. This Windows workflow suite launches that actual executable with a fresh `.cache/desktop-check-<timestamp>/library` and a separate WebView2 profile. It operates the real UI and Rust/SQLite backend over a loopback-only WebView2 debugging connection, checks restart persistence, and saves screenshots and a JSON report in that folder. Only native file-picker responses are supplied by the harness; actual imports, exports, backups and restoration run normally. It does not test the Windows file-picker interaction or install/uninstall the NSIS package. Debugging is enabled only in the test process environment.
 
@@ -175,3 +175,9 @@ Hover/press, sidebar width, page-heading entrance and dialog entrance transition
 - This release targets personal collections and is not benchmarked as an institutional catalogue. It loads a snapshot and refreshes FTS after mutations.
 
 Development/build scripts never push code or library data. Publishing a verified code milestone to the configured private GitHub origin requires the owner's explicit request. Runtime libraries, caches, backups and build outputs are excluded from Git.
+
+## Stable releases and future development
+
+**MyLibrary v1.0.0** was approved by the owner on 2026-10-08. [Release notes](docs/releases/v1.0.0.md) document the stable baseline. Download the historical installer and SHA256SUMS.txt from the [GitHub Release](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0); access requires authorization to this private repository.
+
+The annotated v1.0.0 tag permanently identifies the release source. main holds the stable baseline, v1-maintenance receives compatible V1 fixes, and v2 is reserved for future development. All three initially point to the same release commit. No source folders are duplicated and no V2 features are included. See [versioning policy](docs/versioning.md) for Semantic Versioning, maintenance, forward-porting and V2 promotion procedures. Never move published tags or replace historical release assets.
