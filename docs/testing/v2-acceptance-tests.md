@@ -24,3 +24,5 @@ This augments the permanent V1 acceptance baseline; it does not redefine V1 rele
 | CI-001       | Run Windows/macOS/Linux workflow matrix                                 | Checks and bundles pass on each actual runner                                                           | GitHub Actions; see platform matrix for actual result         |
 
 Final counts and actual run outcomes belong in VERIFICATION.md; configured or written tests are not themselves proof of a pass. No real production database is needed or allowed for destructive verification.
+
+Milestone 1 CLOSED on 2026-10-09. CI-001 passed on all four targets in [run 37884695260, attempt 1](https://github.com/fatihemres/MyLibrary/actions/runs/37884695260/attempts/1). Windows local/manual visual and 26 desktop workflow groups remain separate evidence. macOS/Linux native manual UX and full assistive-technology certification are not claimed. See the platform matrix for signing/notarization and distribution limits.

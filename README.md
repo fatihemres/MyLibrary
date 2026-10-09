@@ -176,16 +176,18 @@ Hover/press, sidebar width, page-heading entrance and dialog entrance transition
 - No permanent Trash purge, encryption, sync, barcode-scanner integration, PDF/HTML export or signed installer is included.
 - This release targets personal collections and is not benchmarked as an institutional catalogue. It loads a snapshot and refreshes FTS after mutations.
 
-Development/build scripts never push code or library data. Publishing a verified code milestone to the configured private GitHub origin requires the owner's explicit request. Runtime libraries, caches, backups and build outputs are excluded from Git.
+Development/build scripts never push code or library data. Publishing a verified code milestone to the configured GitHub origin requires the owner's explicit request. Runtime libraries, caches, backups and build outputs are excluded from Git.
 
 ## Stable releases and future development
 
-**MyLibrary v1.0.0** was approved by the owner on 2026-10-08. [Release notes](docs/releases/v1.0.0.md) document the stable baseline. Download the historical installer and SHA256SUMS.txt from the [GitHub Release](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0); access requires authorization to this private repository.
+**MyLibrary v1.0.0** was approved by the owner on 2026-10-08. [Release notes](docs/releases/v1.0.0.md) document the stable baseline. Download the historical installer and SHA256SUMS.txt from the [GitHub Release](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0).
 
-The annotated v1.0.0 tag permanently identifies the release source. main holds the stable baseline, v1-maintenance receives compatible V1 fixes, and v2 is reserved for future development. All three initially point to the same release commit. No source folders are duplicated and no V2 features are included. See [versioning policy](docs/versioning.md) for Semantic Versioning, maintenance, forward-porting and V2 promotion procedures. Never move published tags or replace historical release assets.
+The annotated v1.0.0 tag permanently identifies the release source. main holds the stable baseline, v1-maintenance receives compatible V1 fixes, and v2 holds the foundation for future development. All three initially pointed to the V1 release commit; V1 refs remain unchanged. No source folders are duplicated. See [versioning policy](docs/versioning.md) for Semantic Versioning, maintenance, forward-porting and V2 promotion procedures. Never move published tags or replace historical release assets.
 
 ## V2 foundation
 
+Milestone 1 is **CLOSED** as of 2026-10-09. [Final CI run 37884695260](https://github.com/fatihemres/MyLibrary/actions/runs/37884695260) passed on Windows x64, macOS Apple Silicon, macOS Intel and Linux x64. Windows signing and macOS signing/notarization remain unconfigured. The repository is public by owner choice; MyLibrary remains local-first and production user data must never be committed.
+
 English/Turkish UI is selected in Settings → Language & region and persists independently of book language. Schema 2 adds a migration ledger without changing editions/copies. V1 upgrades create a SQLite safety snapshot; V1 ZIP restores migrate staging before replacing live data. Keep a complete V1 ZIP for downgrade. Updates remain unconfigured/inactive and make no background requests.
 
-See [assessment](docs/v2/foundation-assessment.md), [platform](docs/architecture/platform-abstraction.md), [localization](docs/architecture/i18n.md), [migrations](docs/architecture/migrations.md), [provider/update boundaries](docs/architecture/metadata-providers.md), [acceptance cases](docs/testing/v2-acceptance-tests.md) and [platform matrix](docs/testing/v2-platform-matrix.md). macOS/Linux CI configuration is not a claim of native desktop acceptance. No Milestone 2 feature work is included.
+See [assessment](docs/v2/foundation-assessment.md), [platform](docs/architecture/platform-abstraction.md), [localization](docs/architecture/i18n.md), [migrations](docs/architecture/migrations.md), [provider/update boundaries](docs/architecture/metadata-providers.md), [acceptance cases](docs/testing/v2-acceptance-tests.md) and [platform matrix](docs/testing/v2-platform-matrix.md). Windows, macOS Apple Silicon, macOS Intel and Linux automated checks and packaging now pass; this remains separate from native desktop acceptance. No Milestone 2 feature work is included.

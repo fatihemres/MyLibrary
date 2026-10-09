@@ -1,4 +1,4 @@
-# V2 Milestone 1 verification — 2026-10-08
+# V2 Milestone 1 verification — CLOSED 2026-10-09
 
 Branch `v2`, application 2.0.0-alpha.1, schema 2. This is an unreleased foundation, not V2 product acceptance. The historical V1 report below remains evidence for the immutable V1 tag only.
 
@@ -9,7 +9,7 @@ Branch `v2`, application 2.0.0-alpha.1, schema 2. This is an unreleased foundati
 - Frozen V1 SQL and synthetic fixture preserve every value in 18 domain tables. No Work table, reset or inferred relationship was introduced. Upgrade safety snapshots and V1 ZIP staged migration passed.
 - Windows production frontend/Tauri/NSIS build passes. Final installer: `src-tauri/target/release/bundle/nsis/MyLibrary_2.0.0-alpha.1_x64-setup.exe`. Unsigned; no production updater configured. Vite reports a non-fatal ~511 kB chunk-size advisory; code splitting remains future performance work.
 - The actual Tauri/WebView2 executable passed 26 desktop workflow groups. The final executable passed the full repeat after the wording/accessibility fixes.
-- GitHub Actions is configured for Windows x64, macOS ARM64/Intel and Linux x64. The first actual run failed at workflow startup before any jobs existed; all platform CI results remain unverified. See `docs/testing/v2-platform-matrix.md` for diagnostics.
+- GitHub Actions run [37884695260, attempt 1](https://github.com/fatihemres/MyLibrary/actions/runs/37884695260/attempts/1) passed all four platforms: Windows x64, macOS Apple Silicon, macOS Intel and Linux x64. Every applicable check, production package and artifact upload succeeded. This automated matrix evidence is separate from Windows local/manual visual and actual desktop workflow verification.
 
 ## Desktop scope and safety
 
@@ -26,7 +26,9 @@ Final local desktop report: `.cache/desktop-check-1791481281264/report.json`, 26
 Installer SHA-256: `65f928fc90c135f7c2b4455629b4f94352439437e7d81edd8a1f518769dc66ea`.
 Executable SHA-256: `fbd12d2586b576e2d1fa60e0cb2d96f52035afe61079e92622db4a364525097f`.
 
-Source audit: 620 English/Turkish keys with parity, no missing literal component keys. No database, personal media, runtime/build output or credential-pattern hits in the 88 audited source files. Ignore rules also exclude portable ZIP and installer formats. V1 refs retain their original release hashes. The source milestone `b2d5817` was pushed normally. GitHub run 37818719436 returned startup_failure with no jobs/logs/annotations; retry was rejected. Official actionlint 1.7.12 passes. No platform CI pass is claimed; resolving GitHub startup and completing macOS/Linux builds remains an outstanding verification item.
+Source audit: 620 English/Turkish keys with parity, no missing literal component keys. No database, personal media, runtime/build output or credential-pattern hits in the 88 audited source files. Ignore rules also exclude portable ZIP and installer formats. V1 refs retain their original release hashes. The source milestone `b2d5817` was pushed normally. Earlier GitHub startup failures are resolved: the owner confirmed an account billing lock, not a MyLibrary source/workflow defect. The same source/workflow passed after billing resolution. Final CI source commit: `3856fd661943eebb93520a6783356734af6405ca`. Four non-expired CI artifacts were verified after the checkout/setup-node/upload-artifact @v7 upgrade. Final logs no longer contain the Node 20 Actions-runtime warning. Milestone 1 is CLOSED; the platform matrix records package formats and verification boundaries.
+
+Windows signing is not configured; macOS packages are unsigned for distribution and not notarized. The updater remains disabled. No Milestone 2 work has started. Native interactive macOS/Linux acceptance remains distinct from their successful CI checks/packages.
 
 ---
 

@@ -14,7 +14,7 @@ Migration debt: one inline schema bootstrap and hard-coded schema 1 in backup va
 
 Provider debt: Open Library response parsing is tied to the editor. Introduce a common normalized result and provider interface, retaining selected-field consent and manual entry. No Google Books/barcode expansion in Milestone 1.
 
-Updater constraint: the GitHub repository is private and no signing key/public endpoint exists. Expose a fail-closed settings/service boundary with no background requests by default, no embedded credentials and no unsigned installation. Activation requires a deliberate signed distribution configuration; never manufacture a key or make the repository public.
+Updater constraint: no signing key or signed update endpoint exists. Repository visibility alone does not configure or authorize updates. Expose a fail-closed settings/service boundary with no background requests by default, no embedded credentials and no unsigned installation. Activation requires a deliberate signed distribution configuration; never manufacture a signing key or embed private credentials. The repository is public by owner choice; production library data remains local and must never be committed.
 
 Performance debt (later milestones): full snapshots, global FTS rebuilds, base64/byte-array cover loading and no thumbnails. Do not mix a pagination/data-query rewrite into this foundation.
 
@@ -36,3 +36,7 @@ References: i18next fallback/plural documentation and Tauri updater/opener docum
 ## Implementation outcome
 
 Milestone 1 implements the six planned foundation areas. Schema 2 only adds the ledger; V1 source/schema fixture is frozen and all existing domain relationships remain. English/Turkish resources and live persisted language selection are connected throughout V1 screens; platform helpers replace shell-specific folder opening and modifier handling. Update status remains explicitly inactive. No M2 features are included. See VERIFICATION.md and the platform matrix for actual local/CI results and remaining native-platform acceptance limits.
+
+## Milestone 1 CLOSED — 2026-10-09
+
+All four automated platforms passed run 37821379296 attempt 2 on the unchanged foundation source/workflow after the owner resolved the GitHub billing lock. The original CI startup blocker was account-related. The local Windows desktop/visual verification remains independently recorded (26 workflow groups). Windows signing and macOS distribution signing/notarization are not configured, updates remain disabled, and native interactive macOS/Linux acceptance is not implied by CI success. The subsequent official Node 24 action upgrade passed run 37884695260 attempt 1 for commit 3856fd661943eebb93520a6783356734af6405ca on all four platforms, including package/artifact creation, without the previous Actions-runtime deprecation warning. Final evidence is in the platform matrix. No architecture or schema changes are part of closure and no Milestone 2 work has started.

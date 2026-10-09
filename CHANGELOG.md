@@ -2,6 +2,8 @@
 
 ## 2.0.0-alpha.1 — V2 foundation (unreleased)
 
+- Closed Milestone 1 on 2026-10-09: final CI run 37884695260 passed all checks, production bundles and artifact uploads on Windows x64, macOS ARM64/Intel and Linux x64 after the official Node 24 action upgrade. Historical billing-lock failures are resolved. Signing/notarization remain unconfigured, updater disabled, and no Milestone 2 work started.
+
 - Added forward transactional schema versioning, pre-migration snapshots and staged V1 archive upgrades; preserved edition/copy data without a Work table.
 - Added English/Turkish UI preferences, plural/Intl formatting, logical layout and accessibility baseline.
 - Centralized native paths, folder opening, pickers and OS shortcut labels; added macOS/Linux package configuration and CI matrix.
