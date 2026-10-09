@@ -105,9 +105,22 @@ fn v1_upgrade_preserves_every_domain_table_and_media_and_is_idempotent() {
 }
 #[test]
 fn v1_archive_migrates_only_staging_and_preserves_original_archive() {
+    restore_v1_archive(false);
+}
+#[test]
+fn analyzed_v1_archive_remains_compatible() {
+    restore_v1_archive(true);
+}
+fn restore_v1_archive(analyzed: bool) {
     let dir = temp();
     let root = dir.path().join("v1");
     fixture(&root);
+    if analyzed {
+        Connection::open(root.join("library.sqlite3"))
+            .unwrap()
+            .execute_batch("ANALYZE;")
+            .unwrap();
+    }
     let source = dir.path().join("v1.zip");
     let mut zip = zip::ZipWriter::new(std::fs::File::create(&source).unwrap());
     let opts = zip::write::SimpleFileOptions::default();

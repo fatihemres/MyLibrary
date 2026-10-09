@@ -104,14 +104,23 @@ impl Store {
                 return Err("Unsupported backup format or version.".into());
             }
             {
-                let c = Connection::open(stage.join("library.sqlite3"))?;
+                let c = Connection::open_with_flags(
+                    stage.join("library.sqlite3"),
+                    rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+                )?;
+                c.execute_batch("PRAGMA trusted_schema=OFF;")?;
                 let version: i64 = c.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+                if Some(version) != manifest["schema"].as_i64() {
+                    return Err("Backup database failed integrity validation.".into());
+                }
+                // Validate definitions before integrity probes, application queries,
+                // or migrations can evaluate expressions from the supplied schema.
+                validate_restore_schema(&c, version)?;
                 let check: String = c.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
                 let foreign: bool = c.prepare("PRAGMA foreign_key_check")?.exists([])?;
                 if Some(version) != manifest["schema"].as_i64() || check != "ok" || foreign {
                     return Err("Backup database failed integrity validation.".into());
                 }
-                validate_restore_schema(&c, version)?;
                 let mut books = crate::db::list(&c, false)?;
                 books.extend(crate::db::list(&c, true)?);
                 for b in books {
@@ -238,142 +247,182 @@ pub fn read_limited(path: &Path, max: u64) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-const SUPPORTED_TABLES: &[&str] = &[
-    "acquisition_sources",
-    "attachments",
-    "book_search",
-    "book_search_config",
-    "book_search_content",
-    "book_search_data",
-    "book_search_docsize",
-    "book_search_idx",
-    "change_history",
-    "contributors",
-    "copies",
-    "custom_fields",
-    "custom_values",
-    "edition_terms",
-    "editions",
-    "entries",
-    "loans",
-    "locations",
-    "people",
-    "publishers",
-    "schema_migrations",
-    "series",
-    "settings",
-    "terms",
-];
+// Compare schemas constructed by the same SQLite engine from the real supported
+// DDL. This covers constraints/conflict policies, named/automatic indexes and
+// the virtual table plus its shadow tables, not just an object-name allowlist.
+#[derive(Debug, PartialEq, Eq)]
+struct SchemaObject {
+    kind: String,
+    name: String,
+    table: String,
+    sql: Option<Vec<String>>,
+}
+fn schema_objects(c: &Connection) -> Result<Vec<SchemaObject>> {
+    let mut stmt =
+        c.prepare("SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name")?;
+    let rows = stmt.query_map([], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, String>(2)?,
+            row.get::<_, Option<String>>(3)?,
+        ))
+    })?;
+    rows.map(|row| {
+        let (kind, name, table, sql) = row?;
+        Ok(SchemaObject {
+            kind,
+            name,
+            table,
+            sql: sql.as_deref().map(sql_tokens).transpose()?,
+        })
+    })
+    .collect()
+}
 
-const REQUIRED_TABLES: &[&str] = &[
-    "acquisition_sources",
-    "attachments",
-    "book_search",
-    "change_history",
-    "contributors",
-    "copies",
-    "custom_fields",
-    "custom_values",
-    "edition_terms",
-    "editions",
-    "entries",
-    "loans",
-    "locations",
-    "people",
-    "publishers",
-    "series",
-    "settings",
-    "terms",
-];
-
-const SUPPORTED_INDEXES: &[(&str, &str)] = &[
-    ("attachments_copy", "attachments"),
-    ("contributors_person", "contributors"),
-    ("copies_barcode", "copies"),
-    ("copies_edition", "copies"),
-    ("copies_location", "copies"),
-    ("copies_status", "copies"),
-    ("editions_isbn10", "editions"),
-    ("editions_isbn13", "editions"),
-    ("editions_publisher", "editions"),
-    ("editions_series", "editions"),
-    ("editions_title", "editions"),
-    ("entries_copy", "entries"),
-    ("loans_copy", "loans"),
-    ("one_active_loan", "loans"),
-    ("terms_reverse", "edition_terms"),
-];
-
-pub fn validate_restore_schema(c: &Connection, schema_version: i64) -> Result<()> {
-    let mut stmt = c.prepare("SELECT type, name, tbl_name, sql FROM sqlite_master")?;
-    let mut rows = stmt.query([])?;
-    let mut found_tables = std::collections::HashSet::new();
-
-    while let Some(row) = rows.next()? {
-        let obj_type: String = row.get(0)?;
-        let name: String = row.get(1)?;
-        let tbl_name: String = row.get(2)?;
-        let sql: Option<String> = row.get(3)?;
-
-        match obj_type.as_str() {
-            "trigger" => {
-                return Err(format!(
-                    "Backup database contains unsupported schema objects (trigger '{name}' is not permitted)."
-                )
-                .into());
+/// A deliberately conservative lexical equivalence check, not a SQL rewriter.
+/// Ignore only SQL whitespace/comments and bare-token ASCII case. Keep token
+/// boundaries, operators and quoted text (including literal whitespace/case)
+/// intact. The supported V1 DDL is frozen in tests; V2 uses that same baseline.
+/// Hand-edited, semantically "equivalent" rewrites are not implicitly trusted.
+fn sql_tokens(sql: &str) -> Result<Vec<String>> {
+    let chars: Vec<char> = sql.chars().collect();
+    let mut tokens = Vec::new();
+    let mut i = 0;
+    while i < chars.len() {
+        let start = i;
+        let ch = chars[i];
+        if matches!(ch, ' ' | '\t' | '\r' | '\n' | '\u{000c}') {
+            i += 1;
+        } else if ch == '-' && chars.get(i + 1) == Some(&'-') {
+            i += 2;
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
             }
-            "view" => {
-                return Err(format!(
-                    "Backup database contains unsupported schema objects (view '{name}' is not permitted)."
-                )
-                .into());
+        } else if ch == '/' && chars.get(i + 1) == Some(&'*') {
+            i += 2;
+            while i + 1 < chars.len() && !(chars[i] == '*' && chars[i + 1] == '/') {
+                i += 1;
             }
-            "table" => {
-                if !SUPPORTED_TABLES.contains(&name.as_str()) {
-                    return Err(
-                        format!("Backup database contains unsupported table '{name}'.").into(),
-                    );
+            if i + 1 >= chars.len() {
+                return Err("Unterminated comment in backup schema.".into());
+            }
+            i += 2;
+        } else if matches!(ch, '\'' | '"' | '`' | '[') {
+            let close = if ch == '[' { ']' } else { ch };
+            i += 1;
+            loop {
+                if i == chars.len() {
+                    return Err("Unterminated quoted token in backup schema.".into());
                 }
-                if name == "book_search" {
-                    let sql_str = sql.unwrap_or_default();
-                    if !sql_str.to_lowercase().contains("using fts5") {
-                        return Err(
-                            "Backup database contains invalid search index table definition."
-                                .into(),
-                        );
+                if chars[i] == close {
+                    i += 1;
+                    if ch != '[' && chars.get(i) == Some(&close) {
+                        i += 1;
+                    } else {
+                        break;
+                    }
+                } else {
+                    i += 1;
+                }
+            }
+            tokens.push(chars[start..i].iter().collect());
+        } else if ch.is_ascii_alphanumeric() || ch == '_' || ch == '$' || !ch.is_ascii() {
+            i += 1;
+            while i < chars.len()
+                && (chars[i].is_ascii_alphanumeric()
+                    || chars[i] == '_'
+                    || chars[i] == '$'
+                    || !chars[i].is_ascii())
+            {
+                i += 1;
+            }
+            tokens.push(
+                chars[start..i]
+                    .iter()
+                    .collect::<String>()
+                    .to_ascii_lowercase(),
+            );
+        } else {
+            i += 1;
+            if i < chars.len() {
+                let pair: String = chars[start..=i].iter().collect();
+                if ["<=", ">=", "==", "!=", "<>", "||", "<<", ">>", "->"].contains(&pair.as_str()) {
+                    i += 1;
+                    if pair == "->" && chars.get(i) == Some(&'>') {
+                        i += 1;
                     }
                 }
-                found_tables.insert(name);
             }
-            "index" => {
-                let is_autoindex = name.starts_with("sqlite_autoindex_")
-                    && SUPPORTED_TABLES.contains(&tbl_name.as_str());
-                let is_supported = SUPPORTED_INDEXES
-                    .iter()
-                    .any(|(idx, tbl)| *idx == name && *tbl == tbl_name);
-                if !is_autoindex && !is_supported {
-                    return Err(
-                        format!("Backup database contains unsupported index '{name}'.").into(),
-                    );
-                }
-            }
-            other => {
+            tokens.push(chars[start..i].iter().collect());
+        }
+    }
+    Ok(tokens)
+}
+
+pub fn validate_restore_schema(c: &Connection, schema_version: i64) -> Result<()> {
+    let version: i64 = c.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+    if version != schema_version {
+        return Err("Backup database schema version does not match.".into());
+    }
+    let reference = crate::migrations::restore_reference(schema_version)?;
+    let mut required = schema_objects(&reference)?;
+    // SQLite owns statistics DDL. Generate it on a TRUSTED database using the
+    // bundled engine; only its exact additional definitions are optional.
+    // This includes stat4 only if this engine actually creates it.
+    reference.execute_batch("ANALYZE;")?;
+    let statistics: Vec<_> = schema_objects(&reference)?
+        .into_iter()
+        .filter(|object| !required.contains(object))
+        .collect();
+    for object in schema_objects(c)? {
+        if let Some(index) = required.iter().position(|expected| expected == &object) {
+            required.remove(index);
+        } else if !statistics.contains(&object) {
+            if matches!(object.kind.as_str(), "trigger" | "view") {
                 return Err(format!(
-                    "Backup database contains unsupported schema object type '{other}' ('{name}')."
-                )
-                .into());
+                    "Backup database contains unsupported schema objects ({} '{}' is not permitted).",
+                    object.kind, object.name
+                ).into());
             }
+            return Err(format!(
+                "Backup database contains unsupported {} '{}' or an altered definition.",
+                object.kind, object.name
+            )
+            .into());
         }
     }
-
-    for required in REQUIRED_TABLES {
-        if !found_tables.contains(*required) {
-            return Err(format!("Backup database is missing required table '{required}'.").into());
-        }
+    if let Some(missing) = required.first() {
+        return Err(format!(
+            "Backup database is missing required schema object '{}'.",
+            missing.name
+        )
+        .into());
     }
-    if schema_version >= 2 && !found_tables.contains("schema_migrations") {
-        return Err("Backup database is missing required table 'schema_migrations'.".into());
-    }
-
     Ok(())
+}
+
+#[cfg(test)]
+mod schema_token_tests {
+    use super::sql_tokens;
+    #[test]
+    fn lexical_comparison_preserves_sql_meaning() {
+        assert_eq!(
+            sql_tokens("CREATE TABLE t(a TEXT /*comment*/ DEFAULT 'a B')").unwrap(),
+            sql_tokens("create\n table t ( a text default 'a B' )").unwrap()
+        );
+        for (left, right) in [
+            ("DEFAULT 'A'", "DEFAULT 'a'"),
+            ("DEFAULT 'a b'", "DEFAULT 'ab'"),
+            ("DEFAULT 'it''s'", "DEFAULT 'its'"),
+            ("CHECK(a>=1)", "CHECK(a> =1)"),
+            ("NOT NULL", "NOTNULL"),
+            ("TEXT", "TEXT UNIQUE ON CONFLICT REPLACE"),
+            ("DEFAULT '--x'", "DEFAULT ''"),
+        ] {
+            assert_ne!(sql_tokens(left).unwrap(), sql_tokens(right).unwrap());
+        }
+        assert!(sql_tokens("/* unfinished").is_err());
+        assert!(sql_tokens("'unfinished").is_err());
+    }
 }
