@@ -131,6 +131,35 @@ export function mappedBook(row: Record<string, string>, mapping: Record<string, 
 export function validateBook(b: Book): string[] {
   const errors: string[] = [];
   if (b.transfer?.error) errors.push(b.transfer.error);
+  if (b.transfer?.fields !== undefined && b.transfer?.fields !== null) {
+    if (!Array.isArray(b.transfer.fields)) {
+      errors.push('Custom field definitions must be a list');
+    } else {
+      const validKinds = [
+        'text',
+        'multiline',
+        'integer',
+        'decimal',
+        'date',
+        'checkbox',
+        'dropdown',
+      ];
+      for (const f of b.transfer.fields) {
+        if (
+          !f ||
+          typeof f !== 'object' ||
+          Array.isArray(f) ||
+          typeof f.name !== 'string' ||
+          !f.name.trim() ||
+          typeof f.kind !== 'string' ||
+          !validKinds.includes(f.kind)
+        ) {
+          errors.push('Invalid custom field definition in transfer');
+          break;
+        }
+      }
+    }
+  }
   if (!b.title?.trim()) errors.push('Title is required');
   for (const key of [
     'pages',
@@ -287,6 +316,49 @@ export function parseJson(text: string): Book[] {
         fail(`${key} contains an invalid value.`);
     if (record.custom && Object.values(record.custom).some((v) => typeof v !== 'string'))
       fail('Custom values must be text.');
+    if ('transfer' in record && record.transfer !== undefined && record.transfer !== null) {
+      if (typeof record.transfer !== 'object' || Array.isArray(record.transfer)) {
+        fail('transfer must be an object.');
+      }
+      const transfer = record.transfer as Record<string, unknown>;
+      if (transfer.fields !== undefined && transfer.fields !== null) {
+        if (!Array.isArray(transfer.fields)) {
+          return fail('transfer.fields must be a list.');
+        }
+        const validKinds = [
+          'text',
+          'multiline',
+          'integer',
+          'decimal',
+          'date',
+          'checkbox',
+          'dropdown',
+        ];
+        for (const f of transfer.fields as unknown[]) {
+          if (!f || typeof f !== 'object' || Array.isArray(f)) {
+            return fail('Custom field definition in transfer must be an object.');
+          }
+          const field = f as Record<string, unknown>;
+          if (typeof field.name !== 'string' || !field.name.trim()) {
+            return fail('Custom field definition must have a name.');
+          }
+          if (typeof field.kind !== 'string' || !validKinds.includes(field.kind)) {
+            return fail('Custom field definition must have a valid kind.');
+          }
+          if (field.id !== undefined && field.id !== null && typeof field.id !== 'string') {
+            return fail('Custom field definition id must be text.');
+          }
+        }
+      }
+      if (transfer.location !== undefined && transfer.location !== null) {
+        if (
+          !Array.isArray(transfer.location) ||
+          (transfer.location as unknown[]).some((l) => typeof l !== 'string')
+        ) {
+          return fail('transfer.location must be a list of text names.');
+        }
+      }
+    }
     return {
       ...base,
       ...record,

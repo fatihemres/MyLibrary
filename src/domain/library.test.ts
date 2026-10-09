@@ -251,4 +251,89 @@ describe('catalogue transfer', () => {
     expect(copy.extra.original_title).toBe('Original');
     expect(() => parseJson('{}')).toThrow();
   });
+  it('rejects malformed transfer field definitions during JSON parsing and validation', () => {
+    // boolean field entry (triggering input from F4)
+    expect(() =>
+      parseJson(
+        JSON.stringify([
+          {
+            title: 'Example',
+            custom: { '': 'x' },
+            transfer: { fields: [true] },
+          },
+        ]),
+      ),
+    ).toThrow('Custom field definition in transfer must be an object.');
+
+    // null field entry
+    expect(() =>
+      parseJson(
+        JSON.stringify([
+          {
+            title: 'Example',
+            transfer: { fields: [null] },
+          },
+        ]),
+      ),
+    ).toThrow('Custom field definition in transfer must be an object.');
+
+    // string field entry
+    expect(() =>
+      parseJson(
+        JSON.stringify([
+          {
+            title: 'Example',
+            transfer: { fields: ['not-an-object'] },
+          },
+        ]),
+      ),
+    ).toThrow('Custom field definition in transfer must be an object.');
+
+    // malformed object: empty name
+    expect(() =>
+      parseJson(
+        JSON.stringify([
+          {
+            title: 'Example',
+            transfer: { fields: [{ name: '', kind: 'text' }] },
+          },
+        ]),
+      ),
+    ).toThrow('Custom field definition must have a name.');
+
+    // malformed object: invalid kind
+    expect(() =>
+      parseJson(
+        JSON.stringify([
+          {
+            title: 'Example',
+            transfer: { fields: [{ name: 'Test', kind: 'invalid_kind' }] },
+          },
+        ]),
+      ),
+    ).toThrow('Custom field definition must have a valid kind.');
+
+    // valid field definition
+    const valid = parseJson(
+      JSON.stringify([
+        {
+          title: 'Example',
+          custom: { cf1: 'val' },
+          transfer: {
+            fields: [{ id: 'cf1', name: 'Valid Field', kind: 'text' }],
+          },
+        },
+      ]),
+    );
+    expect(valid).toHaveLength(1);
+    expect(valid[0].transfer?.fields?.[0].name).toBe('Valid Field');
+
+    // validateBook catches malformed fields if passed directly
+    const badBook = {
+      ...emptyBook(),
+      title: 'Valid',
+      transfer: { fields: [true as unknown as import('./types').Entity] },
+    };
+    expect(validateBook(badBook)).toContain('Invalid custom field definition in transfer');
+  });
 });

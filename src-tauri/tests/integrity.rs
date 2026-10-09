@@ -555,3 +555,322 @@ fn malformed_manifest_and_missing_assets_leave_current_library_untouched() {
     assert!(s.restore(&archive).is_err());
     assert_eq!(s.snapshot("", false).unwrap(), before);
 }
+
+#[test]
+fn hostile_trigger_backup_fixture_fails_restore_and_protects_library() {
+    use std::io::Write;
+    let (dir, s) = store();
+    s.save(&book("Safe Book")).unwrap();
+    s.conn()
+        .unwrap()
+        .execute(
+            "INSERT INTO settings(key, value) VALUES('app_version', '2.0.0') ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            [],
+        )
+        .unwrap();
+    let before_snapshot = s.snapshot("", false).unwrap();
+
+    // Create a base backup
+    let base_archive = dir.path().join("base.zip");
+    s.backup(&base_archive).unwrap();
+
+    // Create a synthetic backup containing the hostile trigger fixture
+    let hostile_archive = dir.path().join("hostile-trigger.zip");
+    let mut zip_in = zip::ZipArchive::new(std::fs::File::open(&base_archive).unwrap()).unwrap();
+    let mut zip_out = zip::ZipWriter::new(std::fs::File::create(&hostile_archive).unwrap());
+    let opts = zip::write::SimpleFileOptions::default();
+
+    for i in 0..zip_in.len() {
+        let mut file = zip_in.by_index(i).unwrap();
+        let name = file.name().to_string();
+        zip_out.start_file(&name, opts).unwrap();
+        if name == "library.sqlite3" {
+            let temp_db_path = dir.path().join("temp-hostile.sqlite3");
+            let mut temp_file = std::fs::File::create(&temp_db_path).unwrap();
+            std::io::copy(&mut file, &mut temp_file).unwrap();
+            drop(temp_file);
+
+            // Inject the harmless malicious trigger fixture
+            let c = rusqlite::Connection::open(&temp_db_path).unwrap();
+            c.execute_batch(include_str!("fixtures/hostile-trigger.sql"))
+                .unwrap();
+
+            // Verify that integrity_check, foreign_key_check, and table probes pass
+            let check: String = c
+                .query_row("PRAGMA integrity_check", [], |r| r.get(0))
+                .unwrap();
+            assert_eq!(check, "ok");
+            let foreign: bool = c
+                .prepare("PRAGMA foreign_key_check")
+                .unwrap()
+                .exists([])
+                .unwrap();
+            assert!(!foreign);
+            c.prepare("SELECT * FROM entries LIMIT 0").unwrap();
+
+            drop(c);
+            let mut injected_bytes = std::fs::read(&temp_db_path).unwrap();
+            zip_out.write_all(&mut injected_bytes).unwrap();
+        } else {
+            std::io::copy(&mut file, &mut zip_out).unwrap();
+        }
+    }
+    zip_out.finish().unwrap();
+
+    // Store::restore must reject the hostile database
+    let result = s.restore(&hostile_archive);
+    assert!(
+        result.is_err(),
+        "Restore must reject database with hostile trigger"
+    );
+    let err_msg = result.unwrap_err().to_string();
+    assert!(
+        err_msg.contains("unsupported schema objects") && err_msg.contains("trigger"),
+        "Error should mention unsupported schema objects and trigger, got: {err_msg}"
+    );
+
+    // Live library remains completely untouched
+    assert_eq!(s.snapshot("", false).unwrap(), before_snapshot);
+    let app_version: String = s
+        .conn()
+        .unwrap()
+        .query_row(
+            "SELECT value FROM settings WHERE key='app_version'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(app_version, "2.0.0");
+
+    // Later note insert on the live library must not activate any trigger
+    let book_id = before_snapshot["books"][0]["id"].as_str().unwrap();
+    s.mutate(
+        "entry",
+        &json!({
+            "copy_id": book_id,
+            "kind": "note",
+            "content": "A perfectly safe note"
+        }),
+    )
+    .unwrap();
+    let app_version_after: String = s
+        .conn()
+        .unwrap()
+        .query_row(
+            "SELECT value FROM settings WHERE key='app_version'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(
+        app_version_after, "2.0.0",
+        "Settings must not be compromised because trigger was never installed"
+    );
+}
+
+#[test]
+fn hostile_views_tables_and_indexes_are_rejected_on_restore() {
+    use std::io::Write;
+    let (dir, s) = store();
+    s.save(&book("Protected Library")).unwrap();
+    let base_archive = dir.path().join("base_for_views.zip");
+    s.backup(&base_archive).unwrap();
+    let before_snapshot = s.snapshot("", false).unwrap();
+
+    for (case_name, sql, expected_err_part) in [
+        (
+            "hostile_view.zip",
+            "CREATE VIEW hostile_view AS SELECT * FROM settings;",
+            "view",
+        ),
+        (
+            "hostile_table.zip",
+            "CREATE TABLE hostile_table(payload TEXT);",
+            "unsupported table",
+        ),
+        (
+            "hostile_index.zip",
+            "CREATE INDEX hostile_idx ON entries(title);",
+            "unsupported index",
+        ),
+    ] {
+        let bad_archive = dir.path().join(case_name);
+        let mut zip_in = zip::ZipArchive::new(std::fs::File::open(&base_archive).unwrap()).unwrap();
+        let mut zip_out = zip::ZipWriter::new(std::fs::File::create(&bad_archive).unwrap());
+        let opts = zip::write::SimpleFileOptions::default();
+
+        for i in 0..zip_in.len() {
+            let mut file = zip_in.by_index(i).unwrap();
+            let name = file.name().to_string();
+            zip_out.start_file(&name, opts).unwrap();
+            if name == "library.sqlite3" {
+                let temp_db = dir.path().join(format!("temp-{case_name}.sqlite3"));
+                let mut temp_file = std::fs::File::create(&temp_db).unwrap();
+                std::io::copy(&mut file, &mut temp_file).unwrap();
+                drop(temp_file);
+
+                let c = rusqlite::Connection::open(&temp_db).unwrap();
+                c.execute_batch(sql).unwrap();
+                drop(c);
+
+                let mut injected = std::fs::read(&temp_db).unwrap();
+                zip_out.write_all(&mut injected).unwrap();
+            } else {
+                std::io::copy(&mut file, &mut zip_out).unwrap();
+            }
+        }
+        zip_out.finish().unwrap();
+
+        let res = s.restore(&bad_archive);
+        assert!(res.is_err(), "Case {case_name} should fail restore");
+        let err_str = res.unwrap_err().to_string();
+        assert!(
+            err_str.contains(expected_err_part),
+            "Expected '{expected_err_part}' in error message, got: {err_str}"
+        );
+        assert_eq!(s.snapshot("", false).unwrap(), before_snapshot);
+    }
+}
+
+#[test]
+fn malformed_import_field_definitions_are_rejected_without_panic_and_store_usable() {
+    let (_dir, s) = store();
+    let initial_key = s.save(&book("Baseline")).unwrap();
+
+    // Case 1: Boolean field entry (exact triggering input from finding F4)
+    let bad_boolean = json!({
+        "title": "Example",
+        "custom": { "": "x" },
+        "transfer": { "fields": [true] }
+    });
+    let err_bool = s.import(&[bad_boolean]);
+    assert!(err_bool.is_err());
+    // Verify Store remains usable after rejection
+    let key1 = s.save(&book("After Boolean Error")).unwrap();
+    assert!(!key1.is_empty());
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+
+    // Case 2: Null field entry
+    let bad_null = json!({
+        "title": "Example",
+        "custom": { "k": "v" },
+        "transfer": { "fields": [null] }
+    });
+    let err_null = s.import(&[bad_null]);
+    assert!(err_null.is_err());
+    // Verify Store remains usable
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+
+    // Case 3: String field entry
+    let bad_string = json!({
+        "title": "Example",
+        "custom": { "k": "v" },
+        "transfer": { "fields": ["not an object"] }
+    });
+    let err_str = s.import(&[bad_string]);
+    assert!(err_str.is_err());
+    // Verify Store remains usable
+    let key2 = s.save(&book("After String Error")).unwrap();
+    assert!(!key2.is_empty());
+
+    // Case 4: Malformed object: empty name
+    let bad_obj_empty_name = json!({
+        "title": "Example",
+        "custom": { "k": "v" },
+        "transfer": { "fields": [{"name": "", "kind": "text"}] }
+    });
+    let err_empty_name = s.import(&[bad_obj_empty_name]);
+    assert!(err_empty_name.is_err());
+    // Verify Store remains usable
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+
+    // Case 5: Malformed object: invalid kind
+    let bad_obj_invalid_kind = json!({
+        "title": "Example",
+        "custom": { "k": "v" },
+        "transfer": { "fields": [{"name": "Rating Note", "kind": "unsupported_kind"}] }
+    });
+    let err_invalid_kind = s.import(&[bad_obj_invalid_kind]);
+    assert!(err_invalid_kind.is_err());
+    // Verify Store remains usable
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+
+    // Case 6: Malformed transfer fields: not an array
+    let bad_fields_scalar = json!({
+        "title": "Example",
+        "custom": { "k": "v" },
+        "transfer": { "fields": "scalar value" }
+    });
+    let err_scalar = s.import(&[bad_fields_scalar]);
+    assert!(err_scalar.is_err());
+    // Verify Store remains usable
+    assert_eq!(
+        s.snapshot("", false).unwrap()["books"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+
+    // Case 7: Valid field definition must succeed and create field + value
+    let valid_import = json!({
+        "title": "Valid Imported Book",
+        "custom": { "f1": "Stored Note" },
+        "transfer": {
+            "fields": [
+                {
+                    "id": "f1",
+                    "name": "Imported Note Field",
+                    "kind": "text"
+                }
+            ]
+        }
+    });
+    let imported_count = s.import(&[valid_import]).unwrap();
+    assert_eq!(imported_count, 1);
+
+    // Verify the custom field was created in database and value saved
+    let snap = s.snapshot("Valid Imported", false).unwrap();
+    let imported_book = &snap["books"][0];
+    assert_eq!(imported_book["title"], "Valid Imported Book");
+    let field_id = snap["fields"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|f| f["name"] == "Imported Note Field")
+        .expect("Custom field should exist")["id"]
+        .as_str()
+        .unwrap();
+    assert_eq!(imported_book["custom"][field_id], "Stored Note");
+
+    // Initial book still exists
+    assert!(snap["books"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|b| b["id"] == initial_key));
+}

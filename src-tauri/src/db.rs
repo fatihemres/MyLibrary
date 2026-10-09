@@ -99,10 +99,20 @@ impl Store {
         let mut editions: std::collections::HashMap<String, (String, Value)> =
             std::collections::HashMap::new();
         for b in books {
+            if !b.is_object() {
+                return Err("Expected each book to be an object.".into());
+            }
             let mut b = b.clone();
             b["id"] = json!("");
             b["edition_id"] = json!("");
             b["cover"] = json!("");
+            if b.get("custom").is_some() && !b["custom"].is_null() && !b["custom"].is_object() {
+                return Err("Book custom values must be an object.".into());
+            }
+            if b.get("transfer").is_some() && !b["transfer"].is_null() && !b["transfer"].is_object()
+            {
+                return Err("Book transfer metadata must be an object.".into());
+            }
             if b["transfer"].is_object() {
                 let transfer = b["transfer"].clone();
                 if !s(&transfer, "error").is_empty() {
@@ -139,8 +149,50 @@ impl Store {
                 }
                 b["location_id"] = json!(parent.unwrap_or_default());
                 let mut values = json!({});
-                if let Some(fields) = transfer["fields"].as_array() {
+                if transfer.get("fields").is_some() && !transfer["fields"].is_null() {
+                    let fields = transfer["fields"]
+                        .as_array()
+                        .ok_or("Custom field definitions in import must be a list.")?;
                     for field in fields {
+                        let field_obj = field
+                            .as_object()
+                            .ok_or("Custom field definition in import must be an object.")?;
+                        let name = field_obj
+                            .get("name")
+                            .and_then(|v| v.as_str())
+                            .map(str::trim)
+                            .unwrap_or("");
+                        if name.is_empty() {
+                            return Err("Custom field name is required in import.".into());
+                        }
+                        let kind = field_obj.get("kind").and_then(|v| v.as_str()).unwrap_or("");
+                        if !matches!(
+                            kind,
+                            "text"
+                                | "multiline"
+                                | "integer"
+                                | "decimal"
+                                | "date"
+                                | "checkbox"
+                                | "dropdown"
+                        ) {
+                            return Err(format!(
+                                "Unsupported custom field kind '{kind}' in import."
+                            )
+                            .into());
+                        }
+                        if let Some(id_val) = field_obj.get("id") {
+                            if !id_val.is_null() && !id_val.is_string() {
+                                return Err("Custom field definition ID must be text.".into());
+                            }
+                        }
+                        if let Some(extra_val) = field_obj.get("extra") {
+                            if !extra_val.is_null() && !extra_val.is_object() {
+                                return Err(
+                                    "Custom field definition extra must be an object.".into()
+                                );
+                            }
+                        }
                         let old = s(field, "id");
                         let value = b["custom"][old].clone();
                         if value.is_null() {
@@ -149,13 +201,13 @@ impl Store {
                         let existing: Option<(String, String)> = tx
                             .query_row(
                                 "SELECT id,kind FROM custom_fields WHERE name=? COLLATE NOCASE",
-                                [s(field, "name")],
+                                [name],
                                 |r| Ok((r.get(0)?, r.get(1)?)),
                             )
                             .optional()?;
-                        let key = if let Some((key, kind)) = existing {
-                            if kind != s(field, "kind") {
-                                return Err(format!("The custom field '{}' already exists with a different type. Rename the imported field or use a full backup restore.",s(field,"name")).into());
+                        let key = if let Some((key, existing_kind)) = existing {
+                            if existing_kind != kind {
+                                return Err(format!("The custom field '{name}' already exists with a different type. Rename the imported field or use a full backup restore.").into());
                             }
                             key
                         } else {
@@ -171,7 +223,15 @@ impl Store {
                 if let Some(old) = b["custom"].as_object() {
                     let defined = transfer["fields"]
                         .as_array()
-                        .map(|f| f.iter().map(|f| s(f, "id")).collect::<Vec<_>>())
+                        .map(|f| {
+                            f.iter()
+                                .filter_map(|f| {
+                                    f.as_object()
+                                        .and_then(|o| o.get("id"))
+                                        .and_then(|v| v.as_str())
+                                })
+                                .collect::<Vec<_>>()
+                        })
                         .unwrap_or_default();
                     if old.keys().any(|key| !defined.contains(&key.as_str())) {
                         return Err("The JSON catalogue is missing a custom field definition. Use a complete catalogue export or ZIP backup.".into());

@@ -111,6 +111,7 @@ impl Store {
                 if Some(version) != manifest["schema"].as_i64() || check != "ok" || foreign {
                     return Err("Backup database failed integrity validation.".into());
                 }
+                validate_restore_schema(&c, version)?;
                 let mut books = crate::db::list(&c, false)?;
                 books.extend(crate::db::list(&c, true)?);
                 for b in books {
@@ -146,6 +147,7 @@ impl Store {
             // Exercise the full supported schema before touching the live library.
             {
                 let staged = Store::open(stage.clone())?;
+                validate_restore_schema(&staged.conn()?, crate::migrations::CURRENT_SCHEMA)?;
                 staged.snapshot("schema validation", false)?;
             }
             let safety = self
@@ -234,4 +236,144 @@ pub fn read_limited(path: &Path, max: u64) -> Result<Vec<u8>> {
         return Err("File is too large.".into());
     }
     Ok(bytes)
+}
+
+const SUPPORTED_TABLES: &[&str] = &[
+    "acquisition_sources",
+    "attachments",
+    "book_search",
+    "book_search_config",
+    "book_search_content",
+    "book_search_data",
+    "book_search_docsize",
+    "book_search_idx",
+    "change_history",
+    "contributors",
+    "copies",
+    "custom_fields",
+    "custom_values",
+    "edition_terms",
+    "editions",
+    "entries",
+    "loans",
+    "locations",
+    "people",
+    "publishers",
+    "schema_migrations",
+    "series",
+    "settings",
+    "terms",
+];
+
+const REQUIRED_TABLES: &[&str] = &[
+    "acquisition_sources",
+    "attachments",
+    "book_search",
+    "change_history",
+    "contributors",
+    "copies",
+    "custom_fields",
+    "custom_values",
+    "edition_terms",
+    "editions",
+    "entries",
+    "loans",
+    "locations",
+    "people",
+    "publishers",
+    "series",
+    "settings",
+    "terms",
+];
+
+const SUPPORTED_INDEXES: &[(&str, &str)] = &[
+    ("attachments_copy", "attachments"),
+    ("contributors_person", "contributors"),
+    ("copies_barcode", "copies"),
+    ("copies_edition", "copies"),
+    ("copies_location", "copies"),
+    ("copies_status", "copies"),
+    ("editions_isbn10", "editions"),
+    ("editions_isbn13", "editions"),
+    ("editions_publisher", "editions"),
+    ("editions_series", "editions"),
+    ("editions_title", "editions"),
+    ("entries_copy", "entries"),
+    ("loans_copy", "loans"),
+    ("one_active_loan", "loans"),
+    ("terms_reverse", "edition_terms"),
+];
+
+pub fn validate_restore_schema(c: &Connection, schema_version: i64) -> Result<()> {
+    let mut stmt = c.prepare("SELECT type, name, tbl_name, sql FROM sqlite_master")?;
+    let mut rows = stmt.query([])?;
+    let mut found_tables = std::collections::HashSet::new();
+
+    while let Some(row) = rows.next()? {
+        let obj_type: String = row.get(0)?;
+        let name: String = row.get(1)?;
+        let tbl_name: String = row.get(2)?;
+        let sql: Option<String> = row.get(3)?;
+
+        match obj_type.as_str() {
+            "trigger" => {
+                return Err(format!(
+                    "Backup database contains unsupported schema objects (trigger '{name}' is not permitted)."
+                )
+                .into());
+            }
+            "view" => {
+                return Err(format!(
+                    "Backup database contains unsupported schema objects (view '{name}' is not permitted)."
+                )
+                .into());
+            }
+            "table" => {
+                if !SUPPORTED_TABLES.contains(&name.as_str()) {
+                    return Err(
+                        format!("Backup database contains unsupported table '{name}'.").into(),
+                    );
+                }
+                if name == "book_search" {
+                    let sql_str = sql.unwrap_or_default();
+                    if !sql_str.to_lowercase().contains("using fts5") {
+                        return Err(
+                            "Backup database contains invalid search index table definition."
+                                .into(),
+                        );
+                    }
+                }
+                found_tables.insert(name);
+            }
+            "index" => {
+                let is_autoindex = name.starts_with("sqlite_autoindex_")
+                    && SUPPORTED_TABLES.contains(&tbl_name.as_str());
+                let is_supported = SUPPORTED_INDEXES
+                    .iter()
+                    .any(|(idx, tbl)| *idx == name && *tbl == tbl_name);
+                if !is_autoindex && !is_supported {
+                    return Err(
+                        format!("Backup database contains unsupported index '{name}'.").into(),
+                    );
+                }
+            }
+            other => {
+                return Err(format!(
+                    "Backup database contains unsupported schema object type '{other}' ('{name}')."
+                )
+                .into());
+            }
+        }
+    }
+
+    for required in REQUIRED_TABLES {
+        if !found_tables.contains(*required) {
+            return Err(format!("Backup database is missing required table '{required}'.").into());
+        }
+    }
+    if schema_version >= 2 && !found_tables.contains("schema_migrations") {
+        return Err("Backup database is missing required table 'schema_migrations'.".into());
+    }
+
+    Ok(())
 }
