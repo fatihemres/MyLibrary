@@ -186,6 +186,8 @@ The annotated v1.0.0 tag permanently identifies the release source. main holds t
 
 ## V2 foundation
 
+The canonical [shared agent contract](AGENTS.md) and [V2 roadmap](docs/v2/ROADMAP.md) govern future work. M2 — Barcode & Metadata is next; this documentation does not start its implementation.
+
 Milestone 1 is **CLOSED** as of 2026-10-09. [Final CI run 37884695260](https://github.com/fatihemres/MyLibrary/actions/runs/37884695260) passed on Windows x64, macOS Apple Silicon, macOS Intel and Linux x64. Windows signing and macOS signing/notarization remain unconfigured. The repository is public by owner choice; MyLibrary remains local-first and production user data must never be committed.
 
 English/Turkish UI is selected in Settings → Language & region and persists independently of book language. Schema 2 adds a migration ledger without changing editions/copies. V1 upgrades create a SQLite safety snapshot; V1 ZIP restores migrate staging before replacing live data. Keep a complete V1 ZIP for downgrade. Updates remain unconfigured/inactive and make no background requests.
