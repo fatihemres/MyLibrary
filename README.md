@@ -149,7 +149,7 @@ src-tauri/src/copies.rs   Copy-only validation, edits and moves
 src-tauri/src/schema.sql  Relational schema and FTS
 src-tauri/src/backup.rs   Snapshot/archive/restore services
 src-tauri/src/lib.rs      Desktop commands and managed files
-src-tauri/src/metadata.rs Optional, explicit Open Library lookup
+src-tauri/src/metadata.rs Optional, explicit Open Library / Google Books ISBN lookup
 src-tauri/tests/      Native integrity tests
 scripts/              Local development/build/test wrappers
 ```
@@ -170,8 +170,8 @@ Hover/press, sidebar width, page-heading entrance and dialog entrance transition
 
 ## Limits and future work
 
-- The interface is English; default book language is configurable.
-- Open Library metadata is optional and can be incomplete. Only selected fields replace form values; failure never blocks manual entry.
+- The interface supports English and Turkish; UI language is separate from the configurable default book language.
+- Open Library and Google Books metadata is optional and can be incomplete. Explicit lookup sends only the ISBN; source-aware selections change the draft, with Save remaining separate. Failure never blocks manual entry. Google Books cover application is deferred. See [M2-A provider architecture](docs/architecture/metadata-providers.md).
 - Reading-session entries preserve multiple reading events; the times-read counter and current state are editable per copy.
 - No permanent Trash purge, encryption, sync, barcode-scanner integration, PDF/HTML export or signed installer is included.
 - This release targets personal collections and is not benchmarked as an institutional catalogue. It loads a snapshot and refreshes FTS after mutations.

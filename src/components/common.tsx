@@ -38,7 +38,7 @@ export function Modal({
     >
       <header>
         <h2 id={titleId}>{title}</h2>
-        <button className="icon" onClick={onClose} aria-label={t('ui.closeDialog')}>
+        <button type="button" className="icon" onClick={onClose} aria-label={t('ui.closeDialog')}>
           <X size={20} />
         </button>
       </header>

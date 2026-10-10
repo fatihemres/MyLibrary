@@ -6,7 +6,19 @@ export const api = <T = unknown>(action: string, payload: unknown = {}): Promise
   invoke('database', { action, payload });
 export const snapshot = (query = '', trash = false) => api<Snapshot>('snapshot', { query, trash });
 export const lookup = async (isbn: string) =>
-  metadataFields(await openLibraryProvider.lookup(isbn));
+  metadataFields(
+    (await openLibraryProvider.lookup(isbn)) || {
+      provider: 'openLibrary',
+      authors: [],
+      contributors: [],
+      publishers: [],
+      identifiers: { isbn10: [], isbn13: [] },
+      languages: [],
+      subjects: [],
+      covers: [],
+      provenance: {},
+    },
+  );
 export async function upload(file: File, copyId?: string) {
   return api<string>(copyId ? 'attachment' : 'cover', {
     name: file.name,

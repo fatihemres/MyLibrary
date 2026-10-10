@@ -1,6 +1,7 @@
 pub mod backup;
 mod copies;
 pub mod db;
+mod isbn;
 mod metadata;
 pub mod migrations;
 mod platform;
@@ -183,6 +184,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             database,
             metadata::isbn_lookup,
+            metadata::google_books_lookup,
             metadata::isbn_cover
         ])
         .run(tauri::generate_context!())

@@ -1,6 +1,6 @@
 /* global window, document */
 // End-to-end checks against the real Windows executable and Rust/SQLite backend.
-// Only OS file pickers are substituted with deterministic paths in the isolated test folder.
+// OS file pickers use isolated paths; metadata lookup uses deterministic provider fixtures.
 import { spawn, execFileSync } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir, readFile, writeFile, stat, readdir } from 'node:fs/promises';
@@ -215,6 +215,161 @@ try {
       path: join(runDir, 'dashboard-navigation.png'),
     });
   });
+  await check(
+    'M2-A explicit lookup, validation, source selection, draft safety and provider failure',
+    async () => {
+      // Synthetic provider IPC responses only; real UI, adapters and native storage.
+      await page.evaluate(() => {
+        window.__metadataCalls = [];
+        window.__metadataMode = 'both';
+        window.__metadataFetch = window.fetch.bind(window);
+        window.fetch = async (url, options) => {
+          const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
+          if (['isbn_lookup', 'google_books_lookup'].includes(command)) {
+            window.__metadataCalls.push(command);
+            const failed =
+              window.__metadataMode === 'offline' ||
+              (command === 'google_books_lookup' && window.__metadataMode === 'partial');
+            const value = failed
+              ? 'metadata.unavailable'
+              : command === 'isbn_lookup'
+                ? {
+                    title: 'Open candidate',
+                    authors: [{ name: 'Open author' }],
+                    number_of_pages: 200,
+                  }
+                : {
+                    items: [
+                      {
+                        volumeInfo: {
+                          title: 'Google candidate',
+                          authors: ['Google author'],
+                          industryIdentifiers: [{ type: 'ISBN_13', identifier: '9780306406157' }],
+                        },
+                      },
+                    ],
+                  };
+            return new Response(JSON.stringify(value), {
+              headers: {
+                'Content-Type': 'application/json',
+                'Tauri-Response': failed ? 'error' : 'ok',
+              },
+            });
+          }
+          return window.__metadataFetch(url, options);
+        };
+      });
+      await button('Quick add').click();
+      const editor = page.getByRole('dialog', { name: 'Quick add', exact: true });
+      await editor.getByLabel('Title *', { exact: true }).fill('Manual protected title');
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('9780306406158');
+      assert.equal(await page.evaluate(() => window.__metadataCalls.length), 0);
+      await button('Look up ISBN online…', editor).click();
+      await editor.getByRole('alert').filter({ hasText: 'checksum' }).waitFor();
+      assert.equal(await page.evaluate(() => window.__metadataCalls.length), 0);
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('9780306406157');
+      await button('Look up ISBN online…', editor).click();
+      let preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+      await preview.waitFor();
+      assert.equal(await page.evaluate(() => window.__metadataCalls.length), 2);
+      assert(
+        await preview
+          .getByRole('group', { name: 'Title', exact: true })
+          .getByRole('radio', { name: /Keep current/ })
+          .isChecked(),
+      );
+      assert.equal(
+        await editor.getByLabel('Title *', { exact: true }).inputValue(),
+        'Manual protected title',
+      );
+      await page.keyboard.press('Control+s');
+      assert.equal((await snapshot()).books.length, 0);
+      await preview
+        .getByRole('group', { name: 'Title', exact: true })
+        .getByRole('radio', { name: /Google Books/ })
+        .check();
+      await page.screenshot({ animations: 'disabled', path: join(runDir, 'metadata-preview.png') });
+      const metrics = await page.context().newCDPSession(page);
+      for (const width of [900, 1280]) {
+        await metrics.send('Emulation.setDeviceMetricsOverride', {
+          width,
+          height: 800,
+          deviceScaleFactor: 1,
+          mobile: false,
+        });
+        assert(
+          await preview.evaluate((dialog) => {
+            const radio = dialog.querySelector('input[type="radio"]');
+            return (
+              radio.getBoundingClientRect().width <= 24 &&
+              dialog.scrollWidth <= dialog.clientWidth + 1
+            );
+          }),
+          'Metadata choices must remain readable without horizontal overflow',
+        );
+        await page.screenshot({
+          animations: 'disabled',
+          path: join(runDir, `metadata-${width}.png`),
+        });
+      }
+      await metrics.send('Emulation.clearDeviceMetricsOverride');
+      await metrics.detach();
+      await button('Apply selected fields', preview).click();
+      await preview.waitFor({ state: 'hidden' });
+      assert.equal(
+        await editor.getByLabel('Title *', { exact: true }).inputValue(),
+        'Google candidate',
+      );
+      assert.equal(
+        await editor.getByLabel('Authors (separate with ;)').inputValue(),
+        'Open author',
+      );
+      assert.equal((await snapshot()).books.length, 0);
+      for (const mode of ['partial', 'offline']) {
+        await page.evaluate((mode) => {
+          window.__metadataMode = mode;
+        }, mode);
+        await button('Look up ISBN online…', editor).click();
+        preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+        await preview
+          .getByText('Provider unavailable. Manual entry remains available.', { exact: false })
+          .first()
+          .waitFor();
+        assert.equal(
+          await editor.getByLabel('Title *', { exact: true }).inputValue(),
+          'Google candidate',
+        );
+        if (mode === 'partial')
+          assert(
+            await preview
+              .getByRole('group', { name: 'Title', exact: true })
+              .getByRole('radio', { name: /Open Library/ })
+              .isVisible(),
+          );
+        await button(mode === 'partial' ? 'Cancel' : 'Close dialog', preview).click();
+        await preview.waitFor({ state: 'hidden' });
+        assert.equal((await snapshot()).books.length, 0);
+        if (mode === 'partial') {
+          // Cancel must release the parent Save guard without persisting the draft.
+          await editor.getByLabel('Title *', { exact: true }).fill('');
+          await page.keyboard.press('Control+s');
+          await editor.getByText('Title is required', { exact: true }).waitFor();
+          assert.equal((await snapshot()).books.length, 0);
+          await editor.getByLabel('Title *', { exact: true }).fill('Google candidate');
+        }
+      }
+      await button('Cancel', editor).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await editor.waitFor({ state: 'hidden' });
+      await page.evaluate(() => {
+        window.fetch = window.__metadataFetch;
+      });
+      assert.equal((await snapshot()).books.length, 0);
+    },
+  );
   await check('hierarchical rooms, bookcases, shelves and renaming through UI', async () => {
     await button('Toggle sidebar').click();
     const layout = await page.context().newCDPSession(page);

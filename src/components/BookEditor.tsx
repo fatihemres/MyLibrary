@@ -1,3 +1,4 @@
+import { MetadataLookup } from './MetadataLookup';
 import { ErrorText } from './ErrorText';
 import { t, label as trLabel } from '../i18n';
 import { commandPressed } from '../services/platform';
@@ -16,7 +17,7 @@ import {
   type Snapshot,
 } from '../domain/types';
 import { copyFields, editionFields, type Field as FieldDef } from '../domain/fields';
-import { api, lookup, lookupCover, upload } from '../services/api';
+import { api, upload } from '../services/api';
 import { validateBook } from '../services/transfer';
 import { Cover, Field, Modal } from './common';
 import { useUnsaved } from './useUnsaved';
@@ -49,9 +50,8 @@ export function BookEditor({
   const [full, setFull] = useState(!quick);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [metadataOpen, setMetadataOpen] = useState(false);
   const [duplicateOk, setDuplicateOk] = useState(false);
-  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
-  const [selectedMetadata, setSelectedMetadata] = useState<string[]>([]);
   const dup = duplicates(book, data.books).filter(
     (b) => !initial || b.edition_id !== initial.edition_id,
   );
@@ -66,7 +66,7 @@ export function BookEditor({
   const update = <K extends keyof Book>(key: K, value: Book[K]) =>
     setBook((b) => ({ ...b, [key]: value }));
   const save = async () => {
-    if (busy) return;
+    if (busy || metadataOpen) return;
     const errors = validateBook(book);
     if (errors.length) {
       setError(errors.join('. '));
@@ -191,54 +191,6 @@ export function BookEditor({
       </select>
     </Field>
   );
-  const getMetadata = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      const v = await lookup(book.isbn13 || book.isbn10);
-      setMetadata(v);
-      setSelectedMetadata([]);
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-  const applyMetadata = async () => {
-    if (!metadata) return;
-    setBusy(true);
-    const next = structuredClone(book);
-    for (const key of selectedMetadata) {
-      const val = metadata[key];
-      if (key === 'title' && typeof val === 'string') next.title = val;
-      if (key === 'subtitle' && typeof val === 'string') next.subtitle = val;
-      if (key === 'language' && typeof val === 'string') next.language = val;
-      if (key === 'description' && typeof val === 'string') next.extra.synopsis = val;
-      if (key === 'number_of_pages' && typeof val === 'number') next.pages = val;
-      if (key === 'authors' && Array.isArray(val))
-        next.contributors = [
-          ...next.contributors.filter((p) => p.role !== 'Author'),
-          ...val.map((v) => ({ name: String(v.name), role: 'Author' })),
-        ];
-      if (key === 'publishers' && Array.isArray(val))
-        next.publisher = val.map((v) => String(v.name)).join('; ');
-      if (key === 'publish_date' && typeof val === 'string') {
-        const match = val.match(/\b\d{4}\b/);
-        if (match) next.publication_year = Number(match[0]);
-      }
-    }
-    if (selectedMetadata.includes('cover')) {
-      try {
-        const bytes = await lookupCover(book.isbn13 || book.isbn10);
-        next.cover = await api<string>('cover', { name: 'isbn-cover.jpg', bytes });
-      } catch (e) {
-        setError(String(e));
-      }
-    }
-    setBook(next);
-    setMetadata(null);
-    setBusy(false);
-  };
   return (
     <Modal
       wide
@@ -340,18 +292,12 @@ export function BookEditor({
                 {simple('isbn10', 'ISBN-10')}
                 {!full && terms('genre', 'Genres')}
                 {!full && location}
-                <div className="span2">
-                  <button
-                    type="button"
-                    disabled={busy || !(book.isbn13 || book.isbn10)}
-                    onClick={() => void getMetadata()}
-                  >
-                    {t('ui.lookUpIsbnOnline')}{' '}
-                  </button>
-                  <small className="block">
-                    {t('ui.optionalSendsOnlyTheIsbnToOpenLibraryReviewBeforeApplying')}{' '}
-                  </small>
-                </div>
+                <MetadataLookup
+                  book={book}
+                  setBook={setBook}
+                  disabled={busy}
+                  onPreviewChange={setMetadataOpen}
+                />
                 {full && extraFields(editionFields.General, 'extra')}
               </div>
             </div>
@@ -618,59 +564,6 @@ export function BookEditor({
           ))}
         </datalist>
       </form>
-      {metadata && (
-        <Modal title={t('ui.chooseMetadataToApply')} onClose={() => setMetadata(null)}>
-          <div className="dialog-body">
-            <p>
-              {t(
-                'ui.selectedFieldsReplaceTheCurrentFormValuesNothingIsSavedUntilYouSaveTheBook',
-              )}{' '}
-            </p>
-            {[
-              'title',
-              'subtitle',
-              'authors',
-              'publishers',
-              'publish_date',
-              'number_of_pages',
-              'language',
-              'description',
-              'cover',
-            ]
-              .filter((k) => metadata[k])
-              .map((k) => (
-                <label className="metadata-row" key={k}>
-                  <input
-                    type="checkbox"
-                    checked={selectedMetadata.includes(k)}
-                    onChange={(e) =>
-                      setSelectedMetadata(
-                        e.target.checked
-                          ? [...selectedMetadata, k]
-                          : selectedMetadata.filter((x) => x !== k),
-                      )
-                    }
-                  />
-                  <span>
-                    <strong>{trLabel(k.replaceAll('_', ' '))}</strong>
-                    <br />
-                    {k === 'cover'
-                      ? t('ui.downloadAndUseTheOpenLibraryCoverAsAManagedLocalImage')
-                      : Array.isArray(metadata[k])
-                        ? (metadata[k] as { name: string }[]).map((v) => v.name).join(', ')
-                        : String(metadata[k])}
-                  </span>
-                </label>
-              ))}
-          </div>
-          <footer>
-            <button onClick={() => setMetadata(null)}>{t('ui.cancel')}</button>
-            <button className="primary" disabled={busy} onClick={() => void applyMetadata()}>
-              {busy ? t('ui.applying') : t('ui.applySelectedFields')}
-            </button>
-          </footer>
-        </Modal>
-      )}
     </Modal>
   );
 }
