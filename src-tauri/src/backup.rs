@@ -7,6 +7,64 @@ use std::{
     path::{Path, PathBuf},
 };
 use zip::{write::SimpleFileOptions, ZipArchive, ZipWriter};
+
+const MAX_RESTORE_BYTES: u64 = 20 * 1024 * 1024 * 1024;
+// V1/V2 manifests contain only fixed metadata, not a per-book/file inventory.
+// 64 KiB leaves ample room beyond their few hundred bytes without allowing
+// multi-megabyte manifest allocations. Apply at extraction AND parsing.
+const MAX_MANIFEST_BYTES: u64 = 64 * 1024;
+
+fn extract_member(
+    input: &mut impl Read,
+    output: &mut impl Write,
+    declared: u64,
+    member_limit: u64,
+    total: &mut u64,
+    aggregate_limit: u64,
+) -> Result<()> {
+    let remaining = aggregate_limit
+        .checked_sub(*total)
+        .ok_or("Backup exceeds the expanded restore limit.")?;
+    let budget = declared.min(member_limit).min(remaining);
+    let mut actual = 0_u64;
+    let mut buffer = [0_u8; 8192];
+    loop {
+        // At most one byte beyond the tightest remaining budget is decoded
+        // to detect overflow. No over-budget bytes are ever written.
+        let left = budget - actual;
+        let request = if left >= buffer.len() as u64 {
+            buffer.len()
+        } else {
+            left as usize + 1
+        };
+        let count = match input.read(&mut buffer[..request]) {
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            result => result?,
+        };
+        if count == 0 {
+            if actual != declared {
+                return Err("Backup member uncompressed size mismatch.".into());
+            }
+            // Reaching the ZIP reader's EOF also preserves its CRC check.
+            return Ok(());
+        }
+        let next = actual.checked_add(count as u64).ok_or("Backup too large")?;
+        let next_total = total.checked_add(count as u64).ok_or("Backup too large")?;
+        if next > declared {
+            return Err("Backup member uncompressed size mismatch.".into());
+        }
+        if next > member_limit {
+            return Err("Backup member exceeds its extraction limit.".into());
+        }
+        if next_total > aggregate_limit {
+            return Err("Backup exceeds the expanded restore limit.".into());
+        }
+        output.write_all(&buffer[..count])?;
+        actual = next;
+        *total = next_total;
+    }
+}
+
 impl Store {
     pub fn backup(&self, destination: &Path) -> Result<()> {
         if destination.exists() {
@@ -66,7 +124,8 @@ impl Store {
             if zip.len() > 100000 {
                 return Err("Backup contains too many files.".into());
             }
-            let mut total = 0_u64;
+            let mut declared_total = 0_u64;
+            let mut actual_total = 0_u64;
             let mut names = std::collections::HashSet::new();
             for i in 0..zip.len() {
                 let mut f = zip.by_index(i)?;
@@ -74,10 +133,21 @@ impl Store {
                 if !names.insert(name.to_lowercase()) {
                     return Err("Backup contains duplicate paths.".into());
                 }
-                total = total.checked_add(f.size()).ok_or("Backup too large")?;
-                if total > 20 * 1024 * 1024 * 1024 {
+                let declared = f.size();
+                declared_total = declared_total
+                    .checked_add(declared)
+                    .ok_or("Backup too large")?;
+                if declared_total > MAX_RESTORE_BYTES {
                     return Err("Backup exceeds the 20 GB restore limit.".into());
                 }
+                let member_limit = if name == "manifest.json" {
+                    if declared > MAX_MANIFEST_BYTES {
+                        return Err("Backup manifest exceeds the 64 KiB limit.".into());
+                    }
+                    MAX_MANIFEST_BYTES
+                } else {
+                    MAX_RESTORE_BYTES
+                };
                 let path = crate::db::safe_file(&stage, &name)?;
                 let parts: Vec<_> = name.split('/').collect();
                 if !(name == "manifest.json"
@@ -91,10 +161,19 @@ impl Store {
                 }
                 fs::create_dir_all(path.parent().ok_or("Invalid archive")?)?;
                 let mut out = File::create(path)?;
-                std::io::copy(&mut f, &mut out)?;
+                extract_member(
+                    &mut f,
+                    &mut out,
+                    declared,
+                    member_limit,
+                    &mut actual_total,
+                    MAX_RESTORE_BYTES,
+                )?;
             }
-            let manifest: serde_json::Value =
-                serde_json::from_slice(&fs::read(stage.join("manifest.json"))?)?;
+            let manifest: serde_json::Value = serde_json::from_slice(&read_limited(
+                &stage.join("manifest.json"),
+                MAX_MANIFEST_BYTES,
+            )?)?;
             if manifest["application"] != "MyLibrary"
                 || manifest["format"] != 1
                 || !manifest["schema"]
@@ -400,6 +479,86 @@ pub fn validate_restore_schema(c: &Connection, schema_version: i64) -> Result<()
         .into());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod extraction_tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn understated_member_decodes_only_one_detection_byte() {
+        let mut input = Cursor::new(vec![0; 65536]);
+        let mut output = Vec::new();
+        let mut total = 0;
+        assert!(
+            extract_member(&mut input, &mut output, 1, 100000, &mut total, 100000)
+                .unwrap_err()
+                .to_string()
+                .contains("size mismatch")
+        );
+        assert_eq!(input.position(), 2);
+        assert!(output.len() <= 1);
+        assert_eq!(total, output.len() as u64);
+    }
+
+    #[test]
+    fn actual_aggregate_and_member_budgets_stop_before_excess_writes() {
+        let mut total = 0;
+        let mut output = Vec::new();
+        extract_member(&mut Cursor::new(b"abc"), &mut output, 3, 10, &mut total, 5).unwrap();
+        assert_eq!(total, 3);
+        let mut second = Cursor::new(b"defg");
+        let error = extract_member(&mut second, &mut output, 4, 10, &mut total, 5).unwrap_err();
+        assert!(error.to_string().contains("expanded restore limit"));
+        assert_eq!(second.position(), 3); // remaining aggregate + one probe
+        assert!(output.len() <= 5);
+        assert_eq!(total, output.len() as u64);
+
+        let mut input = Cursor::new(b"abcdef");
+        let mut output = Vec::new();
+        assert!(extract_member(&mut input, &mut output, 6, 2, &mut 0, 100)
+            .unwrap_err()
+            .to_string()
+            .contains("extraction limit"));
+        assert_eq!(input.position(), 3);
+        assert!(output.len() <= 2);
+    }
+
+    #[test]
+    fn exact_budgets_empty_members_and_short_reads() {
+        let mut total = 0;
+        extract_member(
+            &mut Cursor::new(b"abc"),
+            &mut Vec::new(),
+            3,
+            3,
+            &mut total,
+            3,
+        )
+        .unwrap();
+        extract_member(&mut Cursor::new(b""), &mut Vec::new(), 0, 3, &mut total, 3).unwrap();
+        assert_eq!(total, 3);
+        assert!(
+            extract_member(&mut Cursor::new(b"ab"), &mut Vec::new(), 3, 3, &mut 0, 3)
+                .unwrap_err()
+                .to_string()
+                .contains("size mismatch")
+        );
+    }
+
+    #[test]
+    fn manifest_read_is_bounded_independently_of_extraction() {
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        file.write_all(&vec![b' '; MAX_MANIFEST_BYTES as usize])
+            .unwrap();
+        assert_eq!(
+            read_limited(file.path(), MAX_MANIFEST_BYTES).unwrap().len(),
+            MAX_MANIFEST_BYTES as usize
+        );
+        file.write_all(b" ").unwrap();
+        assert!(read_limited(file.path(), MAX_MANIFEST_BYTES).is_err());
+    }
 }
 
 #[cfg(test)]
