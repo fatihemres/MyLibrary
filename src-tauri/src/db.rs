@@ -91,6 +91,13 @@ impl Store {
         Ok(key)
     }
     pub fn import(&self, books: &[Value]) -> Result<usize> {
+        self.import_decided(books, None)
+    }
+    pub fn import_decided(
+        &self,
+        books: &[Value],
+        plan: Option<&[crate::duplicates::PlanItem]>,
+    ) -> Result<usize> {
         if books.len() > 50000 {
             return Err("Import is limited to 50,000 rows at a time.".into());
         }
@@ -98,7 +105,56 @@ impl Store {
         let tx = c.transaction()?;
         let mut editions: std::collections::HashMap<String, (String, Value)> =
             std::collections::HashMap::new();
-        for b in books {
+        // Imported IDs are foreign/untrusted, including during duplicate review.
+        let clean: Vec<Value> = books
+            .iter()
+            .map(|b| {
+                let mut b = b.clone();
+                if b.is_object() {
+                    b["id"] = json!("");
+                    b["edition_id"] = json!("");
+                }
+                b
+            })
+            .collect();
+        let books = clean.as_slice();
+        let grouped = crate::duplicates::groups(books)?;
+        let existing = crate::duplicates::all_books(&tx)?;
+        let mut decisions = std::collections::HashMap::new();
+        if let Some(plan) = plan {
+            if plan.len() != grouped.len() {
+                return Err("duplicate.invalidPlan".into());
+            }
+            for item in plan {
+                if decisions
+                    .insert(item.group.clone(), &item.decision)
+                    .is_some()
+                    || !grouped.iter().any(|(key, _)| *key == item.group)
+                    || !item.decision.fields.is_empty()
+                {
+                    return Err("duplicate.invalidPlan".into());
+                }
+            }
+            for (group_index, (key, indices)) in grouped.iter().enumerate() {
+                let (incoming, _, collision) =
+                    crate::duplicates::incoming_signals(books, &grouped, group_index);
+                for &index in indices {
+                    crate::duplicates::validate(
+                        &books[index],
+                        decisions.get(key).copied(),
+                        &existing,
+                        !incoming.is_empty() || collision,
+                    )?;
+                }
+            }
+        }
+        let mut imported = 0;
+        for (index, b) in books.iter().enumerate() {
+            let group = crate::duplicates::group_key(b, index)?;
+            let decision = decisions.get(&group).copied();
+            if decision.is_some_and(|d| d.action == "skip") {
+                continue;
+            }
             if !b.is_object() {
                 return Err("Expected each book to be an object.".into());
             }
@@ -276,11 +332,16 @@ impl Store {
             {
                 return Err("The imported location belongs to another library. Use a portable location_path column, or leave the legacy location_id column unmapped.".into());
             }
-            save_book(&tx, &b)?;
+            if decision.is_some_and(|d| d.action == "existing") {
+                crate::duplicates::create(&tx, &b, decision)?;
+            } else {
+                save_book(&tx, &b)?;
+            }
+            imported += 1;
         }
         reindex(&tx)?;
         tx.commit()?;
-        Ok(books.len())
+        Ok(imported)
     }
     pub fn mutate(&self, action: &str, v: &Value) -> Result<Value> {
         let mut c = self.conn()?;
@@ -599,6 +660,9 @@ fn save_entity(c: &Connection, v: &Value) -> Result<()> {
     Ok(())
 }
 pub fn save_book(c: &Connection, b: &Value) -> Result<String> {
+    save_book_inner(c, b, true)
+}
+pub(crate) fn save_book_inner(c: &Connection, b: &Value, write_edition: bool) -> Result<String> {
     if !b.is_object() {
         return Err("Each book must be a JSON object.".into());
     }
@@ -710,10 +774,13 @@ pub fn save_book(c: &Connection, b: &Value) -> Result<String> {
     {
         return Err("Invalid managed cover path".into());
     }
-    let publisher = named(c, "publishers", s(b, "publisher"))?;
-    let series = named(c, "series", s(b, "series"))?;
+    if write_edition {
+        let publisher = named(c, "publishers", s(b, "publisher"))?;
+        let series = named(c, "series", s(b, "series"))?;
+
+        c.execute("INSERT INTO editions(id,title,subtitle,isbn10,isbn13,publisher_id,series_id,series_order,publication_year,pages,language,cover,extra,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,subtitle=excluded.subtitle,isbn10=excluded.isbn10,isbn13=excluded.isbn13,publisher_id=excluded.publisher_id,series_id=excluded.series_id,series_order=excluded.series_order,publication_year=excluded.publication_year,pages=excluded.pages,language=excluded.language,cover=excluded.cover,extra=excluded.extra,updated_at=excluded.updated_at",params![edition,title,s(b,"subtitle"),s(b,"isbn10"),s(b,"isbn13"),publisher,series,b["series_order"].as_f64(),b["publication_year"].as_i64(),pages,s(b,"language"),cover,if b["extra"].is_object(){b["extra"].to_string()}else{"{}".into()},timestamp,timestamp])?;
+    }
     let source = named(c, "acquisition_sources", s(b, "source"))?;
-    c.execute("INSERT INTO editions(id,title,subtitle,isbn10,isbn13,publisher_id,series_id,series_order,publication_year,pages,language,cover,extra,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,subtitle=excluded.subtitle,isbn10=excluded.isbn10,isbn13=excluded.isbn13,publisher_id=excluded.publisher_id,series_id=excluded.series_id,series_order=excluded.series_order,publication_year=excluded.publication_year,pages=excluded.pages,language=excluded.language,cover=excluded.cover,extra=excluded.extra,updated_at=excluded.updated_at",params![edition,title,s(b,"subtitle"),s(b,"isbn10"),s(b,"isbn13"),publisher,series,b["series_order"].as_f64(),b["publication_year"].as_i64(),pages,s(b,"language"),cover,if b["extra"].is_object(){b["extra"].to_string()}else{"{}".into()},timestamp,timestamp])?;
     let status = if s(b, "status").is_empty() {
         "Unread"
     } else {
@@ -725,28 +792,30 @@ pub fn save_book(c: &Connection, b: &Value) -> Result<String> {
         s(b, "condition")
     };
     c.execute("INSERT INTO copies(id,edition_id,barcode,location_id,source_id,status,rating,favorite,current_page,acquisition_date,condition,extra,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET barcode=excluded.barcode,location_id=excluded.location_id,source_id=excluded.source_id,status=excluded.status,rating=excluded.rating,favorite=excluded.favorite,current_page=excluded.current_page,acquisition_date=excluded.acquisition_date,condition=excluded.condition,extra=excluded.extra,updated_at=excluded.updated_at",params![key,edition,s(b,"barcode"),opt(b,"location_id"),source,status,b["rating"].as_f64(),b["favorite"].as_bool().unwrap_or(false),current,s(b,"acquisition_date"),condition,ce.to_string(),timestamp,timestamp])?;
-    c.execute("DELETE FROM contributors WHERE edition_id=?", [&edition])?;
-    if let Some(people) = b["contributors"].as_array() {
-        for (i, p) in people.iter().enumerate() {
-            if let Some(person) = named(c, "people", s(p, "name"))? {
-                c.execute("INSERT OR IGNORE INTO contributors(edition_id,person_id,role,position) VALUES(?,?,?,?)",params![edition,person,s(p,"role"),i as i64])?;
+    if write_edition {
+        c.execute("DELETE FROM contributors WHERE edition_id=?", [&edition])?;
+        if let Some(people) = b["contributors"].as_array() {
+            for (i, p) in people.iter().enumerate() {
+                if let Some(person) = named(c, "people", s(p, "name"))? {
+                    c.execute("INSERT OR IGNORE INTO contributors(edition_id,person_id,role,position) VALUES(?,?,?,?)",params![edition,person,s(p,"role"),i as i64])?;
+                }
             }
         }
-    }
-    c.execute("DELETE FROM edition_terms WHERE edition_id=?", [&edition])?;
-    if let Some(terms) = b["terms"].as_object() {
-        for (kind, names) in terms {
-            if let Some(names) = names.as_array() {
-                for name in names {
-                    let name = name.as_str().ok_or("Invalid classification")?.trim();
-                    if name.is_empty() {
-                        continue;
+        c.execute("DELETE FROM edition_terms WHERE edition_id=?", [&edition])?;
+        if let Some(terms) = b["terms"].as_object() {
+            for (kind, names) in terms {
+                if let Some(names) = names.as_array() {
+                    for name in names {
+                        let name = name.as_str().ok_or("Invalid classification")?.trim();
+                        if name.is_empty() {
+                            continue;
+                        }
+                        c.execute(
+                            "INSERT OR IGNORE INTO terms(id,name,kind) VALUES(?,?,?)",
+                            params![id(), name, kind],
+                        )?;
+                        c.execute("INSERT OR IGNORE INTO edition_terms SELECT ?,id FROM terms WHERE name=? COLLATE NOCASE AND kind=?",params![edition,name,kind])?;
                     }
-                    c.execute(
-                        "INSERT OR IGNORE INTO terms(id,name,kind) VALUES(?,?,?)",
-                        params![id(), name, kind],
-                    )?;
-                    c.execute("INSERT OR IGNORE INTO edition_terms SELECT ?,id FROM terms WHERE name=? COLLATE NOCASE AND kind=?",params![edition,name,kind])?;
                 }
             }
         }

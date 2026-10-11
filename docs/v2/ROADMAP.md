@@ -2,7 +2,7 @@
 
 This is the canonical owner-approved V2 milestone roadmap. The shared safety and verification
 contract is [AGENTS.md](../../AGENTS.md). Active development stays on `v2`; V1 release refs remain
-protected. Milestone 1 is closed; **M2 — Barcode & Metadata is NEXT, not started by this document**.
+protected. Milestone 1 is closed; **M2 — Barcode & Metadata remains OPEN**.
 
 Future milestone scopes may be refined by the owner. Agents must not infer or move features between
 milestones, or start future work, without approval. A roadmap entry is not evidence of implementation
@@ -24,7 +24,11 @@ Closed on 2026-10-09. See the [foundation assessment](foundation-assessment.md),
 Windows manual desktop evidence is separate from automated CI/package evidence. macOS/Linux native
 manual acceptance, signing/notarization, and full accessibility QA are not implied by M1 closure.
 
-## M2 — Barcode & Metadata — NEXT
+## M2 — Barcode & Metadata — OPEN
+
+- **M2-A — ISBN & Metadata Foundation — CLOSED.** Integrated at `ec661cd0f153540b2fb27784d2642fc01d356f00`; final integration CI run `38120576734` passed all four platforms.
+- **M2-B — Duplicate Intelligence + Edition / Physical Copy Decisions — implementation candidate.** Local manual/import decisions; see [duplicate decisions](../architecture/duplicate-decisions.md). Not milestone closure.
+- USB scanner capture, batch scan and webcam workflows remain future M2 work.
 
 - Manual ISBN entry/lookup.
 - USB barcode scanner workflows.

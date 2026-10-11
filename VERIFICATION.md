@@ -1,3 +1,84 @@
+# M2-B duplicate decisions — local implementation candidate, 2026-10-11
+
+Branch `agent/codex-m2b-duplicate-intelligence`, based on unchanged V2 baseline
+`ec661cd0f153540b2fb27784d2642fc01d356f00`. M2-A is closed; M2 remains OPEN.
+This is local Windows evidence, not CI, cross-platform interactive acceptance or release approval.
+
+## Final automated checks
+
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- `npm run test`: **57 passed** (17 library, 7 foundation, 26 metadata, 7 duplicate UI tests).
+- `npx vitest run src/domain/duplicates.test.tsx`: **7 passed** separately.
+- `npm run test:rust`: **69 passed** (11 unit, 20 duplicate decisions, 24 integrity,
+  3 migration, 5 restore limits, 6 restore schema tests).
+- `cargo test --manifest-path src-tauri/Cargo.toml --test duplicates --locked`:
+  **20 passed** separately.
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check` and
+  `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked`: pass.
+- `git diff --check`, scoped Markdown/TypeScript/harness formatting, local documentation
+  links and EN/TR translation-key coverage/parity: pass.
+
+Tests exercise the production Store and actual decision components, not only mock decisions.
+Native regressions cover all copy fields/custom values, old-copy equality, selected-only edition
+patches, atomic rollback, opaque V1 IDs, stale/hostile targets, same-group identifier collisions,
+incoming ISBN conflicts, weak-only non-linking and F1–F4 compatibility. The rating assertion uses
+`5.0` because SQLite returns floating JSON ratings; it still requires rating five and Finished status.
+
+## Windows release and desktop evidence
+
+`npm run desktop:build -- --no-bundle` passed. Release executable:
+`src-tauri/target/release/mylibrary.exe`.
+SHA-256: `316ac38cc1016f724a76a9ffe8a56dad58a4afc57bf832cd7c04fa53f000afbf`.
+No installer was repackaged in this slice. The existing Vite ~532 kB chunk advisory and MSVC
+informational import-library linker message are non-blocking.
+
+`npm run test:desktop` passed **29/29 workflow groups** against that executable.
+Report: `.cache/desktop-check-1791736429970/report.json`; errors `[]`, network `[]`.
+All profiles, file selections, exports, media and archives are isolated synthetic data under `.cache`.
+
+The new real Tauri/WebView2 workflows verify:
+
+- Valid new ISBN creation, equivalent ISBN-10/13 resolver before persistence, no default target,
+  Cancel/Escape draft preservation and a separate-edition choice.
+- Existing-edition attachment preserves the original copy and incoming location, acquisition date,
+  source, condition, barcode, reading state/page/rating/favorite, copy extras and custom value.
+- Weak title/author and barcode warnings offer no inferred attachment; explicit selected-title
+  reconciliation changes the shared title while keeping page count and publisher.
+- Multiple targets require a choice. Portable two-copy groups attach together or create one
+  independent edition; ratings/statuses remain independent. Skip decisions, zero-row no-op safety
+  and incoming-versus-incoming ISBN conflicts are exercised through the UI.
+- Archived-only editions remain visible and can receive a new active copy without restoring old
+  copies. Restart preserves the final domain snapshot.
+- Direct legacy IPC new save/import rejects unreviewed ISBN duplicates, fabricated edit IDs fail,
+  ordinary existing-copy editing still succeeds and rejected operations leave the snapshot intact.
+
+The retained suite also passes Add Physical Copy, M2-A fixture-driven metadata preview, locations,
+loans, notes/quotes, covers/attachments, CSV/JSON round trips, backup/restore, Trash, V1 startup,
+language switching, keyboard/unsaved safety and responsive/reduced-motion checks. The 900-pixel
+resolver screenshot was visually inspected; controls fit and remain readable.
+
+During continuation, failing desktop probes were harness issues: an ambiguous Condition label,
+a nested-dialog transition race, a zero-row import that correctly disables Confirm, and acquisition
+setup inserted in the wrong test block. These were corrected without weakening product assertions.
+The final complete run passed; no product source changes were needed during this continuation.
+
+## Boundaries and limitations
+
+No production library was accessed. No schema/migration, dependencies, network/provider rules,
+permissions/CSP, CI, updater/signing, Work entity or protected release refs changed. Changed-file
+and tracked-file audits exclude databases, personal media, archives, generated output and secrets.
+See [architecture](docs/architecture/duplicate-decisions.md) and
+[requirements audit](docs/testing/m2b-requirements-audit.md).
+
+Desktop automation uses loopback WebView2 and synthetic file-picker/provider fixtures; it is not
+live-provider availability, OS-picker certification or macOS/Linux interactive evidence. No new CI
+run or full assistive-technology certification is claimed. Cross-incoming group linking is deferred;
+import attachment keeps shared metadata, with field reconciliation offered only during manual create.
+Large-library performance has not been benchmarked. USB scanner, batch scan and webcam work remain
+pending. The local candidate requires the owner's subsequent review/integration gates.
+
+---
+
 # V2 Milestone 1 verification — CLOSED 2026-10-09
 
 Branch `v2`, application 2.0.0-alpha.1, schema 2. This is an unreleased foundation, not V2 product acceptance. The historical V1 report below remains evidence for the immutable V1 tag only.

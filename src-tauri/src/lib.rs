@@ -1,6 +1,7 @@
 pub mod backup;
 mod copies;
 pub mod db;
+pub mod duplicates;
 mod isbn;
 mod metadata;
 pub mod migrations;
@@ -38,10 +39,38 @@ async fn database(
                 db::s(&payload, "query"),
                 payload["trash"].as_bool().unwrap_or(false),
             ),
-            "save" => Ok(json!(store.save(&payload)?)),
-            "import" => Ok(json!(
-                store.import(payload.as_array().ok_or("Expected a list of books")?)?
-            )),
+            "duplicate_report" => store.duplicate_report(&payload),
+            "create_decided" => {
+                let decision = if payload["decision"].is_null() {
+                    None
+                } else {
+                    Some(serde_json::from_value::<duplicates::Decision>(
+                        payload["decision"].clone(),
+                    )?)
+                };
+                Ok(json!(
+                    store.create_decided(&payload["book"], decision.as_ref())?
+                ))
+            }
+            "import_preview" => {
+                store.import_preview(payload.as_array().ok_or("duplicate.invalidPlan")?)
+            }
+            "import_decided" => {
+                let plan: Vec<duplicates::PlanItem> =
+                    serde_json::from_value(payload["plan"].clone())?;
+                Ok(json!(store.import_decided(
+                    payload["books"].as_array().ok_or("duplicate.invalidPlan")?,
+                    Some(&plan)
+                )?))
+            }
+            "save" => Ok(json!(if db::s(&payload, "id").is_empty() {
+                store.create_decided(&payload, None)?
+            } else {
+                store.save(&payload)?
+            })),
+            "import" => Ok(json!(store.import_unresolved(
+                payload.as_array().ok_or("Expected a list of books")?
+            )?)),
             "backup" => {
                 store.backup(&PathBuf::from(db::s(&payload, "path")))?;
                 Ok(json!(true))

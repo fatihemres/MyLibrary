@@ -1,3 +1,5 @@
+import { DuplicateResolver } from './DuplicateResolver';
+import { hasSignals, type DuplicateReport, type DuplicateDecision } from '../domain/duplicates';
 import { MetadataLookup } from './MetadataLookup';
 import { ErrorText } from './ErrorText';
 import { t, label as trLabel } from '../i18n';
@@ -6,9 +8,7 @@ import { confirmAction } from './Confirmation';
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Save, Upload, X } from 'lucide-react';
 import {
-  author,
   conditions,
-  duplicates,
   emptyBook,
   locationName,
   roles,
@@ -51,11 +51,15 @@ export function BookEditor({
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
-  const [duplicateOk, setDuplicateOk] = useState(false);
-  const dup = duplicates(book, data.books).filter(
-    (b) => !initial || b.edition_id !== initial.edition_id,
-  );
+  const [duplicateReport, setDuplicateReport] = useState<DuplicateReport | null>(null);
+  const persist = async (decision?: DuplicateDecision) => {
+    if (initial) await api('save', book);
+    else await api('create_decided', { book, decision });
+    await onSaved();
+    onClose();
+  };
   const close = async () => {
+    if (busy || duplicateReport) return;
     if (
       baseline.current !== JSON.stringify(book) &&
       !(await confirmAction('Discard your unsaved changes?'))
@@ -66,22 +70,23 @@ export function BookEditor({
   const update = <K extends keyof Book>(key: K, value: Book[K]) =>
     setBook((b) => ({ ...b, [key]: value }));
   const save = async () => {
-    if (busy || metadataOpen) return;
+    if (busy || metadataOpen || duplicateReport) return;
     const errors = validateBook(book);
     if (errors.length) {
       setError(errors.join('. '));
       return;
     }
-    if (dup.length && !duplicateOk) {
-      setError('Possible duplicate found. Confirm that this is an intentional copy below.');
-      return;
-    }
     setBusy(true);
     setError('');
     try {
-      await api('save', book);
-      await onSaved();
-      onClose();
+      if (!initial) {
+        const report = await api<DuplicateReport>('duplicate_report', book);
+        if (hasSignals(report)) {
+          setDuplicateReport(report);
+          return;
+        }
+      }
+      await persist();
     } catch (e) {
       setError(String(e));
     } finally {
@@ -517,31 +522,6 @@ export function BookEditor({
                 ))}
             </div>
           )}
-          {dup.length > 0 && (
-            <div className="notice">
-              <strong>
-                {t('ui.possibleDuplicate')}
-                {dup.length > 1 ? 's' : ''}
-              </strong>
-              <p>
-                {dup
-                  .slice(0, 4)
-                  .map((b) => `${b.title} (${author(b) || 'unknown author'})`)
-                  .join(' · ')}
-              </p>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={duplicateOk}
-                  onChange={(e) => setDuplicateOk(e.target.checked)}
-                />{' '}
-                {t('ui.thisIsIntentionalSaveAsASeparateRecord')}{' '}
-              </label>
-              <small className="block">
-                {t('ui.toShareEditionMetadataUseAddAnotherCopyOnTheExistingBookInstead')}{' '}
-              </small>
-            </div>
-          )}
         </div>
         <footer>
           {!full && (
@@ -564,6 +544,14 @@ export function BookEditor({
           ))}
         </datalist>
       </form>
+      {duplicateReport && (
+        <DuplicateResolver
+          book={book}
+          report={duplicateReport}
+          onClose={() => setDuplicateReport(null)}
+          onConfirm={persist}
+        />
+      )}
     </Modal>
   );
 }

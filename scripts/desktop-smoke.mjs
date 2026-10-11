@@ -838,7 +838,7 @@ try {
       await nav('Import CSV/JSON');
       await fileChoice('open', join(runDir, 'catalogue.json'));
       await button('Import CSV/JSON…').click();
-      await page.getByLabel(/Import 2 valid rows/).check();
+      await page.getByLabel(/I reviewed the decisions. Import 2 physical copies/).check();
       await button('Confirm import').click();
       let imported = await until((s) => s.books.length === 2, 'JSON imported');
       assert.equal(imported.books[0].edition_id, imported.books[1].edition_id);
@@ -866,7 +866,12 @@ try {
       await fileChoice('open', join(runDir, 'catalogue.csv'));
       await button('Import CSV/JSON…').click();
       await button('Validate & preview').click();
-      await page.getByLabel(/Import 2 valid rows/).check();
+      await page.getByRole('heading', { name: 'Review import', exact: true }).waitFor();
+      for (const choice of await page
+        .getByLabel('Create a separate edition', { exact: true })
+        .all())
+        await choice.check();
+      await page.getByLabel(/I reviewed the decisions. Import 2 physical copies/).check();
       await button('Confirm import').click();
       imported = await until((s) => s.books.length === 4, 'CSV round trip');
       assert(
@@ -891,8 +896,8 @@ try {
     await page.getByLabel(/^Name ·/).selectOption('title');
     await page.getByLabel(/^Writer ·/).selectOption('authors');
     await button('Validate & preview').click();
-    await page.getByText(/2 rows · 1 invalid/).waitFor();
-    await page.getByLabel(/Import 1 valid rows/).check();
+    await page.getByText('This entire group will be skipped', { exact: false }).waitFor();
+    await page.getByLabel(/I reviewed the decisions. Import 1 physical copies/).check();
     await button('Confirm import').click();
     await until((s) => s.books.length === 3, 'import committed');
   });
@@ -1236,7 +1241,6 @@ try {
     assert.equal(await page.locator('.book-card').count(), 1);
     await button('Quick add').click();
     await dialog().getByLabel('Title *', { exact: true }).fill('Verification — The Quiet Shelf');
-    await dialog().getByLabel('This is intentional; save as a separate record.').check();
     await page.keyboard.press('Control+s');
     await saved();
     await nav('Library');
@@ -1326,6 +1330,358 @@ try {
       await nav('Ayarlar');
       await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
       await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+    },
+  );
+  await check(
+    'M2-B edition decisions, copy independence, cancel, weak/collision signals and import plans',
+    async () => {
+      await close();
+      dataDir = join(runDir, 'm2b-library');
+      await launch();
+      await nav('Settings');
+      await button('Create field').click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('M2B custom');
+      await button('Save', dialog()).click();
+      await saved();
+      await nav('Locations');
+      await button('Add Room').click();
+      await dialog().getByLabel('Name *', { exact: true }).fill('M2B Study');
+      await button('Save', dialog()).click();
+      await saved();
+      const incomingLocation = (await snapshot()).locations[0].id;
+      const start = async (isbn = '9780306406157', title = 'M2B original') => {
+        await button('Add book').click();
+        await dialog().getByLabel('Title *', { exact: true }).fill(title);
+        await dialog().getByLabel('Authors (separate with ;)').fill('Synthetic Writer');
+        await dialog()
+          .getByLabel(isbn.length === 10 ? 'ISBN-10' : 'ISBN-13', { exact: true })
+          .fill(isbn);
+      };
+      const resolver = () =>
+        page.getByRole('dialog', { name: 'Review edition and physical copy', exact: true });
+      await start();
+      await button('Publication', dialog()).click();
+      await dialog().getByLabel('Pages', { exact: true }).fill('300');
+      await dialog().getByLabel('Publisher', { exact: true }).fill('Original publisher');
+      await button('Save book', dialog()).click();
+      await saved();
+      const first = (await snapshot()).books[0];
+      await start('0306406152', 'Incoming different title');
+      await button('Custom Fields', dialog()).click();
+      await dialog().getByLabel('M2B custom', { exact: true }).fill('Independent custom value');
+      await button('Reading', dialog()).click();
+      await dialog()
+        .getByLabel(/^Reading status/)
+        .selectOption('Reading');
+      await dialog().getByLabel('Current page', { exact: true }).fill('42');
+      await dialog()
+        .getByLabel(/^Rating/)
+        .selectOption('4.5');
+      await dialog().getByLabel('Favorite', { exact: true }).check();
+      await button('Ownership', dialog()).click();
+      await dialog().getByLabel('Acquisition source', { exact: true }).fill('Second store');
+      await dialog().getByLabel('Acquisition date', { exact: true }).fill('2026-02-03');
+      await dialog().getByLabel('Purchase price', { exact: true }).fill('25');
+      await dialog().getByLabel('Currency', { exact: true }).fill('TRY');
+      await button('Physical', dialog()).click();
+      await dialog()
+        .getByLabel(/^Condition/)
+        .and(dialog().locator('select'))
+        .selectOption('Poor');
+      await button('Location', dialog()).click();
+      await dialog().getByLabel('Barcode / copy identifier', { exact: true }).fill('M2B-BARCODE');
+      await dialog()
+        .getByLabel(/^Physical location/)
+        .selectOption(incomingLocation);
+      await dialog().getByLabel('Shelf position', { exact: true }).fill('B7');
+      await dialog().getByLabel('Location note', { exact: true }).fill('Independent location note');
+      await button('Save book', dialog()).click();
+      await resolver().waitFor();
+      assert.equal((await snapshot()).books.length, 1);
+      assert.equal(await resolver().locator('input:checked').count(), 0);
+      await page.keyboard.press('Escape');
+      assert.equal(
+        await dialog().getByLabel('Barcode / copy identifier', { exact: true }).inputValue(),
+        'M2B-BARCODE',
+      );
+      await button('Save book', dialog()).click();
+      await resolver().waitFor();
+      await resolver()
+        .getByLabel('Add as new physical copy of this edition', { exact: true })
+        .check();
+      await resolver()
+        .getByText(/Edition metadata is shared by ALL/)
+        .waitFor();
+      assert.equal(await resolver().locator('input[type=checkbox]:checked').count(), 0);
+      const metrics = await page.context().newCDPSession(page);
+      await metrics.send('Emulation.setDeviceMetricsOverride', {
+        width: 900,
+        height: 800,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      assert(await resolver().evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
+      assert(
+        await resolver()
+          .locator('input[type=radio]')
+          .first()
+          .evaluate((el) => el.getBoundingClientRect().width <= 24),
+      );
+      await page.screenshot({ animations: 'disabled', path: join(runDir, 'm2b-resolver.png') });
+      await metrics.send('Emulation.clearDeviceMetricsOverride');
+      await metrics.detach();
+      await button('Confirm and save physical copy', resolver()).click();
+      await saved();
+      let state = await until((s) => s.books.length === 2, 'new independent copy');
+      assert.deepEqual(
+        state.books.find((b) => b.id === first.id),
+        first,
+      );
+      const second = state.books.find((b) => b.id !== first.id);
+      assert.equal(second.edition_id, first.edition_id);
+      assert.equal(second.title, first.title);
+      assert.equal(second.current_page, 42);
+      assert.equal(second.rating, 4.5);
+      assert.equal(second.favorite, true);
+      assert.equal(second.status, 'Reading');
+      assert.equal(second.condition, 'Poor');
+      assert.equal(second.location_id, incomingLocation);
+      assert.equal(second.source, 'Second store');
+      assert.equal(second.acquisition_date, '2026-02-03');
+      assert.equal(second.copy_extra.purchase_price, '25');
+      assert.equal(second.copy_extra.currency, 'TRY');
+      assert.equal(second.copy_extra.shelf_position, 'B7');
+      assert.equal(second.copy_extra.location_note, 'Independent location note');
+      assert.equal(second.custom[state.fields[0].id], 'Independent custom value');
+      await start();
+      await button('Save book', dialog()).click();
+      await resolver().waitFor();
+      await resolver().getByLabel('Create a separate edition', { exact: true }).check();
+      await button('Confirm and save physical copy', resolver()).click();
+      await saved();
+      state = await snapshot();
+      assert.equal(new Set(state.books.map((b) => b.edition_id)).size, 2);
+      await start('9791090636071');
+      await button('Location', dialog()).click();
+      await dialog().getByLabel('Barcode / copy identifier', { exact: true }).fill('M2B-BARCODE');
+      await button('Save book', dialog()).click();
+      await resolver().waitFor();
+      await resolver().getByText('Physical copy identifier collision', { exact: true }).waitFor();
+      await resolver().getByText('Possible similar record', { exact: true }).waitFor();
+      assert.equal(
+        await resolver()
+          .getByLabel('Add as new physical copy of this edition', { exact: true })
+          .count(),
+        0,
+      );
+      await button('Cancel', resolver()).click();
+      await resolver().waitFor({ state: 'hidden' });
+      await button('Cancel', dialog()).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await saved();
+      assert.equal((await snapshot()).books.length, 3);
+      const file = join(runDir, 'm2b-import.json');
+      await writeFile(
+        file,
+        JSON.stringify([
+          {
+            ...first,
+            title: 'Imported different title',
+            id: '',
+            edition_id: '',
+            transfer: { edition_key: 'incoming' },
+            barcode: 'IMPORT',
+            status: 'Paused',
+            rating: 2.5,
+          },
+        ]),
+      );
+      await nav('Import CSV/JSON');
+      await fileChoice('open', file);
+      await button('Import CSV/JSON…').click();
+      await page.getByRole('heading', { name: 'Review import', exact: true }).waitFor();
+      await page.getByLabel(/I reviewed the decisions/).check();
+      assert(await button('Confirm import').isDisabled());
+      await page
+        .getByLabel('Add as new physical copy of this edition', { exact: true })
+        .first()
+        .check();
+      await page.getByLabel(/I reviewed the decisions/).check();
+      await button('Confirm import').click();
+      state = await until((s) => s.books.length === 4, 'explicit import existing');
+      assert(state.books.every((b) => b.title === 'M2B original'));
+      assert.equal(state.books.find((b) => b.barcode === 'IMPORT').status, 'Paused');
+      await fileChoice('open', file);
+      await button('Import CSV/JSON…').click();
+      await page.getByLabel('Create a separate edition', { exact: true }).check();
+      await page.getByLabel(/I reviewed the decisions/).check();
+      await button('Confirm import').click();
+      state = await until((s) => s.books.length === 5, 'explicit import separate');
+      assert.equal(new Set(state.books.map((b) => b.edition_id)).size, 3);
+      await start('9780306406157', 'Explicitly selected title');
+      await button('Save book', dialog()).click();
+      await resolver().waitFor();
+      await resolver()
+        .locator('article.panel')
+        .filter({ hasText: 'Original publisher' })
+        .filter({ has: page.getByText('M2B original', { exact: true }) })
+        .getByLabel('Add as new physical copy of this edition', { exact: true })
+        .check();
+      await resolver()
+        .getByLabel('Use incoming value for all copies — Title', { exact: true })
+        .check();
+      await button('Confirm and save physical copy', resolver()).click();
+      await saved();
+      state = await until((s) => s.books.length === 6, 'explicit one-field reconciliation');
+      const updated = state.books.filter((b) => b.title === 'Explicitly selected title');
+      assert(updated.length >= 2);
+      assert.equal(new Set(updated.map((b) => b.edition_id)).size, 1);
+      assert(updated.every((b) => b.pages === 300 && b.publisher === 'Original publisher'));
+      await close();
+      await launch();
+      assertDomainUnchanged(await snapshot(), state);
+    },
+  );
+  await check(
+    'M2-B grouped imports, skip, incoming conflicts, archived target and legacy IPC safety',
+    async () => {
+      const invoke = (action, payload) =>
+        page.evaluate(
+          ({ action, payload }) =>
+            window.__TAURI_INTERNALS__.invoke('database', { action, payload }),
+          { action, payload },
+        );
+      let state = await snapshot();
+      const base = state.books[0];
+      const draft = { ...base, id: '', edition_id: '', barcode: '', custom: {}, copy_extra: {} };
+      await assert.rejects(invoke('save', draft), /duplicate.required/);
+      await assert.rejects(
+        invoke('save', { ...draft, id: 'nonexistent-copy' }),
+        /no longer exists/,
+      );
+      await assert.rejects(invoke('import', [draft]), /duplicate.required/);
+      assertDomainUnchanged(await snapshot(), state);
+      await invoke('save', { ...base, condition: 'Good' });
+      assert.equal((await snapshot()).books.find((b) => b.id === base.id).condition, 'Good');
+      const file = join(runDir, 'm2b-groups.json');
+      const rows = [
+        {
+          ...draft,
+          transfer: { edition_key: 'pair' },
+          barcode: 'PAIR-A',
+          status: 'Paused',
+          rating: 1.5,
+        },
+        {
+          ...draft,
+          transfer: { edition_key: 'pair' },
+          barcode: 'PAIR-B',
+          status: 'Finished',
+          rating: 5,
+        },
+      ];
+      const review = async (values) => {
+        await writeFile(file, JSON.stringify(values));
+        await nav('Import CSV/JSON');
+        await fileChoice('open', file);
+        await button('Import CSV/JSON…').click();
+        await page.getByRole('heading', { name: 'Review import', exact: true }).waitFor();
+      };
+      const confirm = async () => {
+        await page.getByLabel(/I reviewed the decisions/).check();
+        await button('Confirm import').click();
+        await page.locator('.loading').waitFor({ state: 'hidden' });
+      };
+      state = await snapshot();
+      await review(rows);
+      assert(
+        (await page
+          .getByLabel('Add as new physical copy of this edition', { exact: true })
+          .count()) >= 2,
+      );
+      await page.getByLabel(/I reviewed the decisions/).check();
+      assert(await button('Confirm import').isDisabled());
+      await page
+        .getByLabel('Add as new physical copy of this edition', { exact: true })
+        .first()
+        .check();
+      await confirm();
+      let after = await until(
+        (s) => s.books.length === state.books.length + 2,
+        'group adds two copies',
+      );
+      const pair = after.books.filter((b) => ['PAIR-A', 'PAIR-B'].includes(b.barcode));
+      assert.equal(new Set(pair.map((b) => b.edition_id)).size, 1);
+      assert(pair.some((b) => b.rating === 5 && b.status === 'Finished'));
+      assert(pair.some((b) => b.rating === 1.5 && b.status === 'Paused'));
+      for (const old of state.books)
+        assert.deepEqual(
+          after.books.find((b) => b.id === old.id),
+          old,
+        );
+      state = after;
+      await review(rows.map((b) => ({ ...b, barcode: b.barcode + '-SEPARATE' })));
+      await page.getByLabel('Create a separate edition', { exact: true }).check();
+      await confirm();
+      after = await until(
+        (s) => s.books.length === state.books.length + 2,
+        'separate group adds one edition',
+      );
+      const separate = after.books.filter((b) => b.barcode.endsWith('-SEPARATE'));
+      assert.equal(new Set(separate.map((b) => b.edition_id)).size, 1);
+      assert(!state.books.some((b) => b.edition_id === separate[0].edition_id));
+      state = after;
+      await review(rows);
+      await page.getByLabel('Skip this incoming edition group', { exact: true }).check();
+      await page.getByLabel(/I reviewed the decisions/).check();
+      assert(await button('Confirm import').isDisabled());
+      await button('Back / cancel').click();
+      assertDomainUnchanged(await snapshot(), state);
+      await review(rows.map((b, i) => ({ ...b, transfer: { edition_key: 'distinct-' + i } })));
+      assert.equal(await page.getByText(/The same ISBN also occurs in incoming row/).count(), 2);
+      const skips = page.getByLabel('Skip this incoming edition group', { exact: true });
+      await skips.nth(0).check();
+      await page.getByLabel('Create a separate edition', { exact: true }).nth(1).check();
+      await confirm();
+      after = await until(
+        (s) => s.books.length === state.books.length + 1,
+        'one incoming group skipped',
+      );
+      for (const old of state.books)
+        assert.deepEqual(
+          after.books.find((b) => b.id === old.id),
+          old,
+        );
+      state = after;
+      // Archive every copy of this ISBN in the disposable library, then use visible UI to attach.
+      await invoke('trash', { ids: state.books.map((b) => b.id) });
+      await button('Add book').click();
+      await dialog().getByLabel('Title *', { exact: true }).fill('New copy of archived edition');
+      await dialog().getByLabel('ISBN-13', { exact: true }).fill('9780306406157');
+      await button('Save book', dialog()).click();
+      const resolver = page.getByRole('dialog', {
+        name: 'Review edition and physical copy',
+        exact: true,
+      });
+      await resolver.waitFor();
+      assert((await resolver.getByText(/\d+ archived/).count()) >= 2);
+      assert.equal(await resolver.locator('input:checked').count(), 0);
+      await resolver
+        .getByLabel('Add as new physical copy of this edition', { exact: true })
+        .first()
+        .check();
+      await button('Confirm and save physical copy', resolver).click();
+      await saved();
+      after = await until((s) => s.books.length === 1, 'active copy of archived edition');
+      assert(state.books.some((b) => b.edition_id === after.books[0].edition_id));
+      const archived = await invoke('snapshot', { query: '', trash: true });
+      assert.equal(archived.books.length, state.books.length);
+      await close();
+      await launch();
+      assertDomainUnchanged(await snapshot(), after);
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

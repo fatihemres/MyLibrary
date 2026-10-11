@@ -1,3 +1,5 @@
+import { DuplicateChoices } from '../components/DuplicateResolver';
+import { requiresDecision, type ImportGroup, type DuplicateDecision } from '../domain/duplicates';
 import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
 import { chooseFile as open, chooseDestination as save } from '../services/platform';
@@ -10,7 +12,7 @@ import {
   mappedBook,
   parseCsv,
   parseJson,
-  preview,
+  validateBook,
 } from '../services/transfer';
 import { today, type Book, type Snapshot } from '../domain/types';
 import { ErrorText } from '../components/ErrorText';
@@ -49,12 +51,30 @@ export function DataPage({
   const [restoreConfirm, setRestoreConfirm] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  const [skipDuplicates, setSkipDuplicates] = useState(false);
+  const [groups, setGroups] = useState<ImportGroup[]>([]);
+  const [plan, setPlan] = useState<Record<string, DuplicateDecision>>({});
+  const [reviewPage, setReviewPage] = useState(0);
   const books = jsonBooks || rows.map((r) => mappedBook(r, mapping));
-  const checked = stage ? preview(books, data.books) : [];
-  const valid = checked.filter(
-    (r) => !r.errors.length && (!skipDuplicates || !r.duplicates.length),
-  );
+  const checked = stage ? books.map((book) => ({ errors: validateBook(book) })) : [];
+  const invalidGroup = (g: ImportGroup) => g.rows.some((i) => checked[i]?.errors.length);
+  const ready = groups.length > 0 && groups.every((g) => invalidGroup(g) || !!plan[g.group]);
+  const count = groups
+    .filter((g) => !invalidGroup(g) && plan[g.group]?.action !== 'skip')
+    .reduce((n, g) => n + g.rows.length, 0);
+  const review = async (values: Book[]) => {
+    const next = await api<ImportGroup[]>('import_preview', values);
+    setGroups(next);
+    setReviewPage(0);
+    setPlan(
+      Object.fromEntries(
+        next
+          .filter((g) => !requiresDecision(g))
+          .map((g) => [g.group, { action: 'separate', reviewed: false }]),
+      ),
+    );
+    setConfirmed(false);
+    setStage(true);
+  };
   const read = async () => {
     const path = await open({
       multiple: false,
@@ -77,10 +97,11 @@ export function DataPage({
     setStage(false);
     setMessage('');
     if (path.toLowerCase().endsWith('.json')) {
-      setJsonBooks(parseJson(text));
+      const parsed = parseJson(text);
+      setJsonBooks(parsed);
       setRows([]);
       setErrors([]);
-      setStage(true);
+      await review(parsed);
     } else {
       const parsed = parseCsv(text);
       setRows(parsed.rows);
@@ -101,10 +122,13 @@ export function DataPage({
   const importNow = async () => {
     setBusy(true);
     try {
-      const count = await api<number>(
-        'import',
-        valid.map((r) => r.book),
-      );
+      const count = await api<number>('import_decided', {
+        books,
+        plan: groups.map((g) => ({
+          group: g.group,
+          decision: invalidGroup(g) ? { action: 'skip', reviewed: true } : plan[g.group],
+        })),
+      });
       setMessage(t('data.imported', { count }));
       setRows([]);
       setJsonBooks(null);
@@ -304,10 +328,7 @@ export function DataPage({
           <button
             className="primary"
             disabled={!Object.values(mapping).includes('title') || !!errors.length}
-            onClick={() => {
-              setStage(true);
-              setConfirmed(false);
-            }}
+            onClick={() => onAction(() => review(books))}
           >
             {t('ui.validatePreview')}{' '}
           </button>
@@ -316,54 +337,71 @@ export function DataPage({
       {stage && (
         <section className="panel">
           <h2>{t('ui.reviewImport')}</h2>
-          <p>
-            {checked.length} {t('ui.rows')} {checked.filter((r) => r.errors.length).length}{' '}
-            {t('ui.invalid')} {checked.filter((r) => r.duplicates.length).length}{' '}
-            {t('ui.possibleDuplicates')} {valid.length} {t('ui.readyAlt')}{' '}
-          </p>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={skipDuplicates}
-              onChange={(e) => {
-                setSkipDuplicates(e.target.checked);
-                setConfirmed(false);
-              }}
-            />
-            {t('ui.skipLikelyDuplicates')}{' '}
-          </label>
-          <div className="table-scroll import-preview">
-            <table>
-              <thead>
-                <tr>
-                  <th>{t('ui.row')}</th>
-                  <th>{t('ui.title')}</th>
-                  <th>{t('ui.review')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {checked.slice(0, 500).map((r) => (
-                  <tr key={r.row}>
-                    <td>{r.row}</td>
-                    <td>{r.book.title || t('data.missing')}</td>
-                    <td>
-                      {r.errors.length ? (
-                        <ErrorText message={r.errors.join('; ')} />
-                      ) : r.duplicates.length ? (
-                        t('ui.possibleDuplicateSeparateCopy')
-                      ) : (
-                        t('ui.ready')
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {checked.length > 500 && (
-            <p>
-              {t('ui.showingTheFirst500RowsAll')} {checked.length} {t('ui.rowsWereValidated')}
-            </p>
+          <p>{t('duplicate.importHelp')}</p>
+          {groups.slice(reviewPage * 20, (reviewPage + 1) * 20).map((g) => (
+            <section className="panel" key={g.group}>
+              <h3>
+                {g.book.title || t('data.missing')} ·{' '}
+                {t('duplicate.copies', { count: g.rows.length })}
+              </h3>
+              <small>
+                {t('ui.rows')}: {g.rows.map((i) => i + 1).join(', ')}
+              </small>
+              {invalidGroup(g) ? (
+                <div className="alert">
+                  <ErrorText message={g.rows.flatMap((i) => checked[i]?.errors || []).join('; ')} />{' '}
+                  · {t('duplicate.invalidSkipped')}
+                </div>
+              ) : (
+                <>
+                  {!!g.incoming.length && (
+                    <p className="notice">
+                      {t('duplicate.incomingConflict', { rows: g.incoming.join(', ') })}
+                    </p>
+                  )}
+                  {!!g.incomingWeak.length && (
+                    <p className="notice">
+                      {t('duplicate.incomingWeak', { rows: g.incomingWeak.join(', ') })}
+                    </p>
+                  )}
+                  {g.incomingCollision && (
+                    <p className="notice">{t('duplicate.incomingCollision')}</p>
+                  )}
+                  <DuplicateChoices
+                    book={g.book}
+                    report={g.report}
+                    value={plan[g.group]}
+                    allowSkip
+                    onChange={(d) => {
+                      setPlan((old) => ({ ...old, [g.group]: d }));
+                      setConfirmed(false);
+                    }}
+                  />
+                </>
+              )}
+            </section>
+          ))}
+          {groups.length > 20 && (
+            <nav className="inline" aria-label={t('duplicate.pages')}>
+              <button
+                disabled={reviewPage === 0 || busy}
+                onClick={() => setReviewPage((p) => p - 1)}
+              >
+                {t('duplicate.previous')}
+              </button>
+              <span>
+                {t('duplicate.page', {
+                  page: reviewPage + 1,
+                  total: Math.ceil(groups.length / 20),
+                })}
+              </span>
+              <button
+                disabled={(reviewPage + 1) * 20 >= groups.length || busy}
+                onClick={() => setReviewPage((p) => p + 1)}
+              >
+                {t('duplicate.next')}
+              </button>
+            </nav>
           )}
           <label className="check">
             <input
@@ -371,15 +409,11 @@ export function DataPage({
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
             />
-            {t('ui.import')} {valid.length} {t('ui.validRowsSkipInvalidRows')}{' '}
-            {skipDuplicates
-              ? ' and duplicates'
-              : '; intentional duplicates will be separate copies'}
-            .
+            {t('duplicate.confirmImport', { count })}
           </label>
           <div className="inline">
             <button
-              disabled={!confirmed || !valid.length || busy || !!errors.length}
+              disabled={!confirmed || !ready || !count || busy || !!errors.length}
               className="primary"
               onClick={() => onAction(importNow)}
             >
