@@ -1,4 +1,7 @@
 import { DuplicateResolver } from './DuplicateResolver';
+import { BarcodeScan } from './BarcodeScan';
+import { newBookDraft } from '../domain/scanner';
+import type { Isbn } from '../domain/isbn';
 import { hasSignals, type DuplicateReport, type DuplicateDecision } from '../domain/duplicates';
 import { MetadataLookup } from './MetadataLookup';
 import { ErrorText } from './ErrorText';
@@ -9,7 +12,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Plus, Save, Upload, X } from 'lucide-react';
 import {
   conditions,
-  emptyBook,
   locationName,
   roles,
   statuses,
@@ -23,34 +25,32 @@ import { Cover, Field, Modal } from './common';
 import { useUnsaved } from './useUnsaved';
 export function BookEditor({
   initial,
+  seed,
+  protectSession = false,
   data,
   quick,
   onClose,
   onSaved,
 }: {
   initial?: Book;
+  seed?: Isbn;
+  protectSession?: boolean;
   data: Snapshot;
   quick: boolean;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const [book, setBook] = useState<Book>(() =>
-    initial
-      ? structuredClone(initial)
-      : {
-          ...emptyBook(),
-          language: data.settings.find((x) => x.key === 'language')?.value || '',
-          location_id: data.settings.find((x) => x.key === 'default_location')?.value || '',
-          copy_extra: { currency: data.settings.find((x) => x.key === 'currency')?.value || 'TRY' },
-        },
+    initial ? structuredClone(initial) : newBookDraft(data, seed),
   );
   const baseline = useRef(JSON.stringify(book));
-  useUnsaved(baseline.current !== JSON.stringify(book));
+  useUnsaved(protectSession || baseline.current !== JSON.stringify(book));
   const [tab, setTab] = useState('General');
   const [full, setFull] = useState(!quick);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [duplicateReport, setDuplicateReport] = useState<DuplicateReport | null>(null);
   const persist = async (decision?: DuplicateDecision) => {
     if (initial) await api('save', book);
@@ -59,7 +59,7 @@ export function BookEditor({
     onClose();
   };
   const close = async () => {
-    if (busy || duplicateReport) return;
+    if (busy || duplicateReport || scannerOpen) return;
     if (
       baseline.current !== JSON.stringify(book) &&
       !(await confirmAction('Discard your unsaved changes?'))
@@ -70,7 +70,7 @@ export function BookEditor({
   const update = <K extends keyof Book>(key: K, value: Book[K]) =>
     setBook((b) => ({ ...b, [key]: value }));
   const save = async () => {
-    if (busy || metadataOpen || duplicateReport) return;
+    if (busy || metadataOpen || duplicateReport || scannerOpen) return;
     const errors = validateBook(book);
     if (errors.length) {
       setError(errors.join('. '));
@@ -437,6 +437,11 @@ export function BookEditor({
                 <>
                   {location}
                   {simple('barcode', 'Barcode / copy identifier')}
+                  <BarcodeScan
+                    data={data}
+                    onApply={(value) => update('barcode', value)}
+                    onOpenChange={setScannerOpen}
+                  />
                   {extraFields(copyFields.Location, 'copy_extra')}
                 </>
               )}

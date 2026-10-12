@@ -1,3 +1,82 @@
+# M2-C USB keyboard-wedge scanning — local implementation candidate, 2026-10-13
+
+Branch `agent/codex-m2c-usb-batch-scan`, based on unchanged `v2` / `origin/v2`
+`f469306b9f8edd720046376fee07f3de913323dc`. M2-A and M2-B are closed; M2-C is a
+local implementation candidate, M2 remains OPEN, and M2-D webcam scanning is pending.
+
+## Final local automated evidence
+
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- `npm run test`: **87 passed** (17 library, 7 foundation, 26 metadata,
+  7 duplicate, 30 scanner tests).
+- `npx vitest run src/domain/scanner.test.tsx`: **30 passed** separately.
+- `npm run test:rust`: **69 passed** (11 unit, 20 duplicate decisions,
+  24 integrity, 3 migration, 5 restore limits, 6 restore schema tests).
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check` and
+  `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked`: pass.
+- `git diff --check`, scoped formatting, documentation links and all 34 EN/TR scanner keys:
+  pass. Final diff review contains only the 17 intended M2-C source, test and documentation files.
+
+Scanner tests exercise the production parser, terminator rules, bounded session queue,
+repeat preservation, ISBN-only seed isolation, EN/TR key resolution and labeled input markup.
+Interactive focus, component lifecycle, paste and persistence are verified in the real desktop
+harness rather than inferred from static rendering. Existing M2-A/M2-B and F1–F4 assertions remain.
+
+## Windows executable, installer and simulated keyboard-wedge evidence
+
+`npm run desktop:build` passed, including the production frontend build and NSIS installer.
+
+- Executable: `src-tauri/target/release/mylibrary.exe`.
+  SHA-256: `e9866d42768fff6c57cf72e0b4940f32908847b5446758192baff44aa78ba59e`.
+- Installer: `src-tauri/target/release/bundle/nsis/MyLibrary_2.0.0-alpha.1_x64-setup.exe`.
+  SHA-256: `784e69d6c68ec2222f7e78e50b48a890c6d12e4f89357f16fb7ef6c5a2cf150f`.
+- Vite's >500 kB chunk advisory and MSVC's informational import-library linker message
+  remain non-blocking; no dependency or bundling changes were made for them.
+
+`npm run test:desktop`: **32/32 workflow groups passed** against that executable.
+Local ignored report: `.cache/desktop-check-1791843635529/report.json`.
+The report records `passed: true`, `errors: []`, `network: []` and the executable hash above.
+Only isolated synthetic libraries were used. Windows verification is simulated keyboard-wedge
+input in the real Tauri app; it is not physical-device acceptance.
+
+The 29 existing regression groups passed, including metadata preview, duplicate decisions,
+imports, copies, locations, backup/restore, V1 migration and restart persistence. Three added
+scanner groups verified:
+
+- Initial focus, empty Enter/Tab, batch clear/refocus, repeated ISBN-10/13 entries, visible invalid
+  UPC/EAN, queue removal, new-record seed, cancel/return focus and added-item status.
+- Repeated ISBN processing sees fresh library state: explicit existing-Edition attachment preserves
+  the original copy; explicit separate-Edition creation remains independent. No automatic metadata
+  command is made by scanning; pending queue discard defaults to Cancel and preserves the queue.
+- Persisted Tab setting after restart, either-mode Enter/Tab, AIM prefixes, 979 without ISBN-10,
+  bounded paste rejection, BookEditor and CopyEditor barcode fields, no persistence before Save,
+  and copy/Edition identity preservation after barcode save.
+- Barcode collision remains copy-level with no Edition attachment choice; Turkish scanner labels
+  and discard confirmation resolve; restart preserves data. The 900-pixel scanner screenshot was
+  visually inspected, and the dialog has no horizontal overflow.
+
+During implementation, real desktop verification exposed an initial-focus ordering issue and an
+ambiguous settings accessible name. The input now focuses after modal effects, and the setting
+has an explicit localized accessible name. A later Turkish harness selector incorrectly used the
+last dialog; it now targets the named confirmation dialog. No product assertion was weakened.
+The final full run passed; these failures were not attributed to environmental timing flakes.
+
+**Real USB barcode scanner hardware verification: NONE.** No macOS/Linux interactive scanner
+acceptance or new CI result is claimed for this unpushed candidate. Signing, notarization and
+disabled updater configuration remain unchanged. Full assistive-technology certification is not claimed.
+
+## Scope and remaining limits
+
+See [barcode architecture](docs/architecture/barcode-scanning.md) and the
+[section-by-section requirements audit](docs/testing/m2c-requirements-audit.md).
+The queue is session-only and capped at 1,000 entries; payloads at 128 UTF-16 code units.
+Metadata lookup stays manual. No global character capture, device API, camera, BarcodeDetector,
+ZXing, dependency, migration, native command, network endpoint, permission expansion, telemetry,
+Work table or M3+ feature is introduced. Production data was not accessed. Runtime profiles,
+reports, covers, backups and build artifacts remain ignored and excluded from the commit.
+
+---
+
 # M2-B duplicate decisions — local implementation candidate, 2026-10-11
 
 Branch `agent/codex-m2b-duplicate-intelligence`, based on unchanged V2 baseline

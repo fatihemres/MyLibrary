@@ -1,4 +1,5 @@
 import { commandPressed, shortcutLabel } from './services/platform';
+import { ScanBooks } from './components/ScanBooks';
 import { ErrorText } from './components/ErrorText';
 import { useTranslation } from 'react-i18next';
 import { t, label as trLabel, setLanguage, locale } from './i18n';
@@ -26,6 +27,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   RefreshCw,
+  ScanLine,
 } from 'lucide-react';
 import type { Book, Snapshot } from './domain/types';
 import { navigationFilters, type Filters } from './domain/filter';
@@ -103,6 +105,7 @@ export default function App() {
   const [filters, setFilters] = useState<Filters>({});
   const [detail, setDetail] = useState<string | null>(null);
   const [editor, setEditor] = useState<{ book?: Book; quick: boolean } | null>(null);
+  const [scanning, setScanning] = useState(false);
   const [record, setRecord] = useState<RecordRequest | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -166,7 +169,7 @@ export default function App() {
     const handler = (e: KeyboardEvent) => {
       if (commandPressed(e) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
-        if (!editor && !record) setEditor({ quick: false });
+        if (!editor && !record && !scanning) setEditor({ quick: false });
       }
       if (commandPressed(e) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
@@ -176,7 +179,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [editor, record]);
+  }, [editor, record, scanning]);
   const navigate = (view: string) => {
     setRoute(['Finished', 'Unread'].includes(view) ? 'Library' : view);
     setDetail(null);
@@ -278,6 +281,10 @@ export default function App() {
             />
             <kbd>{shortcutLabel('F')}</kbd>
           </div>
+          <button disabled={!data} onClick={() => setScanning(true)}>
+            <ScanLine size={17} />
+            {t('scanner.books')}
+          </button>
           <button disabled={!data} onClick={() => setEditor({ quick: true })}>
             {t('ui.quickAdd')}{' '}
           </button>
@@ -410,6 +417,9 @@ export default function App() {
           <span>{busy ? t('ui.working') : t('ui.storedOnThisComputer')}</span>
         </div>
       </div>
+      {scanning && data && (
+        <ScanBooks data={data} onClose={() => setScanning(false)} onSaved={reload} />
+      )}
       {editor && data && (
         <BookEditor
           initial={editor.book}

@@ -1684,6 +1684,309 @@ try {
       assertDomainUnchanged(await snapshot(), after);
     },
   );
+
+  await check('M2-C focused wedge input, batch queue and fresh duplicate decisions', async () => {
+    await close();
+    dataDir = join(runDir, 'm2c-library');
+    await launch();
+    await page.evaluate(() => {
+      window.__scannerMetadataCalls = [];
+      const original = window.fetch.bind(window);
+      window.fetch = (url, options) => {
+        const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
+        if (['isbn_lookup', 'google_books_lookup', 'isbn_cover'].includes(command)) {
+          window.__scannerMetadataCalls.push(command);
+          return Promise.resolve(
+            new Response(JSON.stringify('metadata.unavailable'), {
+              headers: { 'Content-Type': 'application/json', 'Tauri-Response': 'error' },
+            }),
+          );
+        }
+        return original(url, options);
+      };
+    });
+    const scan = () => page.getByRole('dialog', { name: 'Scan books', exact: true });
+    const input = () => scan().getByLabel('Scanner input', { exact: true });
+    const rows = () => scan().locator('.scan-queue > li');
+    const focused = async (control) => {
+      // Focus is scheduled after native dialog opening / prior dialog cleanup.
+      for (let i = 0; i < 20; i++) {
+        if (await control.evaluate((el) => document.activeElement === el)) return;
+        await sleep(50);
+      }
+      assert.fail('Expected control to receive focus after dialog transition');
+    };
+    const accept = async (raw, suffix = 'Enter') => {
+      await input().focus();
+      await input().pressSequentially(raw);
+      await input().press(suffix);
+    };
+    await button('Scan books').click();
+    await focused(input());
+    await input().press('Enter');
+    assert.equal(await rows().count(), 0);
+    await input().press('Tab');
+    assert(!(await input().evaluate((el) => document.activeElement === el)));
+    await scan().getByLabel('Batch', { exact: true }).check();
+    await accept(']E00306406152');
+    assert.equal(await rows().count(), 1);
+    assert.equal(await input().inputValue(), '');
+    await focused(input());
+    await accept('9780306406157');
+    await accept('9780306406157');
+    assert.equal(await rows().count(), 3);
+    assert.equal(
+      await scan()
+        .getByText(/Repeated ISBN/)
+        .count(),
+      3,
+    );
+    await accept('036000291452');
+    assert.equal(await rows().count(), 4);
+    assert(await button('Review & add', rows().nth(3)).isDisabled());
+    await button('Remove scan', rows().nth(3)).click();
+    await accept('4006381333931');
+    assert(await button('Review & add', rows().nth(3)).isDisabled());
+    await button('Remove scan', rows().nth(3)).click();
+    assert.equal((await snapshot()).books.length, 0);
+    // No scanner collector reacts to typing in another focused control.
+    await button('Review & add', rows().nth(0)).click();
+    const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+    await editor.waitFor();
+    assert.equal(await scan().getByLabel('Scanner input', { exact: true }).count(), 0);
+    assert.equal(await editor.getByLabel('ISBN-13', { exact: true }).inputValue(), '9780306406157');
+    assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '0306406152');
+    await button('Cancel', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    assert.equal(await rows().count(), 3);
+    await focused(input());
+    await button('Review & add', rows().nth(0)).click();
+    await editor.getByLabel('Title *', { exact: true }).fill('M2C first edition');
+    await button('Save book', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    let state = await until((s) => s.books.length === 1, 'first scan saved');
+    const original = state.books[0];
+    assert.equal(await rows().nth(0).getByText('Added to library', { exact: true }).count(), 1);
+    await focused(input());
+    // A repeated scan now sees the freshly created edition through the real backend.
+    await button('Review & add', rows().nth(1)).click();
+    await editor.getByLabel('Title *', { exact: true }).fill('M2C incoming copy');
+    await button('Save book', editor).click();
+    const resolver = page.getByRole('dialog', {
+      name: 'Review edition and physical copy',
+      exact: true,
+    });
+    await resolver.waitFor();
+    assert.equal((await snapshot()).books.length, 1);
+    assert.equal(await resolver.locator('input:checked').count(), 0);
+    await resolver.getByLabel('Add as new physical copy of this edition', { exact: true }).check();
+    await button('Confirm and save physical copy', resolver).click();
+    await editor.waitFor({ state: 'hidden' });
+    state = await until((s) => s.books.length === 2, 'second scan attached explicitly');
+    assert(state.books.every((b) => b.edition_id === original.edition_id));
+    assert.deepEqual(
+      state.books.find((b) => b.id === original.id),
+      original,
+    );
+    await button('Review & add', rows().nth(2)).click();
+    await editor.getByLabel('Title *', { exact: true }).fill('M2C separate edition');
+    await button('Save book', editor).click();
+    await resolver.waitFor();
+    await resolver.getByLabel('Create a separate edition', { exact: true }).check();
+    await button('Confirm and save physical copy', resolver).click();
+    await editor.waitFor({ state: 'hidden' });
+    state = await until((s) => s.books.length === 3, 'third scan separate');
+    assert.equal(new Set(state.books.map((b) => b.edition_id)).size, 2);
+    await accept('9791090636071');
+    await button('Review & add', rows().nth(3)).click();
+    assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+    await button('Cancel', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    await input().press('Escape');
+    const confirmation = page.getByRole('dialog', { name: 'Please confirm', exact: true });
+    await confirmation.waitFor();
+    await focused(button('Cancel', confirmation));
+    await button('Cancel', confirmation).click();
+    assert.equal(await rows().count(), 4);
+    await button('Close scanning', scan()).click();
+    await button('Continue', confirmation).click();
+    await scan().waitFor({ state: 'hidden' });
+    await focused(button('Scan books'));
+    assert.deepEqual(await page.evaluate(() => window.__scannerMetadataCalls), []);
+    assertDomainUnchanged(await snapshot(), state);
+  });
+  await check(
+    'M2-C suffix persistence, single seeds, bounded paste and copy barcode fields',
+    async () => {
+      const scan = () => page.getByRole('dialog', { name: 'Scan books', exact: true });
+      await nav('Settings');
+      await page.getByLabel('Scanner terminator', { exact: true }).selectOption('tab');
+      await until(
+        (s) => s.settings.some((p) => p.key === 'scanner_terminator' && p.value === 'tab'),
+        'tab setting',
+      );
+      await close();
+      await launch();
+      await button('Scan books').click();
+      let input = scan().getByLabel('Scanner input', { exact: true });
+      await input.fill(']C19791090636071');
+      await input.press('Enter');
+      assert.equal(await scan().locator('.scan-queue > li').count(), 0);
+      await input.press('Tab');
+      assert.equal(await scan().locator('.scan-queue > li').count(), 1);
+      await button('Review & add', scan()).click();
+      const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      assert.equal(
+        await editor.getByLabel('ISBN-13', { exact: true }).inputValue(),
+        '9791090636071',
+      );
+      assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+      await button('Location', editor).click();
+      await button('Scan copy barcode', editor).click();
+      const barcode = page.getByRole('dialog', { name: 'Scan copy barcode', exact: true });
+      await barcode.getByLabel('Scanner input', { exact: true }).fill(']C1COPY-M2C');
+      await barcode.getByLabel('Scanner input', { exact: true }).press('Tab');
+      await barcode.waitFor({ state: 'hidden' });
+      assert.equal(
+        await editor.getByLabel('Barcode / copy identifier', { exact: true }).inputValue(),
+        'COPY-M2C',
+      );
+      await button('General', editor).click();
+      await editor.getByLabel('Title *', { exact: true }).fill('M2C barcode edition');
+      await button('Save book', editor).click();
+      await editor.waitFor({ state: 'hidden' });
+      await button('Close scanning', scan()).click();
+      await nav('Library');
+      await page.locator('.book-title').filter({ hasText: 'M2C barcode edition' }).click();
+      await button('Edit physical copy').click();
+      const copyEditor = dialog();
+      await button('Scan copy barcode', copyEditor).click();
+      const before = await snapshot();
+      await barcode.getByLabel('Scanner input', { exact: true }).fill(']E0COPY-EDITED');
+      await barcode.getByLabel('Scanner input', { exact: true }).press('Tab');
+      await barcode.waitFor({ state: 'hidden' });
+      assert.equal(
+        await copyEditor.getByLabel('Barcode', { exact: true }).inputValue(),
+        'COPY-EDITED',
+      );
+      assertDomainUnchanged(await snapshot(), before);
+      await button('Save physical copy', copyEditor).click();
+      await copyEditor.waitFor({ state: 'hidden' });
+      const after = await until(
+        (s) => s.books.some((b) => b.barcode === 'COPY-EDITED'),
+        'barcode save',
+      );
+      const old = before.books.find((b) => b.barcode === 'COPY-M2C');
+      const updated = after.books.find((b) => b.id === old.id);
+      assert.equal(updated.edition_id, old.edition_id);
+      assert.equal(updated.isbn13, old.isbn13);
+      await nav('Settings');
+      await page.getByLabel('Scanner terminator', { exact: true }).selectOption('either');
+      await until(
+        (s) => s.settings.some((p) => p.key === 'scanner_terminator' && p.value === 'either'),
+        'either setting',
+      );
+      await button('Scan books').click();
+      await scan().getByLabel('Batch', { exact: true }).check();
+      input = scan().getByLabel('Scanner input', { exact: true });
+      // Explicit paste event, no clipboard monitoring. Overlength valid-prefix pastes must reject.
+      const paste = async (text) =>
+        input.evaluate((el, text) => {
+          const data = new window.DataTransfer();
+          data.setData('text/plain', text);
+          el.dispatchEvent(
+            new window.ClipboardEvent('paste', {
+              bubbles: true,
+              cancelable: true,
+              clipboardData: data,
+            }),
+          );
+        }, text);
+      await paste('9780306406157' + ' '.repeat(500));
+      await input.press('Enter');
+      assert(await button('Review & add', scan().locator('.scan-queue > li').nth(0)).isDisabled());
+      await paste(']E00306406152\r\n');
+      await input.press('Tab');
+      assert.equal(await scan().locator('.scan-queue > li').count(), 2);
+      assert(
+        !(await button('Review & add', scan().locator('.scan-queue > li').nth(1)).isDisabled()),
+      );
+      await page.setViewportSize({ width: 900, height: 760 });
+      assert(await scan().evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
+      await page.screenshot({ path: join(runDir, 'scanner-batch.png'), animations: 'disabled' });
+      await button('Close scanning', scan()).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await page.setViewportSize({ width: 1400, height: 950 });
+      const persisted = await snapshot();
+      await close();
+      await launch();
+      assertDomainUnchanged(await snapshot(), persisted);
+    },
+  );
+
+  await check(
+    'M2-C copy collision stays copy-level and Turkish scanner labels resolve',
+    async () => {
+      const before = await snapshot();
+      await button('Add book').click();
+      const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      await editor
+        .getByLabel('Title *', { exact: true })
+        .pressSequentially('M2C barcode collision only');
+      await button('Location', editor).click();
+      await button('Scan copy barcode', editor).click();
+      const barcode = page.getByRole('dialog', { name: 'Scan copy barcode', exact: true });
+      await barcode.getByLabel('Scanner input', { exact: true }).fill(']C1COPY-EDITED');
+      await barcode.getByLabel('Scanner input', { exact: true }).press('Enter');
+      await barcode.waitFor({ state: 'hidden' });
+      await button('General', editor).click();
+      assert.equal(await editor.getByLabel('ISBN-13', { exact: true }).inputValue(), '');
+      assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+      await button('Save book', editor).click();
+      const resolver = page.getByRole('dialog', {
+        name: 'Review edition and physical copy',
+        exact: true,
+      });
+      await resolver.waitFor();
+      await resolver.getByText('Physical copy identifier collision', { exact: true }).waitFor();
+      assert.equal(
+        await resolver
+          .getByLabel('Add as new physical copy of this edition', { exact: true })
+          .count(),
+        0,
+      );
+      assertDomainUnchanged(await snapshot(), before);
+      await button('Cancel', resolver).click();
+      await button('Cancel', editor).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await editor.waitFor({ state: 'hidden' });
+      assertDomainUnchanged(await snapshot(), before);
+      await nav('Settings');
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor();
+      await button('Kitap tara').click();
+      const scan = page.getByRole('dialog', { name: 'Kitap tara', exact: true });
+      await scan.getByLabel('Tarayıcı girişi', { exact: true }).fill('0306406152');
+      await scan.getByLabel('Tarayıcı girişi', { exact: true }).press('Enter');
+      await button('İncele ve ekle', scan).waitFor();
+      assert(!(await scan.innerText()).includes('scanner.'));
+      await button('Taramayı kapat', scan).click();
+      await button(
+        'Devam',
+        page.getByRole('dialog', { name: 'Lütfen onaylayın', exact: true }),
+      ).click();
+      await scan.waitFor({ state: 'hidden' });
+      await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+      await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+      assertDomainUnchanged(await snapshot(), before);
+    },
+  );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
   assert.deepEqual(report.network, [], 'Core workflows must not make network requests');
   report.passed = true;

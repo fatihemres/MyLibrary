@@ -84,6 +84,37 @@ pre.break {
 }
 
 /* Duplicate decisions use the existing dialog and surface system. */
+.scanner-input {
+  display: grid;
+  gap: 0.5rem;
+}
+.scanner-input p {
+  margin: 0;
+}
+.scanner-input button {
+  justify-self: start;
+}
+.scan-queue {
+  padding-inline-start: 1.5rem;
+}
+.scan-queue li {
+  margin-block: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.scan-queue p {
+  margin-block: 0.35rem;
+}
+@media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-block-size: 76px;
+    padding-block: 10px;
+  }
+  .topbar .search-box {
+    flex-basis: 100%;
+  }
+}
 .duplicate-choices {
   display: grid;
   gap: 1rem;

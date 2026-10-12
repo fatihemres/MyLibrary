@@ -1,4 +1,5 @@
 import { ErrorText } from './ErrorText';
+import { BarcodeScan } from './BarcodeScan';
 import { t, label as trLabel } from '../i18n';
 import { commandPressed } from '../services/platform';
 import { useRef, useState } from 'react';
@@ -53,17 +54,19 @@ export function CopyEditor({
   const [tab, setTab] = useState(mode === 'move' ? 'Location' : 'Identity');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [locationRequest, setLocationRequest] = useState<RecordRequest | null>(null);
   const selectedLocation = data.locations.find((l) => l.id === value.location_id);
   const set = (key: string, v: string) => setValue((old) => ({ ...old, [key]: v }));
   const extra = (key: string, v: string | number | boolean) =>
     setValue((old) => ({ ...old, copy_extra: { ...old.copy_extra, [key]: v } }));
   const close = async () => {
+    if (scannerOpen) return;
     if (!busy && (!dirty || (await confirmAction('Discard unsaved physical copy changes?'))))
       onClose();
   };
   const submit = async () => {
-    if (busy) return;
+    if (busy || scannerOpen) return;
     setBusy(true);
     setError('');
     try {
@@ -143,6 +146,11 @@ export function CopyEditor({
                   />
                 </Field>
                 {input('barcode', 'Barcode')}
+                <BarcodeScan
+                  data={data}
+                  onApply={(v) => set('barcode', v)}
+                  onOpenChange={setScannerOpen}
+                />
                 <Field label={t('ui.copyState')}>
                   <select
                     value={String(value.copy_extra.copy_state || 'Owned')}

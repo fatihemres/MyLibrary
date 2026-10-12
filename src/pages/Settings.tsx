@@ -1,4 +1,5 @@
 import { FoundationSettings } from '../components/FoundationSettings';
+import { scannerTerminator } from '../domain/scanner';
 import { t, label as trLabel } from '../i18n';
 import { useState } from 'react';
 import type { Snapshot } from '../domain/types';
@@ -22,6 +23,26 @@ export function Settings({
   return (
     <>
       <FoundationSettings onAction={onAction} />
+      <section className="panel">
+        <h2>{t('scanner.settings')}</h2>
+        <Field label={t('scanner.terminator')}>
+          <select
+            aria-label={t('scanner.terminator')}
+            value={scannerTerminator(prefs.scanner_terminator)}
+            onChange={(e) => {
+              const value = scannerTerminator(e.target.value);
+              onAction(() => api('settings', { scanner_terminator: value }));
+            }}
+          >
+            {(['enter', 'tab', 'either'] as const).map((value) => (
+              <option key={value} value={value}>
+                {t(`scanner.${value}`)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <p className="muted">{t('scanner.settingsHelp')}</p>
+      </section>
       <div className="two-col">
         <section className="panel">
           <h2>{t('ui.generalAppearance')}</h2>
