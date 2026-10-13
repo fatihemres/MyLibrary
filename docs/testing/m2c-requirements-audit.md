@@ -1,7 +1,9 @@
 # M2-C requirements audit
 
-This maps the owner-approved M2-C request to the current local candidate. Actual execution
-evidence is in the M2-C section of `../../VERIFICATION.md`. M2 remains open.
+This maps the owner-approved M2-C request to the implementation CLOSED at
+`1edf3014d252067b7ee435478cba3f6aaf9350c9`. [PR #4](https://github.com/fatihemres/MyLibrary/pull/4),
+PR CI `38362240863` and final push CI `38365564445` passed all four platforms. Actual execution
+evidence is in [VERIFICATION.md](../../VERIFICATION.md). M2 remains OPEN; M2-D is pending.
 
 | Request sections | Implementation and verification boundary                                                                                                                                                                                                                  |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -17,10 +19,10 @@ evidence is in the M2-C section of `../../VERIFICATION.md`. M2 remains open.
 | 17–19            | Invalid rows remain visible and removable for rescan. Pure queue helper enforces 1,000 entries without discarding prior rows. Pending session close requires Cancel-default confirmation; native close/reload uses existing unsaved protection.           |
 | 21, 23–24        | Existing command bar/modal surfaces, narrow reflow, EN/TR flat translation keys, explicit labels, radio groups, status announcements and existing reduced-motion behavior. Not full accessibility certification.                                          |
 | 27–29            | Deterministic parser/session/seed/render tests; real WebView2 component/focus/paste/keyboard interactions and Rust persistence through extended `desktop-smoke.mjs`. No new DOM/test dependency. Real scanner hardware is not simulated evidence.         |
-| 30               | Windows automated build and synthetic keyboard-wedge verification only when recorded as passed. No new macOS/Linux interactive or CI claim for this local slice.                                                                                          |
-| 31               | Barcode architecture document, this audit, truthful M2-A/B closed, M2-C candidate and M2-D pending roadmap; verification updated from actual results.                                                                                                     |
+| 30               | Windows automated build and synthetic keyboard-wedge verification only when recorded as passed. Final PR/push CI passed four platforms; macOS/Linux interactive acceptance and real USB hardware verification are NOT claimed.                                                                                          |
+| 31               | Barcode architecture document, this audit, truthful M2-A/B/C closed and M2-D pending roadmap; verification updated from actual results.                                                                                                     |
 | 32–34, 37        | No dependencies, migration, USB/HID API, permission, network endpoint, camera, Work table, updater/signing change or M3+ functionality. Existing native/metadata/security tests retained.                                                                 |
-| 35–36, 38        | Full checks/build/desktop results and final source/privacy diff audit required before one local commit. No push, PR, merge, tag or release.                                                                                                               |
+| 35–36, 38        | Historical local candidate passed checks/build/desktop and source/privacy audit before commit. Subsequent authorized PR/CI, exact-SHA fast-forward integration, final CI and cleanup completed; no tag or release.                                                                                                               |
 
 Deliberate limits: session queue is not persisted, removing a scan is not a library deletion,
 metadata lookup is manual per draft, and physical hardware/platform acceptance needs separate

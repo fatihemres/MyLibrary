@@ -47,6 +47,13 @@ jobs:
       - run: npm run test:rust
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
       - run: cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked --jobs 2
+      - name: Install Clippy (Linux only)
+        if: runner.os == 'Linux'
+        run: rustup component add clippy
+      - name: Clippy (Linux only)
+        if: runner.os == 'Linux'
+        # Existing warnings remain advisory; strict Clippy needs a separate cleanup.
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked
       - name: Production bundle (also builds frontend)
         run: npm run desktop:build -- --bundles ${{ matrix.bundles }} -- --locked
       - uses: actions/upload-artifact@v7

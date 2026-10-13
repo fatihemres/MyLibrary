@@ -1,8 +1,16 @@
-# M2-C USB keyboard-wedge scanning — local implementation candidate, 2026-10-13
+# M2-C USB keyboard-wedge scanning — CLOSED
 
-Branch `agent/codex-m2c-usb-batch-scan`, based on unchanged `v2` / `origin/v2`
-`f469306b9f8edd720046376fee07f3de913323dc`. M2-A and M2-B are closed; M2-C is a
-local implementation candidate, M2 remains OPEN, and M2-D webcam scanning is pending.
+M2-C was integrated by fast-forward at `1edf3014d252067b7ee435478cba3f6aaf9350c9`.
+[PR #4 — M2-C: USB barcode batch scanning](https://github.com/fatihemres/MyLibrary/pull/4)
+is merged at that exact SHA. [PR CI 38362240863](https://github.com/fatihemres/MyLibrary/actions/runs/38362240863)
+and [final push CI 38365564445](https://github.com/fatihemres/MyLibrary/actions/runs/38365564445)
+both passed Windows x64, Linux x64, macOS Intel and macOS Apple Silicon, including packaging
+and artifact upload. Candidate branch cleanup is complete. M2-A/B/C are CLOSED;
+M2 remains OPEN and M2-D webcam scanning is pending.
+
+The following local implementation evidence was recorded on 2026-10-13 on the historical
+`agent/codex-m2c-usb-batch-scan` candidate, based on `f469306b9f8edd720046376fee07f3de913323dc`.
+It remains separate from the final integration CI evidence above.
 
 ## Final local automated evidence
 
@@ -62,7 +70,7 @@ last dialog; it now targets the named confirmation dialog. No product assertion 
 The final full run passed; these failures were not attributed to environmental timing flakes.
 
 **Real USB barcode scanner hardware verification: NONE.** No macOS/Linux interactive scanner
-acceptance or new CI result is claimed for this unpushed candidate. Signing, notarization and
+acceptance is claimed; successful CI packaging does not establish interactive acceptance. Signing, notarization and
 disabled updater configuration remain unchanged. Full assistive-technology certification is not claimed.
 
 ## Scope and remaining limits

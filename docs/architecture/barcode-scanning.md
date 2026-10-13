@@ -1,6 +1,8 @@
 # M2-C: focused keyboard-wedge scanning
 
-M2-C is a local implementation candidate. M2 remains open; webcam scanning is M2-D.
+M2-C is CLOSED at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration CI
+`38365564445` passed all four platforms. See [verification](../../VERIFICATION.md) for
+separate local desktop and CI evidence. M2 remains OPEN; M2-D webcam scanning is pending.
 
 ## Capture boundary
 
