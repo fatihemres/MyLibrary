@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { t } from '../i18n';
 import { queueScan, scannerTerminator, SCAN_QUEUE_LIMIT, type ScanItem } from '../domain/scanner';
 import type { Snapshot } from '../domain/types';
@@ -7,6 +7,7 @@ import { ScannerInput } from './ScannerInput';
 import { BookEditor } from './BookEditor';
 import { confirmAction } from './Confirmation';
 import { useUnsaved } from './useUnsaved';
+import { CameraScan } from './CameraScan';
 
 export function ScanBooks({
   data,
@@ -23,6 +24,17 @@ export function ScanBooks({
   const [editing, setEditing] = useState<ScanItem | null>(null);
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [camera, setCamera] = useState(false);
+  const body = useRef<HTMLDivElement>(null);
+  const focusReview = useRef(false);
+  useEffect(() => {
+    if (camera || !focusReview.current) return;
+    focusReview.current = false;
+    const frame = requestAnimationFrame(() =>
+      body.current?.querySelector<HTMLButtonElement>('.scan-queue li:last-child button')?.focus(),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [camera]);
   const replace = (next: ScanItem[]) => {
     queueRef.current = next;
     setQueue(next);
@@ -31,7 +43,7 @@ export function ScanBooks({
   // While an editor is active its existing native-close confirmation protects both drafts.
   useUnsaved(pending && !editing);
   const close = async () => {
-    if (editing || confirming) return;
+    if (editing || confirming || camera) return;
     setConfirming(true);
     try {
       if (!pending || (await confirmAction(t('scanner.discard')))) onClose();
@@ -44,7 +56,7 @@ export function ScanBooks({
   );
   return (
     <Modal title={t('scanner.books')} wide onClose={() => void close()}>
-      <div className="dialog-body">
+      <div className="dialog-body" ref={body}>
         <p>{t('scanner.help')}</p>
         <fieldset disabled={queue.length > 0 || confirming} className="inline">
           <legend>{t('scanner.mode')}</legend>
@@ -76,6 +88,15 @@ export function ScanBooks({
           />
         )}
         {error && <p role="alert">{t(error, { count: SCAN_QUEUE_LIMIT })}</p>}
+        {!editing && !confirming && (batch || queue.length === 0) && (
+          <button
+            type="button"
+            disabled={camera || queue.length >= SCAN_QUEUE_LIMIT}
+            onClick={() => setCamera(true)}
+          >
+            {t('camera.open')}
+          </button>
+        )}
         <p role="status">{t('scanner.count', { count: queue.length })}</p>
         <ol className="scan-queue">
           {queue.map((row) => (
@@ -132,6 +153,22 @@ export function ScanBooks({
                 row.id === editing.id ? { ...row, added: true } : row,
               ),
             );
+          }}
+        />
+      )}
+      {camera && (
+        <CameraScan
+          onClose={() => setCamera(false)}
+          onAccepted={(isbn) => {
+            try {
+              replace(queueScan(queueRef.current, isbn.isbn13, 'enter'));
+              setError('');
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'scanner.invalid');
+            }
+            // Restore only after the child dialog's cleanup has completed.
+            focusReview.current = !batch;
+            setCamera(false);
           }}
         />
       )}

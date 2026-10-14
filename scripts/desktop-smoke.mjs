@@ -9,6 +9,7 @@ import { resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright-core';
+import { ean13Image } from './fixtures/ean13.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const runDir = join(root, '.cache', `desktop-check-${Date.now()}`);
@@ -28,6 +29,7 @@ let profileInitialized = false;
 const acceptDialogs = true;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function check(name, fn) {
+  if (process.env.MYLIBRARY_DESKTOP_FOCUS === 'camera' && !name.startsWith('M2-D')) return;
   await fn();
   report.checks.push(name);
   console.log(`PASS ${name}`);
@@ -1985,6 +1987,261 @@ try {
       await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
       await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
       assertDomainUnchanged(await snapshot(), before);
+    },
+  );
+
+  await check('M2-D packaged local WASM, explicit capture and draft-only ISBN queue', async () => {
+    await close();
+    dataDir = join(runDir, 'm2d-library');
+    await launch();
+    report.cameraEnvironment = await page.evaluate(() => ({
+      secure: window.isSecureContext,
+      mediaDevices: !!navigator.mediaDevices?.getUserMedia,
+    }));
+    assert.equal(report.cameraEnvironment.secure, true);
+    assert.equal(report.cameraEnvironment.mediaDevices, true);
+    const localAssets = [];
+    page.context().on('response', (response) => {
+      if (/cameraDecoder\.worker-|zxing_reader-/.test(response.url()))
+        localAssets.push({ url: response.url(), status: response.status() });
+    });
+    await page.evaluate(() => {
+      window.__cameraTest = {
+        mode: 'valid',
+        calls: 0,
+        stopped: 0,
+        commands: [],
+        pending: null,
+        image: null,
+      };
+      Object.defineProperty(window, 'BarcodeDetector', { configurable: true, value: undefined });
+      const invoke = window.__TAURI_INTERNALS__.invoke;
+      window.__TAURI_INTERNALS__.invoke = (command, args, options) => {
+        window.__cameraTest.commands.push({ command, action: args?.action });
+        return invoke(command, args, options);
+      };
+      navigator.mediaDevices.getUserMedia = async (constraints) => {
+        if (constraints.audio !== false) throw new Error('Camera must not request audio');
+        const test = window.__cameraTest;
+        test.calls++;
+        if (test.mode === 'denied') throw new DOMException('synthetic denial', 'NotAllowedError');
+        if (test.mode === 'pending')
+          await new Promise((resolve) => {
+            test.pending = resolve;
+          });
+        const canvas = document.createElement('canvas');
+        canvas.width = 360;
+        canvas.height = 180;
+        const context = canvas.getContext('2d');
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, 360, 180);
+        if (test.mode !== 'blank' && test.image) {
+          canvas.width = test.image.width;
+          canvas.height = test.image.height;
+          context.putImageData(
+            new window.ImageData(
+              new Uint8ClampedArray(test.image.data),
+              canvas.width,
+              canvas.height,
+            ),
+            0,
+            0,
+          );
+        }
+        const stream = canvas.captureStream(5);
+        for (const track of stream.getTracks()) {
+          const stop = track.stop.bind(track);
+          track.stop = () => {
+            test.stopped++;
+            stop();
+          };
+        }
+        return stream;
+      };
+    });
+    const image = ean13Image('9780306406157');
+    await page.evaluate(
+      (image) => {
+        window.__cameraTest.image = image;
+      },
+      { ...image, data: Array.from(image.data) },
+    );
+    await button('Scan books').click();
+    const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+    await scan.getByLabel('Batch', { exact: true }).check();
+    assert.equal(await page.evaluate(() => window.__cameraTest.calls), 0);
+    const before = await snapshot();
+    await button('Scan with camera', scan).click();
+    await scan.locator('.scan-queue > li').getByText('9780306406157', { exact: true }).waitFor();
+    assert.equal(
+      await page.getByRole('dialog', { name: 'Scan a book ISBN with camera', exact: true }).count(),
+      0,
+    );
+    assert.equal(await page.evaluate(() => window.__cameraTest.stopped), 1);
+    assertDomainUnchanged(await snapshot(), before);
+    await button('Scan with camera', scan).click();
+    await page.waitForFunction(() => document.querySelectorAll('.scan-queue > li').length === 2);
+    assert.equal(await page.evaluate(() => window.__cameraTest.stopped), 2);
+    assertDomainUnchanged(await snapshot(), before);
+    assert(
+      localAssets.some((asset) => asset.url.endsWith('.wasm') && asset.status === 200),
+      'Packaged local WASM was loaded',
+    );
+    assert(localAssets.every((asset) => asset.url.startsWith('http://tauri.localhost/')));
+    report.cameraAssets = localAssets;
+    assert(
+      !(await page.evaluate(() => window.__cameraTest.commands)).some(
+        (c) =>
+          ['isbn_lookup', 'google_books_lookup', 'isbn_cover'].includes(c.command) ||
+          ['save', 'create_decided'].includes(c.action),
+      ),
+    );
+    // Make library state change AFTER scanning; Save must discover this current Edition.
+    await page.evaluate(() =>
+      window.__TAURI_INTERNALS__.invoke('database', {
+        action: 'create_decided',
+        payload: {
+          book: {
+            title: 'M2D current Edition',
+            isbn13: '9780306406157',
+            contributors: [],
+            terms: {},
+            extra: {},
+            copy_extra: {},
+            custom: {},
+            status: 'Unread',
+          },
+          decision: null,
+        },
+      }),
+    );
+    await scan
+      .locator('.scan-queue > li')
+      .first()
+      .getByRole('button', { name: 'Review & add', exact: true })
+      .click();
+    const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+    await editor.getByLabel('Title *', { exact: true }).fill('M2D camera draft');
+    await button('Save book', editor).click();
+    const resolver = page.getByRole('dialog', {
+      name: 'Review edition and physical copy',
+      exact: true,
+    });
+    await resolver.getByText('M2D current Edition', { exact: true }).waitFor();
+    assert.equal((await snapshot()).books.length, 1);
+    await button('Cancel', resolver).click();
+    await button('Cancel', editor).click();
+    await button(
+      'Continue',
+      page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+    ).click();
+    await editor.waitFor({ state: 'hidden' });
+    await button('Close scanning', scan).click();
+    await button(
+      'Continue',
+      page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+    ).click();
+    await scan.waitFor({ state: 'hidden' });
+  });
+  await check(
+    'M2-D denial, pending cancellation, invalid barcode, focus and Turkish UI',
+    async () => {
+      await button('Scan books').click();
+      const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+      const camera = () =>
+        page.getByRole('dialog', { name: 'Scan a book ISBN with camera', exact: true });
+      const open = button('Scan with camera', scan);
+      await page.evaluate(() => {
+        window.__cameraTest.mode = 'denied';
+      });
+      await open.click();
+      await camera()
+        .getByText('Camera permission was denied. Check camera privacy settings, then retry.', {
+          exact: true,
+        })
+        .waitFor();
+      await button('Cancel camera', camera()).click();
+      await camera().waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.activeElement?.textContent === 'Scan with camera');
+      await page.evaluate(() => {
+        window.__cameraTest.mode = 'pending';
+      });
+      await open.click();
+      await camera().getByText('Waiting for camera permission…', { exact: true }).waitFor();
+      await page.waitForFunction(() => !!window.__cameraTest.pending);
+      await page.keyboard.press('Escape');
+      await camera().waitFor({ state: 'hidden' });
+      const stopped = await page.evaluate(() => window.__cameraTest.stopped);
+      await page.evaluate(() => {
+        window.__cameraTest.mode = 'blank';
+        window.__cameraTest.pending();
+      });
+      await page.waitForFunction((count) => window.__cameraTest.stopped === count + 1, stopped);
+      const nonbook = ean13Image('4006381333931');
+      await page.evaluate(
+        (image) => {
+          window.__cameraTest.mode = 'valid';
+          window.__cameraTest.image = image;
+        },
+        { ...nonbook, data: Array.from(nonbook.data) },
+      );
+      await open.click();
+      await camera()
+        .getByText('This is not a supported book ISBN. Try a 978 or 979 book barcode.', {
+          exact: true,
+        })
+        .waitFor();
+      assert.equal(await scan.locator('.scan-queue > li').count(), 0);
+      const invalidStopped = await page.evaluate(() => window.__cameraTest.stopped);
+      await button('Cancel camera', camera()).click();
+      assert.equal(await page.evaluate(() => window.__cameraTest.stopped), invalidStopped + 1);
+      const book979 = ean13Image('9791090636071');
+      await page.evaluate(
+        (image) => {
+          window.__cameraTest.image = image;
+        },
+        {
+          ...book979,
+          data: Array.from(book979.data),
+        },
+      );
+      await open.click();
+      await scan.getByText('9791090636071', { exact: true }).waitFor();
+      await page.waitForFunction(() => document.activeElement?.textContent === 'Review & add');
+      assert.equal((await snapshot()).books.length, 1, 'Single camera result is not saved');
+      await button('Close scanning', scan).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await scan.waitFor({ state: 'hidden' });
+      await nav('Settings');
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor();
+      await button('Kitap tara').click();
+      const turkish = page.getByRole('dialog', { name: 'Kitap tara', exact: true });
+      await page.evaluate(() => {
+        window.__cameraTest.mode = 'blank';
+      });
+      await button('Kamerayla tara', turkish).click();
+      const camTr = page.getByRole('dialog', {
+        name: 'Kitap ISBN’sini kamerayla tara',
+        exact: true,
+      });
+      await camTr
+        .getByText('Kamerayı bir kitabın EAN-13 barkoduna doğrultun.', { exact: true })
+        .waitFor();
+      await camTr.getByLabel('Canlı kamera önizlemesi', { exact: true }).waitFor();
+      assert(!(await camTr.innerText()).includes('camera.'));
+      await button('Kamerayı iptal et', camTr).click();
+      await button('Taramayı kapat', turkish).click();
+      await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+      await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+      assert(
+        !(await page.evaluate(() => window.__cameraTest.commands)).some((c) =>
+          ['isbn_lookup', 'google_books_lookup', 'isbn_cover'].includes(c.command),
+        ),
+      );
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

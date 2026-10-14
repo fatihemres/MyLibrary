@@ -1,4 +1,5 @@
 pub mod backup;
+mod camera;
 mod copies;
 pub mod db;
 pub mod duplicates;
@@ -193,7 +194,7 @@ async fn database(
     work().map_err(|e| e.to_string())
 }
 pub fn run() {
-    tauri::Builder::default()
+    camera::configure(tauri::Builder::default())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -212,6 +213,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             database,
+            camera::camera_session,
             metadata::isbn_lookup,
             metadata::google_books_lookup,
             metadata::isbn_cover

@@ -1,3 +1,148 @@
+# M2-D webcam ISBN scanning — local implementation candidate
+
+Local Windows evidence recorded on 2026-10-14 for `agent/codex-m2d-webcam-scan`,
+based on `950bdcd330ac5aea67dcd878a1701f62620f87d5`. M2-D and M2 remain OPEN;
+Issue #6 remains OPEN. No integration or candidate CI success is claimed.
+See [requirements audit](docs/testing/m2d-requirements-audit.md).
+
+## M2-D URL-control normalization follow-up — 2026-10-15
+
+Targeted security review of `fc756c023b4d2ceb3cadc112fcd0635700bc9b15` found that
+TAB/LF/CR inside protocol-relative string tokens could hide a remote authority.
+Inspection now checks both the original decoded token and an inspection-only copy
+with those three WHATWG-ignored ASCII controls removed. Emitted strings are unchanged.
+The existing module-layout/default and worker-token scope is unchanged; this is not
+a general proof against arbitrary computed networking.
+
+- Focused real-Rollup policy tests: **33 passed**, retaining all prior 21 cases.
+  TAB, LF, CR, mixed/repeated controls, Unicode/encoded hosts and source escapes reject;
+  retained comments, local strings and unrelated main-app URLs remain accepted.
+- Independent read-only real-Rollup probes: **24 passed** (18 rejection and 6 compatibility
+  cases), including checking that accepted local runtime strings are not rewritten.
+- Typecheck/lint: pass. Full frontend suite: **162 passed**.
+- `npm audit --omit=dev`: zero reported vulnerabilities. Production build: pass.
+- Fresh emitted graph audit: one worker chunk, 35,418 bytes, 485 parsed string/template
+  tokens checked in original and normalized form; no prohibited remote URL/CDN tokens.
+  Local reader WASM remains bundled at 966,895 bytes.
+- Windows `npm run desktop:build`: pass, executable and NSIS installer rebuilt.
+  Focused packaged camera: **2/2 groups passed**, with local worker/WASM loads,
+  zero runtime errors and zero external requests; report
+  `.cache/desktop-check-1792048267003/report.json`. Synthetic camera evidence only.
+- `git diff --check`: pass. Existing frontend chunk-size advisory and linker informational
+  warning did not fail packaging. Full desktop regression was not rerun for this policy-only fix.
+- No Rust/runtime source, dependency, lockfile, platform or CSP remediation changes.
+  Prior native 71-test/fmt/check/Clippy evidence is reused; no Rust retest is claimed.
+- M2-D, M2 and Issue #6 remain OPEN. Real Windows webcam hardware verification: NONE.
+
+## M2-D bounded build-policy remediation — 2026-10-15
+
+Security review identified build-policy gaps in the original local candidate
+`b9d85bd1df7c6c842085056ac87fe1137010132a`, not evidence of runtime remote requests.
+The remediation changes only the Vite policy, focused policy tests and relevant documentation.
+The worker build now requires exactly one expected pinned reader transformation and audits
+all emitted worker JavaScript chunks using parsed string/template tokens. Missing/relocated
+modules, zero/duplicate defaults, HTTP(S), protocol-relative ASCII/Unicode/encoded hosts,
+split protocol-relative prefixes, blob URLs and known CDN identifiers fail. Comments and
+unrelated main-app URLs remain outside that check. Main/dev transformation remains active.
+This guards the defined module-layout/default and URL-token boundary; it is not a general
+proof against arbitrary computed networking in malicious dependency code.
+
+- Focused policy suite: **21 passed**, using actual in-memory Rollup builds with secondary chunks.
+- Repeated read-only policy probes: **21 passed**, including the previously missed Unicode host.
+- Typecheck/lint: pass. Full frontend suite: **150 passed** (previous 129 plus 21 policy tests).
+- `npm audit --omit=dev`: zero reported vulnerabilities. `npm run build`: pass.
+- Generated graph audit: one worker JavaScript chunk, 35,418 bytes; no HTTP(S), protocol-relative
+  remote authority, blob, jsdelivr, fastly or unpkg tokens. Local reader WASM: 966,895 bytes.
+  Asset names/sizes are unchanged; synthetic tests additionally cover multiple worker chunks.
+- `npm run desktop:build`: pass, Windows executable and NSIS installer rebuilt with this policy.
+- Focused packaged camera: **2/2 groups passed**, report
+  `.cache/desktop-check-1792044602512/report.json`; no runtime errors or external requests.
+  Full desktop regression was not repeated for this build-policy-only remediation; the
+  previous 34/34 runtime regression evidence below is retained separately.
+- Final diff whitespace check passed.
+- No Rust source, Cargo/npm dependencies, lockfiles, runtime camera lifecycle, persistence,
+  platform configuration or CSP changed relative to the reviewed candidate. Prior native
+  71-test/fmt/check/Clippy evidence is reused on that basis.
+- M2-D, M2 and Issue #6 remain OPEN. Physical webcam/platform acceptance limitations below
+  are unchanged. No remote integration or CI success is claimed for the remediation.
+
+## Automated and decoder evidence
+
+- `npm run typecheck`, `npm run lint`: pass.
+- `npm run test`: **129 passed** (17 library, 7 foundation, 26 metadata,
+  7 duplicate, 30 scanner, 42 camera).
+- `npx vitest run src/domain/camera.test.tsx`: **42 passed** separately.
+- `npm run test:rust`: **71 passed** (13 unit, 20 duplicate decisions,
+  24 integrity, 3 migration, 5 restore limits, 6 restore schema).
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check`, locked all-target
+  Cargo check and normal Clippy: pass. Six existing advisory locations remain:
+  db.rs:856, metadata.rs:203, lib.rs:188, integrity.rs:613/717, duplicates.rs:129.
+  No new M2-D Clippy warning was observed.
+- The real zxing-wasm reader decoded synthetic 9780306406157, 9791090636071 and
+  non-book 4006381333931 frames using local WASM bytes with fetch prohibited.
+  Existing ISBN validation rejected the non-book EAN; no live provider was used.
+- `npm audit --omit=dev --json`: zero reported vulnerabilities at audit time;
+  this is not proof that the dependency has no security defects.
+- Sandbox process-spawn restrictions initially blocked Vite/esbuild; the same
+  authorized commands passed outside that restriction.
+
+## Bundling and privacy evidence
+
+`npm run build` passed. Final emitted assets (uncompressed): reader WASM 966,895 bytes,
+module worker 35,418 bytes, main JS 552,971 bytes, CSS 28,457 bytes. Compared with
+pre-change local build output (JS 542,896 / CSS 28,343 bytes), main JS grew 10,075
+bytes and CSS 114 bytes, plus the worker/WASM. This is a local-output comparison,
+not a fresh baseline rebuild. MIT/Apache decoder notices ship in decoder-licenses.txt.
+
+The worker has no HTTP(S) URL or blob worker URL. A version-pinned build transform
+removes the upstream unused CDN default and fails on unexpected source drift;
+the active reader uses only its bundled same-origin asset. CSP adds only same-origin
+worker/connect access and wasm-unsafe-eval; no generic unsafe-eval or remote worker
+source. No camera frames are uploaded, saved or logged. The existing optional
+metadata workflow remains explicit and unchanged.
+
+## Windows package and synthetic desktop evidence
+
+`npm run desktop:build` passed for the final runtime source, including NSIS packaging.
+Executable: 15,737,856 bytes; SHA-256
+`4502b2afa0b557eb83ed67b7f85b037872aabdec481128e7d2c0b4bd3891f353`.
+Installer: 4,561,037 bytes; SHA-256
+`10fd01d3766755fc30093cca7d941364cfeb0184f64b58a448141af8384b0fb2`.
+The existing Vite >500 kB chunk advisory and MSVC import-library linker message remain.
+
+Focused camera desktop run: **2/2 groups passed**, local ignored report
+`.cache/desktop-check-1791958626603/report.json`. It exercised actual packaged worker/WASM
+HTTP 200 loads from tauri.localhost with BarcodeDetector disabled, no remote requests,
+no capture before explicit action, repeated 978 queue entries, 979 single scan, non-book
+rejection, unchanged library before Save, fresh M2-B duplicate review at Save, permission
+error, late grant after cancellation, track cleanup, EN/TR labels and focus restoration.
+
+Full `npm run test:desktop`: **34/34 workflow groups passed** against the same executable.
+Local ignored report: `.cache/desktop-check-1791958648057/report.json`.
+Both final reports have no frontend runtime errors and no external network requests.
+The full run includes prior M2-A/B/C, persistence/restart, frozen V1 migration,
+backup/restore, import/export, and copy/Edition regression checks. No desktop assertion
+was weakened to obtain this result.
+
+An earlier run caught single-scan focus restoration occurring before dialog cleanup;
+the implementation now schedules it from the parent effect after camera unmount. The
+same assertion passed in the final focused run. An earlier harness-only dialog-label
+mismatch was also corrected; no product assertion was removed or weakened.
+
+## Hardware and platform limitations
+
+Real Windows webcam hardware verification: NONE
+
+Windows desktop camera automation uses generated EAN-13 frames in canvas MediaStreams
+inside the actual packaged Tauri/WebView2 app. It cannot establish physical camera
+permission prompts, printed-book recognition, OS camera indicators or real-device recovery.
+Candidate four-platform CI and CodeQL have not run. macOS/Linux native interactive
+camera acceptance is not claimed. macOS usage-description packaging and the Linux
+permission callback still require their platform gates. M2-D is ready only for local
+candidate review, not milestone closure.
+
+---
+
 # M2-C USB keyboard-wedge scanning — CLOSED
 
 M2-C was integrated by fast-forward at `1edf3014d252067b7ee435478cba3f6aaf9350c9`.

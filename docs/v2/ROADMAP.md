@@ -29,7 +29,7 @@ manual acceptance, signing/notarization, and full accessibility QA are not impli
 - **M2-A — ISBN & Metadata Foundation — CLOSED.** Integrated at `ec661cd0f153540b2fb27784d2642fc01d356f00`; final integration CI run `38120576734` passed all four platforms.
 - **M2-B — Duplicate Intelligence + Edition / Physical Copy Decisions — CLOSED.** Integrated at `f469306b9f8edd720046376fee07f3de913323dc`; final integration CI run `38257915937` passed all four platforms. See [duplicate decisions](../architecture/duplicate-decisions.md).
 - **M2-C — USB HID Barcode Scanner + Batch Scan — CLOSED.** Integrated at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration CI run `38365564445` passed all four platforms. Focus-only keyboard-wedge capture and session queue; see [barcode scanning](../architecture/barcode-scanning.md). M2 remains open.
-- **M2-D — Webcam scanning — pending.** No camera work is included in M2-C.
+- **M2-D — Webcam scanning — implementation candidate.** Explicit Scan Books capture, local decoder and existing review/save flow; see [requirements audit](../testing/m2d-requirements-audit.md). Issue #6 and M2 remain OPEN pending review and integration gates.
 
 - Manual ISBN entry/lookup.
 - USB barcode scanner workflows.
