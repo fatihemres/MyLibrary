@@ -14,10 +14,17 @@ import {
   type Snapshot,
 } from '../domain/types';
 import { CopyEditor } from '../components/CopyEditor';
-import { copyFields, editionFields } from '../domain/fields';
+import { copyFields, editionFields, type Field } from '../domain/fields';
 import type { RecordRequest } from '../components/RecordDialog';
 import { Cover, Empty } from '../components/common';
 import { api, upload } from '../services/api';
+
+function displayFieldValue(field: Field, value: unknown): unknown {
+  return field.type === 'select' && typeof value === 'string' && field.options?.includes(value)
+    ? trLabel(value)
+    : value;
+}
+
 export function Detail({
   book: b,
   data,
@@ -192,7 +199,7 @@ export function Detail({
               {b.contributors.map((p, i) => info(`${trLabel(p.role)} ${i + 1}`, p.name))}
               {Object.values(editionFields)
                 .flat()
-                .map((f) => info(f.label, b.extra[f.key]))}
+                .map((f) => info(f.label, displayFieldValue(f, b.extra[f.key])))}
             </dl>
           </section>
         )}
@@ -257,7 +264,9 @@ export function Detail({
                 </button>
               </div>
               <dl className="details-grid">
-                {copyFields.Reading.map((f) => info(f.label, b.copy_extra[f.key]))}
+                {copyFields.Reading.map((f) =>
+                  info(f.label, displayFieldValue(f, b.copy_extra[f.key])),
+                )}
               </dl>
             </div>
             {entries
@@ -507,7 +516,7 @@ export function Detail({
                 {info('Acquisition source', b.source)}
                 {Object.values(copyFields)
                   .flat()
-                  .map((f) => info(f.label, b.copy_extra[f.key]))}
+                  .map((f) => info(f.label, displayFieldValue(f, b.copy_extra[f.key])))}
                 {data.fields.map((f) => info(f.name, b.custom[f.id]))}
               </dl>
             </section>
