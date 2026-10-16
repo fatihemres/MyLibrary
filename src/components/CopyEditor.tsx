@@ -207,7 +207,7 @@ export function CopyEditor({
                         key={kind}
                         disabled={
                           selectedLocation?.extra?.kind !==
-                          (kind === 'Bookcase' ? t('ui.room') : t('ui.bookcase'))
+                          (kind === 'Bookcase' ? 'Room' : 'Bookcase')
                         }
                         onClick={() =>
                           setLocationRequest({

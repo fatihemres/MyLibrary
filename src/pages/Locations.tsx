@@ -77,7 +77,7 @@ export function Locations({
             key={kind}
             disabled={
               !place ||
-              place.extra?.kind !== (kind === 'Bookcase' ? t('ui.room') : t('ui.bookcase'))
+              place.extra?.kind !== (kind === 'Bookcase' ? 'Room' : 'Bookcase')
             }
             onClick={() =>
               onRecord({ type: 'locations', locationKind: kind, locationParent: place })
