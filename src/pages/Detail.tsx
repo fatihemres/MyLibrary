@@ -171,7 +171,7 @@ export function Detail({
                 {info('Published', b.publication_year)}
                 {info('Language', b.language)}
                 {info('Pages', b.pages)}
-                {info('Condition', b.condition)}
+                {info('Condition', trLabel(b.condition))}
                 {info('Acquired', b.acquisition_date)}
                 {info('Copies', copies.length)}
               </dl>
