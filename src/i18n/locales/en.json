@@ -745,5 +745,6 @@
   "camera.decoder": "The local barcode reader could not run. Close the camera and retry.",
   "camera.ended": "The camera disconnected or stopped. Reconnect it and retry.",
   "camera.retry": "Retry camera",
-  "camera.cancel": "Cancel camera"
+  "camera.cancel": "Cancel camera",
+  "ui.openFolderError": "The data folder could not be opened."
 }

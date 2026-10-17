@@ -745,5 +745,6 @@
   "camera.decoder": "Yerel barkod okuyucu çalıştırılamadı. Kamerayı kapatıp tekrar deneyin.",
   "camera.ended": "Kamera bağlantısı kesildi veya durdu. Yeniden bağlayıp tekrar deneyin.",
   "camera.retry": "Kamerayı yeniden dene",
-  "camera.cancel": "Kamerayı iptal et"
+  "camera.cancel": "Kamerayı iptal et",
+  "ui.openFolderError": "Veri klasörü açılamadı."
 }
