@@ -24,5 +24,7 @@ chrono = { version = "0.4", features = ["serde"] }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
+zune-jpeg = { version = "=0.5.15", default-features = false, features = ["std"] }
+
 [dev-dependencies]
 tempfile = "3"
