@@ -13,6 +13,33 @@ import {
 } from '../services/metadataMerge';
 import { api, lookupCover } from '../services/api';
 import { Modal } from './common';
+const coverErrors = new Set([
+  'metadata.coverMissing',
+  'metadata.coverRefused',
+  'metadata.coverRateLimited',
+  'metadata.coverServer',
+  'metadata.coverTimeout',
+  'metadata.coverNetwork',
+  'metadata.coverUnsafeRedirect',
+  'metadata.coverTooLarge',
+  'metadata.coverInvalid',
+  'metadata.coverBusy',
+  'metadata.coverFailed',
+  'metadata.invalidIsbn',
+]);
+export async function acquireMetadataCover(
+  isbn: string,
+): Promise<{ image?: string; error?: string }> {
+  try {
+    const bytes = await lookupCover(isbn);
+    return { image: await api<string>('cover', { name: 'isbn-cover.jpg', bytes }) };
+  } catch (error) {
+    // Only native stable keys may reach i18n; never expose provider/storage exceptions.
+    return {
+      error: typeof error === 'string' && coverErrors.has(error) ? error : 'metadata.coverFailed',
+    };
+  }
+}
 export function MetadataLookup({
   book,
   setBook,
@@ -79,14 +106,9 @@ export function MetadataLookup({
     setError('');
     let image: string | undefined;
     if (cover) {
-      try {
-        image = await api<string>('cover', {
-          name: 'isbn-cover.jpg',
-          bytes: await lookupCover(requested.current),
-        });
-      } catch {
-        setError('metadata.coverFailed');
-      }
+      const acquired = await acquireMetadataCover(requested.current);
+      image = acquired.image;
+      if (acquired.error) setError(acquired.error);
     }
     setBook((previous) => ({
       ...applySelection(previous, results, selection),
