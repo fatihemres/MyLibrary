@@ -636,6 +636,16 @@
   "metadata.subjects": "Sağlayıcının konuları (tür veya etiket olarak uygulanmaz)",
   "metadata.coverCandidates": "{{provider}}: {{count}} kapak adayı.",
   "metadata.googleCoverDeferred": "Bu aşamada Google Books kapak indirmesi yoktur. Yerel bir kapak seçebilirsiniz.",
+  "metadata.coverMissing": "Bu ISBN için kapak bulunamadı. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverRefused": "Kapak sağlayıcısı isteği reddetti; istekleri sınırlıyor olabilir. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverRateLimited": "Kapak sağlayıcısı istekleri sınırlıyor. Daha sonra tekrar deneyin. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverServer": "Kapak sağlayıcısı geçici olarak kullanılamıyor. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverTimeout": "Kapak isteği zaman aşımına uğradı. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverNetwork": "Kapak sağlayıcısına güvenli bağlantı kurulamadı. Bağlantınızı kontrol edin. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverUnsafeRedirect": "Kapak desteklenmeyen bir indirme adresi kullanıyor. Bunun yerine yerel bir kapak seçin. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverTooLarge": "Kapak desteklenen görüntü sınırlarını aşıyor. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverInvalid": "Sağlayıcı kullanılamayan bir JPEG kapak döndürdü. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
+  "metadata.coverBusy": "Başka bir kapak isteği hâlâ sürüyor. Mevcut kapağınız korundu. Diğer seçilen alanlar uygulandı.",
   "metadata.coverFailed": "Kapak indirilemedi. Diğer seçilen alanlar uygulandı; gerekirse yerel kapak seçin.",
   "metadata.field.title": "Başlık",
   "metadata.field.subtitle": "Alt başlık",
@@ -735,5 +745,6 @@
   "camera.decoder": "Yerel barkod okuyucu çalıştırılamadı. Kamerayı kapatıp tekrar deneyin.",
   "camera.ended": "Kamera bağlantısı kesildi veya durdu. Yeniden bağlayıp tekrar deneyin.",
   "camera.retry": "Kamerayı yeniden dene",
-  "camera.cancel": "Kamerayı iptal et"
+  "camera.cancel": "Kamerayı iptal et",
+  "ui.openFolderError": "Veri klasörü açılamadı."
 }

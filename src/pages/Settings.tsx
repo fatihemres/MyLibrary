@@ -20,6 +20,21 @@ export function Settings({
   const [currency, setCurrency] = useState(prefs.currency || 'TRY');
   const [language, setLanguage] = useState(prefs.language || '');
   const [result, setResult] = useState('');
+  const [openingFolder, setOpeningFolder] = useState(false);
+  const [folderError, setFolderError] = useState('');
+
+  const handleOpenFolder = async () => {
+    if (openingFolder) return;
+    setOpeningFolder(true);
+    setFolderError('');
+    try {
+      await api('open_folder');
+    } catch {
+      setFolderError(t('ui.openFolderError'));
+    } finally {
+      setOpeningFolder(false);
+    }
+  };
   return (
     <>
       <FoundationSettings onAction={onAction} />
@@ -91,9 +106,14 @@ export function Settings({
             {t('ui.filesAttachments')} <br />
             {t('ui.safetyArchivesBackups')}{' '}
           </p>
-          <button onClick={() => onAction(() => api('open_folder'))}>
+          <button type="button" disabled={openingFolder} onClick={() => void handleOpenFolder()}>
             {t('ui.openDataFolder')}
           </button>
+          {folderError && (
+            <p role="alert" className="error">
+              {folderError}
+            </p>
+          )}
           <h3>{t('ui.databaseMaintenance')}</h3>
           <p>{t('ui.checkTheDatabaseAndForeignKeyRelationshipsWithoutChangingYourRecords')}</p>
           <button onClick={() => onAction(async () => setResult(await api<string>('integrity')))}>

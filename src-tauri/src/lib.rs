@@ -23,6 +23,29 @@ async fn database(
     action: String,
     payload: Value,
 ) -> std::result::Result<Value, String> {
+    if action == "open_folder" {
+        let root = {
+            let guard = state
+                .store
+                .lock()
+                .map_err(|_| "The library is busy. Restart the application.")?;
+            let store = guard.as_ref().ok_or_else(|| {
+                state
+                    .startup_error
+                    .as_deref()
+                    .unwrap_or("The library could not be opened. Restart the application.")
+                    .to_string()
+            })?;
+            store.root.to_string_lossy().to_string()
+        };
+        return tauri::async_runtime::spawn_blocking(move || {
+            app.opener().open_path(&root, None::<&str>)
+        })
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
+        .map(|_| json!(true));
+    }
     let work = || -> Result<Value> {
         let guard = state
             .store
@@ -181,11 +204,6 @@ async fn database(
                     .open(path)?;
                 f.write_all(db::s(&payload, "text").as_bytes())?;
                 f.sync_all()?;
-                Ok(json!(true))
-            }
-            "open_folder" => {
-                app.opener()
-                    .open_path(&store.root.to_string_lossy().to_string(), None::<&str>)?;
                 Ok(json!(true))
             }
             _ => store.mutate(&action, &payload),
