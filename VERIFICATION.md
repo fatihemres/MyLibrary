@@ -1,3 +1,44 @@
+# Latest integrated verification checkpoint — 2026-10-19 (reviewed 2026-10-20)
+
+> **Integration evidence was rechecked on GitHub on 2026-10-20.** PO manual observations
+> and separate integration authorizations are attributed to the PO handoff and confirmation;
+> they were not independently repeated during this documentation review. The detailed
+> records below are earlier snapshots, preserved verbatim; their "candidate / OPEN"
+> statements should not be interpreted as the present state of integrated work.
+
+- `v2` HEAD `f4e0d6ecf946bcb23310dc926656b65908c1d3cb` after two PO-authorized
+  exact-SHA fast-forwards: [PR #11](https://github.com/fatihemres/MyLibrary/pull/11)
+  (`625ea3dff84ac138c455e17a24eea0983268999f`) and
+  [PR #12](https://github.com/fatihemres/MyLibrary/pull/12)
+  (`f4e0d6ecf946bcb23310dc926656b65908c1d3cb`).
+- Both PRs passed 4/4 platform jobs and 3/3 CodeQL jobs. Final **push-triggered**
+  [V2 foundation run 39306773531](https://github.com/fatihemres/MyLibrary/actions/runs/39306773531)
+  passed **4/4**; [CodeQL run 39306773510](https://github.com/fatihemres/MyLibrary/actions/runs/39306773510)
+  passed **3/3** (GitHub evidence rechecked 2026-10-20).
+- [M2-D PR #7](https://github.com/fatihemres/MyLibrary/pull/7) integrated; [Issue #6](https://github.com/fatihemres/MyLibrary/issues/6)
+  closed. PO observed real Windows webcam ISBN scanning. **Overall M2 milestone OPEN**;
+  no automatic milestone closure or macOS/Linux native camera certification.
+- **PO manual Windows acceptance (isolated synthetic library):** PR #11 Open Library ISBN
+  metadata/managed-cover save, display and persistence after restart observed PASS;
+  PR #12 was verified by the PO in a manually launched isolated Windows test app:
+  the data-folder action opened the correct synthetic folder in Windows Explorer without
+  visible UI freeze or global overlay. Existing-cover preservation on failed
+  acquisition is **automated native test evidence**, not a separate PO manual test.
+  PR #12 duplicate-click disabled state was not separately timed by PO.
+- **Security context (PO-reported):** The PO reported that Kaspersky assessed the earlier
+  Cargo unsigned build-script detection as a false positive. The original vendor
+  correspondence was not independently reviewed. Per the PO, antivirus remained active
+  and no exclusions were made.
+- Native test isolation requires synthetic `MYLIBRARY_DATA_DIR` data and a separate
+  `WEBVIEW2_USER_DATA_FOLDER`; no personal library is used.
+- Package CI is not native macOS/Linux desktop acceptance. No V2 release/tag, signing,
+  updater enablement, Google Books permanent cover download or automatic orphan cleanup.
+
+See [Project Status](PROJECT_STATUS.md), [M2 roadmap](docs/v2/ROADMAP.md) and
+[CQ-02-A test boundaries](docs/testing/cq02a-safe-openlibrary-covers.md).
+
+---
+
 # M2-D webcam ISBN scanning — local implementation candidate
 
 Local Windows evidence recorded on 2026-10-14 for `agent/codex-m2d-webcam-scan`,

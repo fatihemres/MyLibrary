@@ -1,5 +1,17 @@
 # Changelog
 
+## V2 development progress — 2026-10-19 (unreleased)
+
+- M2-A: ISBN/metadata lookup with explicit preview and field-level review.
+- M2-B: Edition/Physical Copy-safe duplicate and import decisions.
+- M2-C: focus-scoped USB HID batch ISBN scanning.
+- M2-D: opt-in local webcam ISBN scanning integrated via [PR #7](https://github.com/fatihemres/MyLibrary/pull/7); Issue #6 closed.
+- CQ-02-A: bounded, safe Open Library ISBN cover acquisition via [PR #11](https://github.com/fatihemres/MyLibrary/pull/11).
+- Windows data-folder opening no longer blocks the data mutex or global UI via [PR #12](https://github.com/fatihemres/MyLibrary/pull/12).
+- See [verification evidence](VERIFICATION.md) for CI, PO Windows observations and automated-test boundaries.
+- **M2 milestone remains OPEN.** M3 implementation, V2 release/tag, signing and updater
+  activation are not authorized by this development changelog.
+
 ## 2.0.0-alpha.1 — V2 foundation (unreleased)
 
 - Closed Milestone 1 on 2026-10-09: final CI run 37884695260 passed all checks, production bundles and artifact uploads on Windows x64, macOS ARM64/Intel and Linux x64 after the official Node 24 action upgrade. Historical billing-lock failures are resolved. Signing/notarization remain unconfigured, updater disabled, and no Milestone 2 work started.

@@ -29,7 +29,9 @@ manual acceptance, signing/notarization, and full accessibility QA are not impli
 - **M2-A — ISBN & Metadata Foundation — CLOSED.** Integrated at `ec661cd0f153540b2fb27784d2642fc01d356f00`; final integration CI run `38120576734` passed all four platforms.
 - **M2-B — Duplicate Intelligence + Edition / Physical Copy Decisions — CLOSED.** Integrated at `f469306b9f8edd720046376fee07f3de913323dc`; final integration CI run `38257915937` passed all four platforms. See [duplicate decisions](../architecture/duplicate-decisions.md).
 - **M2-C — USB HID Barcode Scanner + Batch Scan — CLOSED.** Integrated at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration CI run `38365564445` passed all four platforms. Focus-only keyboard-wedge capture and session queue; see [barcode scanning](../architecture/barcode-scanning.md). M2 remains open.
-- **M2-D — Webcam scanning — implementation candidate.** Explicit Scan Books capture, local decoder and existing review/save flow; see [requirements audit](../testing/m2d-requirements-audit.md). Issue #6 and M2 remain OPEN pending review and integration gates.
+- **M2-D — Webcam scanning — INTEGRATED.** [PR #7](https://github.com/fatihemres/MyLibrary/pull/7) integrated at `25f928c7e915b9fb92ccf0e48e2312ac666530e1` (2026-10-15); [Issue #6](https://github.com/fatihemres/MyLibrary/issues/6) closed. PO observed physical Windows camera scanning; this does not establish macOS/Linux hardware acceptance. Earlier candidate-only reports are historical evidence in [VERIFICATION.md](../../VERIFICATION.md). **Overall M2 remains OPEN pending explicit PO milestone closure.**
+
+- **M2 quality follow-ups (integrated 2026-10-19):** [PR #11](https://github.com/fatihemres/MyLibrary/pull/11) adds safe bounded Open Library ISBN cover acquisition (`625ea3dff84ac138c455e17a24eea0983268999f`); [PR #12](https://github.com/fatihemres/MyLibrary/pull/12) fixes non-blocking data-folder opening (`f4e0d6ecf946bcb23310dc926656b65908c1d3cb`). See [verification evidence](../../VERIFICATION.md) for final push CI and native acceptance boundaries. Neither PR closes M2 or authorizes M3.
 
 - Manual ISBN entry/lookup.
 - USB barcode scanner workflows.

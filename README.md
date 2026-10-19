@@ -1,8 +1,21 @@
 # MyLibrary
 
-This branch is **V2 Milestone 1 / 2.0.0-alpha.1**, an unreleased foundation. The stable V1 source and installer remain at immutable tag/release [v1.0.0](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0). Do not use prerelease builds on your only library copy.
+This branch contains **unreleased V2 development** (`2.0.0-alpha.1` remains the prerelease version identifier, not a published V2 release). The stable V1 source and installer remain at immutable tag/release [v1.0.0](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0). Do not use prerelease builds on your only library copy.
 
 A private Windows desktop catalogue for physical books, built with Tauri 2, React 19, TypeScript, Vite and embedded SQLite. No server, account, Docker, telemetry or cloud database. Production starts with an empty library.
+
+## Current development checkpoint
+
+For the dated exact-SHA checkpoint, accepted PO decisions and verification boundaries, start with
+[Project Status](PROJECT_STATUS.md), [Decision Register](docs/DECISIONS.md) and
+[Verification](VERIFICATION.md). [AGENTS.md](AGENTS.md) is the shared agent contract;
+[ROADMAP](docs/v2/ROADMAP.md) alone controls milestone scope and closure.
+
+As of 2026-10-19, M2-D webcam ISBN scanning was integrated through PR #7, and
+safe Open Library ISBN covers and non-blocking data-folder opening were integrated
+through PR #11 and PR #12. **M2 overall remains OPEN; M3 implementation is not authorized.**
+Future ideas live in [post-V2 discovery](docs/product/post-v2-discovery.md), not the
+approved roadmap. V2 release, signing and updater remain unapproved/disabled.
 
 ## Features
 
@@ -17,7 +30,7 @@ A private Windows desktop catalogue for physical books, built with Tauri 2, Reac
 
 Windows 10/11 x64, WebView2 Runtime, Node.js 22.12+ with npm, Rust stable with the MSVC target, Visual Studio C++ desktop build tools and a Windows SDK. Development used Node 24 and Rust 1.98. SQLite is compiled into the application; it needs no separate installation or service.
 
-Internet is needed to initially download development dependencies and packaging tools. Installed core functionality works offline. Optional, user-requested ISBN lookup is the only product network feature.
+Internet is needed to initially download development dependencies and packaging tools. Installed core functionality works offline. Optional, user-requested ISBN metadata lookup and Open Library cover acquisition use the network.
 
 ## Run
 
@@ -173,7 +186,7 @@ Hover/press, sidebar width, page-heading entrance and dialog entrance transition
 - The interface supports English and Turkish; UI language is separate from the configurable default book language.
 - Open Library and Google Books metadata is optional and can be incomplete. Explicit lookup sends only the ISBN; source-aware selections change the draft, with Save remaining separate. Failure never blocks manual entry. Google Books cover application is deferred. See [M2-A provider architecture](docs/architecture/metadata-providers.md).
 - Reading-session entries preserve multiple reading events; the times-read counter and current state are editable per copy.
-- No permanent Trash purge, encryption, sync, barcode-scanner integration, PDF/HTML export or signed installer is included.
+- No permanent Trash purge, encryption, sync, PDF/HTML export or signed installer is included. USB HID batch scanning and opt-in webcam ISBN scanning are integrated; platform/hardware acceptance limits are recorded in [Verification](VERIFICATION.md).
 - This release targets personal collections and is not benchmarked as an institutional catalogue. It loads a snapshot and refreshes FTS after mutations.
 
 Development/build scripts never push code or library data. Publishing a verified code milestone to the configured GitHub origin requires the owner's explicit request. Runtime libraries, caches, backups and build outputs are excluded from Git.
@@ -186,10 +199,10 @@ The annotated v1.0.0 tag permanently identifies the release source. main holds t
 
 ## V2 foundation
 
-The canonical [shared agent contract](AGENTS.md) and [V2 roadmap](docs/v2/ROADMAP.md) govern future work. M2 — Barcode & Metadata is next; this documentation does not start its implementation.
+The canonical [shared agent contract](AGENTS.md) and [V2 roadmap](docs/v2/ROADMAP.md) govern future work. M2 implementation is in progress; milestone closure and any M3 implementation require separate PO authorization.
 
 Milestone 1 is **CLOSED** as of 2026-10-09. [Final CI run 37884695260](https://github.com/fatihemres/MyLibrary/actions/runs/37884695260) passed on Windows x64, macOS Apple Silicon, macOS Intel and Linux x64. Windows signing and macOS signing/notarization remain unconfigured. The repository is public by owner choice; MyLibrary remains local-first and production user data must never be committed.
 
 English/Turkish UI is selected in Settings → Language & region and persists independently of book language. Schema 2 adds a migration ledger without changing editions/copies. V1 upgrades create a SQLite safety snapshot; V1 ZIP restores migrate staging before replacing live data. Keep a complete V1 ZIP for downgrade. Updates remain unconfigured/inactive and make no background requests.
 
-See [assessment](docs/v2/foundation-assessment.md), [platform](docs/architecture/platform-abstraction.md), [localization](docs/architecture/i18n.md), [migrations](docs/architecture/migrations.md), [provider/update boundaries](docs/architecture/metadata-providers.md), [acceptance cases](docs/testing/v2-acceptance-tests.md) and [platform matrix](docs/testing/v2-platform-matrix.md). Windows, macOS Apple Silicon, macOS Intel and Linux automated checks and packaging now pass; this remains separate from native desktop acceptance. No Milestone 2 feature work is included.
+See [assessment](docs/v2/foundation-assessment.md), [platform](docs/architecture/platform-abstraction.md), [localization](docs/architecture/i18n.md), [migrations](docs/architecture/migrations.md), [provider/update boundaries](docs/architecture/metadata-providers.md), [acceptance cases](docs/testing/v2-acceptance-tests.md) and [platform matrix](docs/testing/v2-platform-matrix.md). Windows, macOS Apple Silicon, macOS Intel and Linux automated checks and packaging now pass; this remains separate from native desktop acceptance. Current M2 work and acceptance evidence are summarized in [Project Status](PROJECT_STATUS.md).

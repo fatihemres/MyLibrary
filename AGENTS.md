@@ -3,6 +3,18 @@
 This is the canonical, tool-neutral instruction file for coding agents working in this repository.
 The owner-approved [V2 roadmap](docs/v2/ROADMAP.md) defines milestone scope.
 
+## First read / project memory
+
+For tasks relying on integration status, verify live `v2` HEAD and relevant PR/Issue/CI evidence
+before relying on dated snapshots.
+Read [PROJECT_STATUS.md](PROJECT_STATUS.md) for the current checkpoint, [docs/DECISIONS.md](docs/DECISIONS.md)
+for PO decisions, [V2 roadmap](docs/v2/ROADMAP.md) for milestone authority, and
+[VERIFICATION.md](VERIFICATION.md) for evidence. Use [ARCHITECTURE.md](ARCHITECTURE.md),
+[versioning](docs/versioning.md), [repository hardening](docs/development/repository-hardening.md)
+and relevant scoped specifications when needed. New ideas in
+[post-V2 discovery](docs/product/post-v2-discovery.md) do **not** authorize work.
+If sources conflict, report the conflict and defer scope or integration to the PO.
+
 ## Scope and Git
 
 - Active V2 work belongs on `v2`. Verify the branch and inspect existing changes before editing;
