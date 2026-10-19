@@ -1,6 +1,6 @@
 # MyLibrary — Decision Register
 
-> **Reconciled on:** 2026-10-20 against repository/GitHub evidence and PO confirmation. The PO confirmed that D-010/D-011 are recorded in the 19 October Master Handoff; that original handoff was not independently reviewed here. A decision's registration date is **not** necessarily its original approval date. Where original decision dates are unclear, do not invent them. The PO is final authority for product scope, milestone closure, integration and releases.
+> **Reconciled on:** 2026-10-20 against repository/GitHub evidence and the supplied PO discovery context. D-010/D-011 preserve the PO discovery directions recorded in the 19 October Master Handoff; that original handoff was not independently reviewed here. This reconciliation date is not a separate PO reapproval date. A decision's registration date is **not** necessarily its original approval date. Where original decision dates are unclear, do not invent them. The PO is final authority for product scope, milestone closure, integration and releases.
 >
 > **Canonical boundaries:** [AGENTS.md](../AGENTS.md) defines agent permissions and safety; [ROADMAP.md](v2/ROADMAP.md) defines milestone scope; [ARCHITECTURE.md](../ARCHITECTURE.md) describes architecture; [repository-hardening.md](development/repository-hardening.md) governs exact-SHA Git workflow; [versioning.md](versioning.md) governs releases. This register records **why/what was decided** and links to those sources; it must not create a competing set of rules.
 
@@ -20,12 +20,12 @@
 
 ## PO discovery directions — not approved implementation scope
 
-The following directions were confirmed by the PO for this documentation task on 2026-10-20. They do not authorize M3 implementation or define an approved schema.
+The following PO discovery directions are recorded in the 19 October Master Handoff. No separate reapproval date is asserted here. They do not authorize M3 implementation or define an approved schema.
 
 | ID | Discovery direction | Rationale / constraint | Source |
 | --- | --- | --- | --- |
-| **D-010** | **M3 discovery direction only:** a Wishlist entry represents not-yet-owned material, never a fake Physical Copy. After explicit acquisition flow it may become Edition/Copy; fulfilled/purchased Wishlist history is retained. Multiple retailer links and currency-aware budget summaries are PO discovery preferences, **not** an approved schema or implementation scope. | Protect ownership semantics and historical purchase intent; separate detailed M3 acceptance decision. | 19 October PO Master Handoff, confirmed by PO on 2026-10-20 (not committed); [roadmap](v2/ROADMAP.md) defines only approved milestone scope |
-| **D-011** | **M3 export direction only:** catalogue export defaults to Library with selectable groups such as Wishlist/Collections when implemented; comprehensive Backup/Restore remains separate from catalogue export. "All Data" needs explicit design review. | Do not mistake a partial export for full recoverability or omit new relationships from backups. | 19 October PO Master Handoff, confirmed by PO on 2026-10-20 (not committed); [architecture](../ARCHITECTURE.md) documents backup integrity |
+| **D-010** | **M3 discovery direction only:** a Wishlist entry represents not-yet-owned material, never a fake Physical Copy. After explicit acquisition flow it may become Edition/Copy; fulfilled/purchased Wishlist history is retained. Multiple retailer links and currency-aware budget summaries are PO discovery preferences, **not** an approved schema or implementation scope. | Protect ownership semantics and historical purchase intent; separate detailed M3 acceptance decision. | 19 October PO Master Handoff (not committed; not independently reviewed here); [roadmap](v2/ROADMAP.md) defines only approved milestone scope |
+| **D-011** | **M3 export direction only:** catalogue export defaults to Library with selectable groups such as Wishlist/Collections when implemented; comprehensive Backup/Restore remains separate from catalogue export. "All Data" needs explicit design review. | Do not mistake a partial export for full recoverability or omit new relationships from backups. | 19 October PO Master Handoff (not committed; not independently reviewed here); [architecture](../ARCHITECTURE.md) documents backup integrity |
 
 ## Open PO decisions — do **not** silently resolve
 

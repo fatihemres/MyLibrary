@@ -22,7 +22,9 @@ The 2026-10-19 integration sequence was `7c54e814554f3ce048f33c3e004c73fa681df76
 → [PR #12](https://github.com/fatihemres/MyLibrary/pull/12)
 (`f4e0d6ecf946bcb23310dc926656b65908c1d3cb`). Git ancestry and GitHub merge SHAs
 match the two exact-SHA fast-forwards; separate authorizations are PO-reported.
-This documentation candidate is not itself integrated by this checkpoint.
+This is the dated pre-integration snapshot for [PR #13](https://github.com/fatihemres/MyLibrary/pull/13):
+as of the 2026-10-20 evidence review, that documentation candidate was not integrated.
+This historical statement does not assert its integration status after that review.
 
 | Area | Status | Remaining gate |
 | --- | --- | --- |

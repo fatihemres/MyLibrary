@@ -94,7 +94,7 @@ Paylaşım ve kişiselleştirme şablonlarının ileride opsiyonel ücretli tema
 
 ## 10 — M3 Discovery'deki PO yönü ve açık kararların sürekliliği
 
-Paket, `MyLibrary_V2_M3_Product_Discovery.pdf` belgesine atıf yapıyor; PDF bu incelemede mevcut değildi, sayfa sayısı ve içeriği bağımsız doğrulanmadı. **Öneri satırları otomatik onay değildir.** PO, aşağıdaki Wishlist/export yönlerinin 19 Ekim Master Handoff'unda kayıtlı olduğunu 20 Ekim 2026 tarihli dokümantasyon talimatında teyit etti. Bunlar M3 implementation kapsamı değil, PO discovery yönüdür:
+Paket, `MyLibrary_V2_M3_Product_Discovery.pdf` belgesine atıf yapıyor; PDF bu incelemede mevcut değildi, sayfa sayısı ve içeriği bağımsız doğrulanmadı. **Öneri satırları otomatik onay değildir.** Aşağıdaki Wishlist/export yönleri 19 Ekim PO Master Handoff'unda kayıtlı discovery yönleri olarak korunur; asıl handoff burada bağımsız incelenmedi ve ayrıca bir yeniden onay tarihi ileri sürülmez. Bunlar M3 implementation kapsamı değil, PO discovery yönüdür:
 
 - Wishlist gerçek ayrı sahip olunmayan kayıt, fake Copy değil. Satın alınca kullanıcı kararıyla Edition/Copy; Wishlist kaydı **Fulfilled/Purchased** olarak arşivlenir ve geçmiş korunur (PO yönü).
 - Birden çok retailer link ve para birimi bazlı bütçe özetinin M3 içinde ele alınması PO tercihi; şema/UX/test ayrıca scoped onay ister.
