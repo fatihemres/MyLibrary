@@ -1,4 +1,15 @@
-# Latest integrated verification checkpoint — 2026-10-19 (reviewed 2026-10-20)
+# Latest integrated verification checkpoint — 2026-10-22 (PR #15)
+
+> Dated GitHub evidence, not a live status feed. Automated CI evidence is distinct from local agent reports and actual desktop/PO acceptance.
+
+- Canonical `v2` HEAD `11f7a767bb24d14139b489ab153b564e9e8a7d48` follows [PR #14](https://github.com/fatihemres/MyLibrary/pull/14) (exact head/merge `6caa620aed95d852a53ed3d413bc59d6f4f8a9f4`) and [PR #15](https://github.com/fatihemres/MyLibrary/pull/15) (exact head/merge `11f7a767bb24d14139b489ab153b564e9e8a7d48`).
+- **Push-triggered** [V2 foundation run 39831918916](https://github.com/fatihemres/MyLibrary/actions/runs/39831918916) succeeded **4/4**: Windows x64, Linux x64, macOS Intel and macOS Apple Silicon. [CodeQL run 39831919123](https://github.com/fatihemres/MyLibrary/actions/runs/39831919123) succeeded **3/3**: Rust, Actions and JavaScript/TypeScript. Verified on GitHub on 2026-10-22 for that SHA. These runs concern integrated documentation, not the uncommitted M2-E candidate or native desktop acceptance.
+- **Local M2-E candidate — PO/Codex-reported only:** `C:\Dev\ML-M2E`, branch `codex/m2e-series-genre`, base `11f7a767bb24d14139b489ab153b564e9e8a7d48`. Codex reported **287 frontend** and **86 Rust** tests passing, plus typecheck/lint/format/frontend-build success. Reports were shared via PO screenshots; raw logs and the final native build were not independently verified. Independent code review and isolated native Windows desktop verification remain outstanding. No M2-E commit, PR or integration is claimed.
+- Real personal library data must not be used for tests: preserve synthetic `MYLIBRARY_DATA_DIR` and a separate WebView2 profile. M2 remains OPEN.
+
+---
+
+# Historical integrated verification checkpoint — 2026-10-19 (reviewed 2026-10-20)
 
 > **Integration evidence was rechecked on GitHub on 2026-10-20.** PO manual observations
 > and separate integration authorizations are attributed to the PO handoff and confirmation;

@@ -1,6 +1,6 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-22** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Latest integrated checkpoint: 2026-10-22, PR #15** (see below). Dated evidence, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
@@ -16,7 +16,15 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Checkpoint 2026-10-22
+## Latest integrated checkpoint — 2026-10-22 (PR #15)
+
+- GitHub `v2` HEAD was verified at `11f7a767bb24d14139b489ab153b564e9e8a7d48`. [PR #14](https://github.com/fatihemres/MyLibrary/pull/14) integrated project-memory updates at exact head/merge SHA `6caa620aed95d852a53ed3d413bc59d6f4f8a9f4`; [PR #15](https://github.com/fatihemres/MyLibrary/pull/15) integrated the idea register and founding-decision origins at exact head/merge SHA `11f7a767bb24d14139b489ab153b564e9e8a7d48`. Both integrations concerned documentation, not new feature acceptance.
+- Latest **push-triggered** [V2 foundation run 39831918916](https://github.com/fatihemres/MyLibrary/actions/runs/39831918916) passed **4/4** jobs (Windows x64, Linux x64, macOS Intel and Apple Silicon); [CodeQL run 39831919123](https://github.com/fatihemres/MyLibrary/actions/runs/39831919123) passed **3/3** analyses (Rust, Actions, JavaScript/TypeScript). Verified on 2026-10-22 against the exact SHA.
+- At this dated live check, remote branches were only `main`, `v1-maintenance` and `v2`, with no open PR or Issue.
+- **M2-E: PO-authorized local implementation on 2026-10-22, NOT integrated.** The PO reports an uncommitted Codex candidate in `C:\Dev\ML-M2E` on `codex/m2e-series-genre`, based on `11f7a767bb24d14139b489ab153b564e9e8a7d48`. Codex reports 287 frontend and 86 Rust tests passing; local diff and raw test logs were not independently verified in this documentation task. Independent review and isolated native Windows desktop verification remain outstanding. No candidate-code commit, push, PR or integration is authorized by this note. The path is a PO-reported local pointer, not a GitHub artifact.
+- **M2-F remains PLANNED/unimplemented; M2 overall remains OPEN.** No milestone closure, M3 implementation, release or signing/updater change is authorized.
+
+## Checkpoint 2026-10-22 (historical — PR #13)
 
 - GitHub `v2` was verified on 2026-10-22 (GitHub API) at `96b87461f4b3fb75861156d802bcfde0d2f47fc0`,
   the head and merge SHA of [PR #13](https://github.com/fatihemres/MyLibrary/pull/13)

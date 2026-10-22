@@ -15,6 +15,13 @@ and relevant scoped specifications when needed. New ideas in
 [post-V2 discovery](docs/product/post-v2-discovery.md) do **not** authorize work.
 If sources conflict, report the conflict and defer scope or integration to the PO.
 
+Dated ChatGPT handoffs and retired project-setup checklists are historical context, not a second
+current-state ledger; do not regenerate them for every PR or conversation. New explicit PO
+decisions remain authoritative before they reach the repository; surface unrecorded decisions
+and obtain scoped permission before recording them through a repository change. Local uncommitted
+candidates must be identified by branch, worktree, base SHA and attributed test evidence,
+and explicitly marked **not integrated** until independently verified and authorized.
+
 ## Scope and Git
 
 - Active V2 work belongs on `v2`. Verify the branch and inspect existing changes before editing;
