@@ -1,6 +1,6 @@
 # MyLibrary — Kurucu 'Masaüstü Kütüphane Uygulaması' Sohbeti Köken/Karar Eki
 
-**22 Ekim 2026 · Tarihsel rekonstrüksiyon, tam sohbet transkripti değildir.** Bu belgedeki ürün yönleri [karar defterini](../DECISIONS.md) veya [roadmap'i](../v2/ROADMAP.md) değiştirmez; tarihsel bağlam ve köken açıklamasıdır. Bu ek, ilk büyük sohbetten erişilen kişisel geçmiş özetlerini, 19 Ekim Master Handoff'u ve 56 sayfalık M3 discovery'nin öneri/PO tercih ayrımını çapraz referanslar. Her alıntı birebir mesajdan olmadığı sürece birebir alıntı olarak sunulmaz. Çatışmada sonraki açık PO kararı ve canlı repo sözleşmesi geçerlidir.
+**22 Ekim 2026 · Tarihsel rekonstrüksiyon, tam sohbet transkripti değildir.** Bu belgedeki ürün yönleri [karar defterini](../DECISIONS.md) veya [roadmap'i](../v2/ROADMAP.md) değiştirmez; tarihsel bağlam ve köken açıklamasıdır. Bu ek, ilk büyük sohbetten erişilen kişisel geçmiş özetlerini, 19 Ekim Master Handoff'u ve PO tarafından aktarılan M3 discovery bağlamındaki öneri/PO tercih ayrımını çapraz referanslar. Discovery PDF'nin sayfa sayısı ve özgün içeriği bu tarihsel kayıtta bağımsız doğrulanmamıştır. Her alıntı birebir mesajdan olmadığı sürece birebir alıntı olarak sunulmaz. Çatışmada sonraki açık PO kararı ve canlı repo sözleşmesi geçerlidir.
 
 ## A. Kalıcı ürün omurgası
 
@@ -22,7 +22,7 @@
 | Tarihsel Visual Shelves direction | Room > Bookcase > Shelf üstünde **2D cover + typographic spine**; ağır 3D yerine erişilebilir/performatif UX | PO ürün yönü; ilk ekranın UX/acceptance ayrıntıları hâlâ planlanmalı |
 | M3 PDF'deki **PO-04** | Cover/spine'ın ilk teslimat kapsamı ve sınırları | Çalışma önerisi/açık detay; tarihsel yönü sessizce iptal etmez |
 | Wishlist ownership | Sahip olunmayan kayıt, sahte Physical Copy üretmez; explicit acquisition, Fulfilled/Purchased geçmişi | PO yönü; şema/uygulama ayrıca onaylanmalı |
-| Retailer/bütçe | Birden fazla satıcı bağlantısı + para birimi bazlı bütçe yaklaşımı | PO tercih yönü; PDF'nin minimal single-link önerisi PO kararı değil |
+| Retailer/bütçe | Birden fazla satıcı bağlantısı + para birimi bazlı bütçe yaklaşımı | PO tercih yönü; Discovery PDF'deki alternatif öneriler bu kayıtta bağımsız doğrulanmış sayılmaz |
 | Katalog export | Varsayılan Library, seçilebilir Wishlist/Collections; All Data açık; tam Backup/Restore farklı | PO yönü; kapsamlı restore doğrulaması zorunlu |
 
 **Karar kaydı notu:** [docs/DECISIONS.md](../DECISIONS.md) içinde D-017/D-018/D-019 kayıtları bu farklı anlamları ayrı tutar; PDF'deki PO-03/PO-04 etiketleri sadece araştırma soru ID'si olarak gösterilmeli. Tarihi bilinmeyen bir PO kararına tarih uydurulmamalı.
