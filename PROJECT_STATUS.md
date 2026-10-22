@@ -1,7 +1,8 @@
 # MyLibrary — Project Status
 
-> **Evidence review: 2026-10-20.** Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-22** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
+> The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
 ## Sources of truth
 
@@ -13,7 +14,28 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current integrated checkpoint
+## Checkpoint 2026-10-22
+
+- GitHub `v2` was verified on 2026-10-22 (GitHub API) at `96b87461f4b3fb75861156d802bcfde0d2f47fc0`,
+  the head and merge SHA of [PR #13](https://github.com/fatihemres/MyLibrary/pull/13)
+  (`docs: reconcile project memory and integrated M2 evidence`, merged 2026-10-19T22:07:53Z).
+  Passed on that SHA: push `V2 foundation` run 39332737260 and CodeQL run 39332737353; PR runs
+  39327208978 and 39327208945. Per-platform job detail was not re-inspected in this update.
+- **Chronology:** GitHub records the PR #13 merge at `2026-10-19T22:07:53Z`, which is
+  2026-10-20 01:07:53 in Türkiye (UTC+3). The 2026-10-20 snapshot below states that PR #13 was
+  not yet integrated "as of the evidence review"; the exact time of that review is not recorded,
+  so no ordering relative to the merge is asserted. That text is preserved unchanged as history.
+- M2 overall remains **OPEN**. **M2-E** (Series & Genre Metadata Enrichment) and **M2-F**
+  (Optional Scan-to-Lookup) are PLANNED; neither is implemented or authorized. See
+  [ROADMAP](docs/v2/ROADMAP.md) and [D-012..D-021](docs/DECISIONS.md). Roadmap placement is not
+  implementation authorization.
+- Camera performance work is **parked** by PO decision D-014; M2-D webcam scanning stays integrated.
+  Local candidates such as `codex/m2d-camera-ux` / `codex/m2d-camera-performance` are not integrated.
+- The PO's 2026-10-22 physical Windows observations are PO-reported; see [VERIFICATION.md](VERIFICATION.md).
+- The local checkout `v2` was at `7c54e81` (behind `origin/v2`) when this checkpoint was prepared;
+  this documentation branch is based on `96b8746`.
+
+## Integrated checkpoint of 2026-10-20 (historical)
 
 GitHub `v2` was verified at `f4e0d6ecf946bcb23310dc926656b65908c1d3cb` on 2026-10-20.
 The 2026-10-19 integration sequence was `7c54e814554f3ce048f33c3e004c73fa681df767`

@@ -99,7 +99,8 @@ Paket, `MyLibrary_V2_M3_Product_Discovery.pdf` belgesine atıf yapıyor; PDF bu 
 - Wishlist gerçek ayrı sahip olunmayan kayıt, fake Copy değil. Satın alınca kullanıcı kararıyla Edition/Copy; Wishlist kaydı **Fulfilled/Purchased** olarak arşivlenir ve geçmiş korunur (PO yönü).
 - Birden çok retailer link ve para birimi bazlı bütçe özetinin M3 içinde ele alınması PO tercihi; şema/UX/test ayrıca scoped onay ister.
 - Katalog export varsayılan **Library**; kullanıcı Wishlist/Collections gibi grupları seçebilir; **All Data** opsiyonu araştırılır. Tam Backup ≠ katalog export.
-- Paketin PDF'ye atfettiği PO-03 (wishlist ögeleri manual collection üyesi olabilir mi?), PO-04 (Visual Shelf cover/spine kapsamı) ve schema/UX önerileri PO teyidi gerektirir; pdf'deki “recommended default” kullanıcı onayı yerine geçmez.
+- Paketin PDF'ye atfettiği PO-03 (wishlist ögeleri manual collection üyesi olabilir mi?), PO-04 (Visual Shelf **ilk teslimatın** kesin kapsamı) ve schema/UX önerileri PO teyidi gerektirir; pdf'deki “recommended default” kullanıcı onayı yerine geçmez.
+- **Ayrım (tarihsel PO yönleri, onaylı şema değil):** 19 Ekim Master Handoff'a göre Manual Collections Edition üyeliğini ve gerekirse özellikle seçilmiş bir Physical Copy üyeliğini desteklemelidir ([D-017](../DECISIONS.md)); bu, PO-03'teki *Wishlist* üyeliği sorusundan farklıdır ve PO-03 kimliği yeniden kullanılmaz. Visual Shelves için Room → Bookcase → Shelf, 2D kapak ve tipografik sırt yönü ([D-018](../DECISIONS.md)) tarihsel tasarım yönüdür; PO-04'ün ilk teslimat kapsamı sorusu açık kalır. Kaynak: Master Handoff, PO tarafından aktarıldı; bağımsız incelenmedi, birebir alıntı veya onay tarihi iddia edilmez. M3 uygulaması onaylı değildir.
 - M3 başlangıcı henüz onaylanmadı. M2 resmi kapanış kararı ayrı.
 
 ## 11 — Yalnızca aday sıraya koyma (öncelik/roadmap kararı değil)
@@ -115,3 +116,9 @@ Araştırmada tartışılan doğal veri bağımlılığı: `[Sade/Gelişmiş ke�
 - Card templates içinde öncelik Top5 mi, yıllık özet mi, kitap önerim mi?
 - Premium şablonlar için hiç gelir modeli araştırmasına girilsin mi?
 - Bu fikirler V2 sonrasının hangi ürünü/sürümü için değerlendirilir? **Henüz karar yok**.
+
+## 13 — Yerleşim / durum referansı (22 Ekim 2026)
+
+Bu belge hâlâ onaylı kapsam değildir. PO'nun 22 Ekim 2026 roadmap yerleşimleri [ROADMAP.md](../v2/ROADMAP.md) ve [DECISIONS.md](../DECISIONS.md) (D-012..D-021) içinde kayıtlıdır: **M2-E** Series & Genre Metadata Enrichment ve **M2-F** Optional Scan-to-Lookup (PLANNED; dilim adları asistan önerisidir); M3 seri organizasyonu ve Advanced Search concise/detailed filtreleri; M5 sınırlı offline PNG kart; M6 küçük TR/EN timestamp lokalizasyon düzeltmeleri. Roadmap yerleşimi uygulama onayı değildir.
+
+V2 sonrasına ertelenenler discovery fikri olarak kalır: uygulamasız telefon→MyLibrary tarama, tam Sade/Gelişmiş UI, yerel okur profili, Reading Garden, başarımlar, gelişmiş paylaşım kartları, premium temalar. Kamera performans çalışması PO kararıyla durdurulmuştur (D-014); teknik ayrıntı burada tekrarlanmaz.

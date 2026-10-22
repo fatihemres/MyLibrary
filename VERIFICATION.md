@@ -479,3 +479,13 @@ The source audit found no analytics, telemetry, remote logging or backend servic
 The desktop harness connects to the real application's WebView2 runtime over loopback. It supplies deterministic responses only to native file pickers; file reads/writes and database operations are real. Native file-picker interaction, NSIS install/uninstall and live Open Library responses were not exercised. The installer is unsigned. Large-collection performance and crash/power-loss restoration behavior are not certified; see README for operational limits.
 
 The owner approved this codebase as stable MyLibrary v1.0.0 on 2026-10-08 after manual acceptance testing. All checks above were rerun for release preparation; only release documentation changed from the approved product source. The annotated v1.0.0 tag freezes this source and evidence. See docs/testing/v1.0.0-acceptance-tests.md for stable test IDs and individual coverage limits, and docs/releases/v1.0.0.md for canonical installer details. Publication and branch refs are verified after this document is committed; no V2 product changes are included.
+
+## PO-reported Windows scanner/camera observations — 2026-10-22
+
+**Evidence type: PO-reported physical Windows observation. Not an automated test, not CI.** Tested by the PO on 2026-10-22 on Windows using a **local, unmerged MyLibrary development candidate**, not canonical integrated `v2` at `96b87461f4b3fb75861156d802bcfde0d2f47fc0`. The candidate commit/build was not independently reviewed or recorded here.
+
+- USB barcode scanner: worked reliably; one older/difficult barcode required more effort.
+- Phone used as a webcam: worked very well.
+- Ordinary webcam: recognized easier/larger barcodes; struggled with difficult ones.
+
+Limitations: single PO session, Windows only; no macOS/Linux hardware evidence; no barcode counts or success rates recorded; the candidate's camera performance/UX changes are not integrated and are not claimed as verified for `v2`. PO decision D-014 stops further ordinary-webcam optimization; integrated M2-D webcam scanning is preserved. All earlier reports above are unchanged.

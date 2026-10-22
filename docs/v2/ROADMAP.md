@@ -33,6 +33,12 @@ manual acceptance, signing/notarization, and full accessibility QA are not impli
 
 - **M2 quality follow-ups (integrated 2026-10-19):** [PR #11](https://github.com/fatihemres/MyLibrary/pull/11) adds safe bounded Open Library ISBN cover acquisition (`625ea3dff84ac138c455e17a24eea0983268999f`); [PR #12](https://github.com/fatihemres/MyLibrary/pull/12) fixes non-blocking data-folder opening (`f4e0d6ecf946bcb23310dc926656b65908c1d3cb`). See [verification evidence](../../VERIFICATION.md) for final push CI and native acceptance boundaries. Neither PR closes M2 or authorizes M3.
 
+- **M2-D camera decision (PO, 2026-10-22):** further ordinary-webcam image-quality, resolution and decoder-performance experiments are stopped; no additional camera-optimization effort is planned. The integrated M2-D webcam feature is preserved. Unmerged local performance/UX candidates are **not** integrated, and this does not establish acceptance on all platforms. See [VERIFICATION.md](../../VERIFICATION.md) and [DECISIONS.md](../DECISIONS.md).
+
+- **M2-E — Series & Genre Metadata Enrichment — PLANNED.** *Roadmap placement only; implementation needs separate PO authorization.* During the existing user-initiated ISBN metadata lookup, offer: series name when supported by reliable provider data; series volume/order when reliably available; genre suggestions from Open Library / Google Books metadata. Preserve source provenance, field-level preview, explicit Apply and separate Save. Never overwrite existing user values without approval. No new metadata fields beyond series/order/genre (e.g. weight, dimensions, translators, edition information are out of scope); currently implemented metadata fields are preserved. No Work table, title-based merging, invented series assignments or silent record changes.
+- **M2-F — Optional Scan-to-Lookup — PLANNED.** *Roadmap placement only; implementation needs separate PO authorization.* When the user explicitly selects an ISBN scanning + metadata lookup workflow, USB HID or webcam scanning may open the existing metadata preview without requiring a second lookup click. Regular scanning stays offline-only. No automatic background network access, bulk provider-request fan-out, silent metadata application or automatic saving.
+- *Provenance:* inclusion of M2-E/M2-F in V2 is an accepted PO planning direction; the slice names "M2-E"/"M2-F" and their ordering are assistant-proposed pending PO confirmation. See [D-012/D-013](../DECISIONS.md).
+
 - Manual ISBN entry/lookup.
 - USB barcode scanner workflows.
 - Webcam barcode scanning where supported.
@@ -53,7 +59,11 @@ Existing optional lookup and M1 provider boundaries are foundations, not proof t
 - Manual collections.
 - Wishlist.
 - Advanced search.
+- *(Planned addition)* Assisted series organization for existing independent Edition records, requiring explicit user confirmation.
+- *(Planned addition)* Concise versus detailed filters within Advanced Search. A complete Simple/Advanced application redesign is **not** part of M3.
 - Visual shelves.
+
+*Historical PO directions (19 October Master Handoff; not approved schemas, no M3 implementation authorization; see [D-010, D-017, D-018](../DECISIONS.md)):* Manual Collections may hold Editions and, when necessary, a specifically selected Physical Copy; Visual Shelves follow Room → Bookcase → Shelf with 2D covers and typographic spines; Wishlist stays separate from owned Physical Copies.
 
 ## M4 — Reading Intelligence — PLANNED
 
@@ -71,6 +81,7 @@ Existing optional lookup and M1 provider boundaries are foundations, not proof t
 - PDF/HTML catalogue and reporting.
 - Backup V2.
 - Optional proven encryption.
+- *(Planned addition)* Limited offline PNG card generated from manually selected books, with an explicit privacy preview. No automatic social posting, personal-information export, or advanced Wrapped/profile features.
 
 ## M6 — Cross-platform Productization — PLANNED
 
@@ -80,6 +91,11 @@ Existing optional lookup and M1 provider boundaries are foundations, not proof t
 - Platform QA.
 - Accessibility QA.
 - Packaging and release-candidate work.
+- *(Planned addition)* Small outstanding TR/EN book-detail timestamp localization fixes, if not already addressed.
+
+## After V2 — deferred discovery ideas (not roadmap scope)
+
+App-free phone-to-MyLibrary scanning, full Simple/Advanced UI, local reader profile, Reading Garden, achievements, advanced sharing cards and premium themes remain deferred discovery ideas; see [post-V2 discovery](../product/post-v2-discovery.md).
 
 ## Cross-cutting requirements
 
