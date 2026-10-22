@@ -11,6 +11,8 @@
 - [V2 roadmap](docs/v2/ROADMAP.md): approved milestone scope and closure.
 - [VERIFICATION.md](VERIFICATION.md): CI, automated tests and attributed manual observations.
 - [Post-V2 discovery](docs/product/post-v2-discovery.md): unapproved ideas, not implementation scope.
+- [Idea Register](docs/product/idea-register.md): preserved idea IDs and their status; not implementation scope.
+- [Founding decision origins](docs/product/founding-decision-origins.md): qualified historical directions, not new approvals.
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
