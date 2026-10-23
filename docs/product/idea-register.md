@@ -127,7 +127,7 @@ Teknik araştırma ve test sonuçları fikir defterine geri taşınmaz.
 - **M2 genel OPEN**, M3–M6 uygulamaya alınmamış durumda. Bu fikir kaydı kod, veri migrasyonu, yeni ağ izni, milestone kapanışı, PR entegrasyonu veya yayın onayı oluşturmaz.
 
 Teknik denemeler ve gerçek donanım günlükleri fikir kaydına aktarılmadı; ayrı araştırma/doğrulama arşivinde kalır.
- 
+
 ## 23 Ekim 2026 — M2-E entegrasyonu ve açık takipler (güncel durum)
 
 Bu bölüm önceki 22 Ekim planlama kayıtlarını **tarihsel kayıtlar** olarak korur;
