@@ -702,7 +702,7 @@
   "scanner.capture": "Capture",
   "scanner.copyAction": "Scan copy barcode",
   "scanner.copyHelp": "Fills only this physical copy’s barcode. It does not select an edition or save the copy.",
-  "scanner.help": "Scan or type an ISBN, then review a new book draft. Scanning works offline; metadata lookup stays optional and manual.",
+  "scanner.help": "Scan or type an ISBN, then review a new book draft. ISBN-only scanning stays offline by default.",
   "scanner.mode": "Scan mode",
   "scanner.single": "Single",
   "scanner.batch": "Batch",
@@ -730,7 +730,7 @@
   "scanner.close": "Close scanning",
   "camera.open": "Scan with camera",
   "camera.title": "Scan a book ISBN with camera",
-  "camera.help": "Read one book EAN-13 barcode. Camera frames stay on this device. Review and Save remain separate; no metadata is requested.",
+  "camera.help": "Read one book EAN-13 barcode. Camera frames stay on this device. The selected Scan Books workflow controls online lookup after capture ends; Apply and Save remain separate.",
   "camera.preview": "Live camera preview",
   "camera.loading": "Preparing the local barcode reader…",
   "camera.requesting": "Waiting for camera permission…",
@@ -756,5 +756,9 @@
   "metadata.noSeriesOrder": "No reliable order linked to a confirmed series name is available from these responses. Your order is kept unchanged.",
   "metadata.genreSuggestions": "Genre suggestions",
   "metadata.genreHelp": "Optional suggestions, not verified classifications. Choose individually to add to your genres. Existing values are kept; subjects below are informational.",
-  "metadata.noGenres": "No qualifying genre suggestions."
+  "metadata.noGenres": "No qualifying genre suggestions.",
+  "scanner.workflow": "After scanning",
+  "scanner.isbnOnly": "Scan ISBN only",
+  "scanner.withLookup": "Scan and look up book details",
+  "scanner.lookupHelp": "Online lookup sends the ISBN to Open Library and Google Books. In batch mode, lookup starts only when you choose Review & add. Review suggestions, Apply, then Save separately. The workflow is locked while the queue has entries."
 }

@@ -23,14 +23,42 @@ const report = {
   checks: [],
   errors: [],
   network: [],
+  blockedNativeRequests: 0,
+  nativeGuardVerified: false,
 };
+// Child-process-only rejection proxy: never resolve, connect to or forward an upstream host.
+// Fetch mocks are not a network boundary: Tauri can fall back to native postMessage IPC.
+const nativeGuard = createServer((socket) => {
+  socket.on('error', () => {});
+  socket.setTimeout(5000, () => socket.destroy());
+  socket.once('data', () => {
+    report.blockedNativeRequests++;
+    socket.end('HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
+  });
+});
+nativeGuard.listen(0, '127.0.0.1');
+await once(nativeGuard, 'listening');
+const nativeProxy = `http://127.0.0.1:${nativeGuard.address().port}`;
+const childEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !/^(https?|all|no)_proxy$/i.test(key)),
+);
 let processHandle, browser, page;
 let profileInitialized = false;
 const acceptDialogs = true;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function check(name, fn) {
   if (process.env.MYLIBRARY_DESKTOP_FOCUS === 'camera' && !name.startsWith('M2-D')) return;
+  const blockedBefore = report.blockedNativeRequests;
   await fn();
+  if (
+    report.nativeGuardVerified &&
+    name !== 'M2-F native network guard blocks missing provider mocks'
+  )
+    assert.equal(
+      report.blockedNativeRequests,
+      blockedBefore,
+      'Provider fixture reached native HTTP',
+    );
   report.checks.push(name);
   console.log(`PASS ${name}`);
 }
@@ -82,7 +110,11 @@ async function launch(language = 'en') {
     windowsHide: true,
     stdio: 'ignore',
     env: {
-      ...process.env,
+      ...childEnv,
+      HTTP_PROXY: nativeProxy,
+      HTTPS_PROXY: nativeProxy,
+      ALL_PROXY: nativeProxy,
+      NO_PROXY: '127.0.0.1,localhost,tauri.localhost,ipc.localhost,asset.localhost',
       MYLIBRARY_DATA_DIR: dataDir,
       WEBVIEW2_USER_DATA_FOLDER: join(runDir, 'webview'),
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port} --remote-debugging-address=127.0.0.1`,
@@ -216,6 +248,28 @@ try {
       animations: 'disabled',
       path: join(runDir, 'dashboard-navigation.png'),
     });
+  });
+  await check('M2-F native network guard blocks missing provider mocks', async () => {
+    // Deliberately bypass all provider fixtures; both real native clients must fail locally.
+    const results = await page.evaluate(() =>
+      Promise.all(
+        ['isbn_lookup', 'google_books_lookup'].map(async (command) => {
+          try {
+            await window.__TAURI_INTERNALS__.invoke(command, { isbn: '9780306406157' });
+            return 'unexpected success';
+          } catch (error) {
+            return String(error);
+          }
+        }),
+      ),
+    );
+    assert.deepEqual(results, ['metadata.unavailable', 'metadata.unavailable']);
+    assert.equal(
+      report.blockedNativeRequests,
+      2,
+      'Both native clients must use the rejection proxy',
+    );
+    report.nativeGuardVerified = true;
   });
   await check(
     'M2-A explicit lookup, validation, source selection, draft safety and provider failure',
@@ -2342,6 +2396,257 @@ try {
     },
   );
   await check(
+    'M2-F opt-in camera lookup follows capture cleanup and preserves cancellation',
+    async () => {
+      await nav('Dashboard');
+      await page.evaluate(() => {
+        window.__scanLookup = { calls: [], mode: 'both', pending: [] };
+        // Native Tauri defines invoke as non-writable; intercept its IPC transport instead.
+        window.__scanOriginalFetch = window.fetch.bind(window);
+        window.fetch = async (url, options) => {
+          const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
+          if (!['isbn_lookup', 'google_books_lookup'].includes(command))
+            return window.__scanOriginalFetch(url, options);
+          const args = JSON.parse(options.body);
+          const test = window.__scanLookup;
+          test.calls.push({
+            command,
+            isbn: args.isbn,
+            cameraOpen: !!document.querySelector('video'),
+            stopped: window.__cameraTest.stopped,
+          });
+          if (test.mode === 'delayed') await new Promise((resolve) => test.pending.push(resolve));
+          const failed =
+            test.mode === 'offline' ||
+            (test.mode === 'partial' && command === 'google_books_lookup');
+          // Native 429 maps to this stable error, not raw JSON.
+          const value = failed
+            ? 'metadata.unavailable'
+            : command === 'isbn_lookup'
+              ? { title: 'M2F synthetic ' + args.isbn, subjects: [{ name: 'Fiction' }] }
+              : {
+                  items: [
+                    {
+                      volumeInfo: {
+                        title: 'M2F Google',
+                        industryIdentifiers: [{ type: 'ISBN_13', identifier: args.isbn }],
+                      },
+                    },
+                  ],
+                };
+          return new Response(JSON.stringify(value), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Tauri-Response': failed ? 'error' : 'ok',
+            },
+          });
+        };
+        window.__cameraTest.mode = 'valid';
+      });
+      const before = await snapshot();
+      await button('Scan books').click();
+      const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+      assert(await scan.getByLabel('Scan ISBN only', { exact: true }).isChecked());
+      await scan.getByLabel('Scan and look up book details', { exact: true }).focus();
+      await page.keyboard.press('Space');
+      const stopped = await page.evaluate(() => window.__cameraTest.stopped);
+      await button('Scan with camera', scan).click();
+      const preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+      await preview.waitFor();
+      const calls = await page.evaluate(() => window.__scanLookup.calls);
+      assert.equal(calls.length, 2);
+      assert(calls.every((c) => !c.cameraOpen && c.stopped > stopped));
+      assert.equal(await scan.locator('.scan-queue > li').count(), 1);
+      assert(await scan.getByLabel('Scan ISBN only', { exact: true }).isDisabled());
+      const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      assert.equal(await editor.getByLabel('Title *', { exact: true }).inputValue(), '');
+      assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+      await button('Cancel', preview).click();
+      await button('Cancel', editor).click();
+      await editor.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.activeElement?.textContent === 'Review & add');
+      assert.equal(await scan.getByText('Ready for review', { exact: true }).count(), 1);
+      assertDomainUnchanged(await snapshot(), before);
+      await button('Remove scan', scan).click();
+      await page.evaluate(() => {
+        window.__cameraTest.mode = 'blank';
+      });
+      await button('Scan with camera', scan).click();
+      const camera = page.getByRole('dialog', {
+        name: 'Scan a book ISBN with camera',
+        exact: true,
+      });
+      await button('Cancel camera', camera).click();
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 2);
+      await button('Close scanning', scan).click();
+    },
+  );
+  await check(
+    'M2-F USB single opt-in, 979, partial failure, retry and section remount',
+    async () => {
+      await page.evaluate(() => {
+        window.__scanLookup.calls = [];
+        window.__scanLookup.mode = 'partial';
+      });
+      const before = await snapshot();
+      await button('Scan books').click();
+      const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+      await scan.getByLabel('Scan and look up book details', { exact: true }).check();
+      const input = scan.getByLabel('Scanner input', { exact: true });
+      for (const value of ['9780306406158', '4006381333931']) {
+        await input.fill(value);
+        await input.press('Enter');
+        assert(await button('Review & add', scan).isDisabled());
+        assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 0);
+        await button('Remove scan', scan).click();
+      }
+      await input.fill('9791090636071');
+      await input.press('Enter');
+      const preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+      const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      await preview.waitFor();
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 2);
+      assert.equal(await editor.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+      await button('Cancel', preview).click();
+      await button('Publication', editor).click();
+      await button('General', editor).click();
+      await sleep(100);
+      assert.equal(await preview.count(), 0);
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 2);
+      await editor.getByLabel('Title *', { exact: true }).fill('Manual M2F protected');
+      await button('Look up ISBN online…', editor).click();
+      await preview.waitFor();
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 4);
+      await button('Cancel', preview).click();
+      assert.equal(
+        await editor.getByLabel('Title *', { exact: true }).inputValue(),
+        'Manual M2F protected',
+      );
+      await button('Cancel', editor).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await editor.waitFor({ state: 'hidden' });
+      assertDomainUnchanged(await snapshot(), before);
+      await button('Remove scan', scan).click();
+      await button('Close scanning', scan).click();
+    },
+  );
+  await check(
+    'M2-F batch is offline until review; repeated rows, latest duplicates and delayed dismissal',
+    async () => {
+      await page.evaluate(() => {
+        window.__scanLookup.calls = [];
+        window.__scanLookup.mode = 'both';
+      });
+      const before = await snapshot();
+      await button('Scan books').click();
+      const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+      await scan.getByLabel('Batch', { exact: true }).check();
+      await scan.getByLabel('Scan and look up book details', { exact: true }).check();
+      const input = scan.getByLabel('Scanner input', { exact: true });
+      for (const value of ['9791090636071', '9791090636071', '4006381333931']) {
+        await input.fill(value);
+        await input.press('Enter');
+      }
+      const rows = scan.locator('.scan-queue > li');
+      assert.equal(await rows.count(), 3);
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 0);
+      const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      const preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+      await button('Review & add', rows.nth(0)).click();
+      await preview.waitFor();
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 2);
+      await preview
+        .getByRole('group', { name: 'Title', exact: true })
+        .getByRole('radio', { name: /Open Library/ })
+        .check();
+      await button('Apply selected fields', preview).click();
+      assertDomainUnchanged(await snapshot(), before);
+      await button('Save book', editor).click();
+      await editor.waitFor({ state: 'hidden' });
+      const saved = await until(
+        (s) => s.books.length === before.books.length + 1,
+        'M2F explicit Save',
+      );
+      assert.equal(await rows.nth(0).getByText('Added to library', { exact: true }).count(), 1);
+      assert.equal(await rows.nth(1).getByText('Ready for review', { exact: true }).count(), 1);
+      await button('Review & add', rows.nth(1)).click();
+      await preview.waitFor();
+      assert.equal(await page.evaluate(() => window.__scanLookup.calls.length), 4);
+      await button('Apply selected fields', preview).click();
+      await button('Save book', editor).click();
+      const resolver = page.getByRole('dialog', {
+        name: 'Review edition and physical copy',
+        exact: true,
+      });
+      await resolver.waitFor();
+      assert.equal(await resolver.locator('input:checked').count(), 0);
+      assert.equal((await snapshot()).books.length, saved.books.length);
+      await button('Cancel', resolver).click();
+      await button('Cancel', editor).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await editor.waitFor({ state: 'hidden' });
+      await page.evaluate(() => {
+        window.__scanLookup.mode = 'delayed';
+      });
+      await button('Review & add', rows.nth(1)).click();
+      await page.waitForFunction(() => window.__scanLookup.pending.length === 2);
+      assert(await button('Save book', editor).isDisabled());
+      await button('Cancel', editor).click();
+      await editor.waitFor({ state: 'hidden' });
+      await page.evaluate(() => {
+        window.__scanLookup.pending.splice(0).forEach((resolve) => resolve());
+      });
+      await sleep(150);
+      assert.equal(await preview.count(), 0);
+      assert.equal(await editor.count(), 0);
+      assertDomainUnchanged(await snapshot(), saved);
+      await page.evaluate(() => {
+        window.__scanLookup.mode = 'offline';
+      });
+      await button('Review & add', rows.nth(1)).click();
+      await preview.waitFor();
+      await button('Cancel', preview).click();
+      assert(!(await button('Save book', editor).isDisabled()));
+      await editor
+        .getByLabel('Title *', { exact: true })
+        .fill('Manual despite unavailable providers');
+      await button('Cancel', editor).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await editor.waitFor({ state: 'hidden' });
+      assert.equal(await rows.nth(1).getByText('Ready for review', { exact: true }).count(), 1);
+      await button('Close scanning', scan).click();
+      await button(
+        'Continue',
+        page.getByRole('dialog', { name: 'Please confirm', exact: true }),
+      ).click();
+      await scan.waitFor({ state: 'hidden' });
+      await nav('Settings');
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await button('Kitap tara').click();
+      const tr = page.getByRole('dialog', { name: 'Kitap tara', exact: true });
+      assert(await tr.getByLabel('Yalnız ISBN tara', { exact: true }).isChecked());
+      await tr.getByLabel('Tara ve kitap bilgilerini ara', { exact: true }).focus();
+      await page.keyboard.press('Space');
+      assert(await tr.getByLabel('Tara ve kitap bilgilerini ara', { exact: true }).isChecked());
+      await button('Taramayı kapat', tr).click();
+      await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+      assertDomainUnchanged(await snapshot(), saved);
+    },
+  );
+  // Release this fixture before the existing M2-E fetch-level provider fixture.
+  await page.evaluate(() => {
+    if (window.__scanOriginalFetch) window.fetch = window.__scanOriginalFetch;
+  });
+  await check(
     'M2-E selected series and genres persist only after separate Save and survive restart',
     async () => {
       await nav('Dashboard');
@@ -2393,6 +2698,11 @@ try {
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
   assert.deepEqual(report.network, [], 'Core workflows must not make network requests');
+  assert.equal(
+    report.blockedNativeRequests,
+    report.nativeGuardVerified ? 2 : 0,
+    'Unexpected native HTTP outside guard self-test',
+  );
   report.passed = true;
   report.executableSha256 = createHash('sha256')
     .update(await readFile(exe))
@@ -2416,5 +2726,6 @@ try {
   report.finished = new Date().toISOString();
   await writeFile(join(runDir, 'report.json'), JSON.stringify(report, null, 2));
   await close();
+  await new Promise((resolve) => nativeGuard.close(resolve));
   console.log(`Verification artifacts: ${runDir}`);
 }

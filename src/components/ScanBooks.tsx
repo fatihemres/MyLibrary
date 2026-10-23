@@ -19,6 +19,8 @@ export function ScanBooks({
   onSaved: () => Promise<void>;
 }) {
   const [batch, setBatch] = useState(false);
+  const [lookupAfterScan, setLookupAfterScan] = useState(false);
+  const [cameraReview, setCameraReview] = useState<ScanItem | null>(null);
   const [queue, setQueue] = useState<ScanItem[]>([]);
   const queueRef = useRef(queue);
   const [editing, setEditing] = useState<ScanItem | null>(null);
@@ -26,15 +28,23 @@ export function ScanBooks({
   const [confirming, setConfirming] = useState(false);
   const [camera, setCamera] = useState(false);
   const body = useRef<HTMLDivElement>(null);
-  const focusReview = useRef(false);
+  const focusReview = useRef<number | null>(null);
   useEffect(() => {
-    if (camera || !focusReview.current) return;
-    focusReview.current = false;
+    // CameraScan's unmount cleanup precedes this next editor render.
+    if (!camera && cameraReview) {
+      setEditing(cameraReview);
+      setCameraReview(null);
+    }
+  }, [camera, cameraReview]);
+  useEffect(() => {
+    if (camera || editing || cameraReview || focusReview.current === null) return;
+    const id = focusReview.current;
+    focusReview.current = null;
     const frame = requestAnimationFrame(() =>
-      body.current?.querySelector<HTMLButtonElement>('.scan-queue li:last-child button')?.focus(),
+      body.current?.querySelector<HTMLButtonElement>(`[data-scan-id="${id}"] button`)?.focus(),
     );
     return () => cancelAnimationFrame(frame);
-  }, [camera]);
+  }, [camera, editing, cameraReview]);
   const replace = (next: ScanItem[]) => {
     queueRef.current = next;
     setQueue(next);
@@ -51,6 +61,20 @@ export function ScanBooks({
       setConfirming(false);
     }
   };
+  const accept = (raw: string, fromCamera = false) => {
+    try {
+      const next = queueScan(queueRef.current, raw, fromCamera ? 'enter' : terminator);
+      replace(next);
+      setError('');
+      const row = next[next.length - 1];
+      if (!batch && lookupAfterScan && row.isbn) {
+        if (fromCamera) setCameraReview(row);
+        else setEditing(row);
+      } else if (fromCamera && !batch) focusReview.current = row.id;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'scanner.invalid');
+    }
+  };
   const terminator = scannerTerminator(
     data.settings.find((s) => s.key === 'scanner_terminator')?.value,
   );
@@ -58,7 +82,35 @@ export function ScanBooks({
     <Modal title={t('scanner.books')} wide onClose={() => void close()}>
       <div className="dialog-body" ref={body}>
         <p>{t('scanner.help')}</p>
-        <fieldset disabled={queue.length > 0 || confirming} className="inline">
+        <fieldset
+          disabled={queue.length > 0 || confirming || camera || !!editing}
+          className="inline"
+        >
+          <legend>{t('scanner.workflow')}</legend>
+          <label>
+            <input
+              type="radio"
+              name="scan-workflow"
+              checked={!lookupAfterScan}
+              onChange={() => setLookupAfterScan(false)}
+            />
+            {t('scanner.isbnOnly')}
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="scan-workflow"
+              checked={lookupAfterScan}
+              onChange={() => setLookupAfterScan(true)}
+            />
+            {t('scanner.withLookup')}
+          </label>
+        </fieldset>
+        <p>{t('scanner.lookupHelp')}</p>
+        <fieldset
+          disabled={queue.length > 0 || confirming || camera || !!editing}
+          className="inline"
+        >
           <legend>{t('scanner.mode')}</legend>
           <label>
             <input
@@ -75,17 +127,7 @@ export function ScanBooks({
           </label>
         </fieldset>
         {!editing && !confirming && (batch || queue.length === 0) && (
-          <ScannerInput
-            terminator={terminator}
-            onScan={(raw) => {
-              try {
-                replace(queueScan(queueRef.current, raw, terminator));
-                setError('');
-              } catch (e) {
-                setError(e instanceof Error ? e.message : 'scanner.invalid');
-              }
-            }}
-          />
+          <ScannerInput terminator={terminator} onScan={(raw) => accept(raw)} />
         )}
         {error && <p role="alert">{t(error, { count: SCAN_QUEUE_LIMIT })}</p>}
         {!editing && !confirming && (batch || queue.length === 0) && (
@@ -100,7 +142,7 @@ export function ScanBooks({
         <p role="status">{t('scanner.count', { count: queue.length })}</p>
         <ol className="scan-queue">
           {queue.map((row) => (
-            <li key={row.id} className="panel">
+            <li key={row.id} data-scan-id={row.id} className="panel">
               <div>
                 <strong>{row.isbn?.isbn13 || row.raw || t('scanner.empty')}</strong>
                 {row.aim && (
@@ -142,10 +184,14 @@ export function ScanBooks({
         <BookEditor
           key={editing.id}
           seed={editing.isbn}
+          lookupAfterScan={lookupAfterScan}
           protectSession
           data={data}
           quick={false}
-          onClose={() => setEditing(null)}
+          onClose={() => {
+            if (!batch) focusReview.current = editing.id;
+            setEditing(null);
+          }}
           onSaved={async () => {
             await onSaved();
             replace(
@@ -160,14 +206,7 @@ export function ScanBooks({
         <CameraScan
           onClose={() => setCamera(false)}
           onAccepted={(isbn) => {
-            try {
-              replace(queueScan(queueRef.current, isbn.isbn13, 'enter'));
-              setError('');
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'scanner.invalid');
-            }
-            // Restore only after the child dialog's cleanup has completed.
-            focusReview.current = !batch;
+            accept(isbn.isbn13, true);
             setCamera(false);
           }}
         />
