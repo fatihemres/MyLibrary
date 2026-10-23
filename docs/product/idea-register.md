@@ -127,3 +127,42 @@ Teknik araştırma ve test sonuçları fikir defterine geri taşınmaz.
 - **M2 genel OPEN**, M3–M6 uygulamaya alınmamış durumda. Bu fikir kaydı kod, veri migrasyonu, yeni ağ izni, milestone kapanışı, PR entegrasyonu veya yayın onayı oluşturmaz.
 
 Teknik denemeler ve gerçek donanım günlükleri fikir kaydına aktarılmadı; ayrı araştırma/doğrulama arşivinde kalır.
+ 
+## 23 Ekim 2026 — M2-E entegrasyonu ve açık takipler (güncel durum)
+
+Bu bölüm önceki 22 Ekim planlama kayıtlarını **tarihsel kayıtlar** olarak korur;
+IDEA-0007'nin önceki PLANNED ifadesi artık güncel durum değildir. Yeni kapsam veya
+M2/M3 milestone kapanışı yetkisi oluşturmaz.
+
+- **IDEA-0007 / M2-E — ENTEGRE EDİLDİ:** PO, topluluk kaynaklı köşeli parantezli
+  `[series:...]` etiketlerinden yalnız kullanıcı onaylı seri adı ve sınırlı tür
+  önerisini 23 Ekim'de kabul etti. [PR #17](https://github.com/fatihemres/MyLibrary/pull/17)
+  exact SHA `7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef` ile `v2`'ye entegre edildi;
+  son push CI V2 foundation **4/4 PASS**, CodeQL **3/3 PASS**.
+  Güvenilir sıra bilgisi olmadığından cilt numarası uydurulmuyor. Google Books
+  erişilebilirliği, ISBN metadata sağlayıcı hata semantiği ve daha güçlü seri keşfi
+  mevcut teslimatın dışında; yeni ürün/teknik kapsam kararı gerektirir.
+- **Google Books teknik takibi (yeni fikir ID'si değil):** 23 Ekim'de iki açık ISBN
+  denemesinde HTTP **429**, `RESOURCE_EXHAUSTED/rateLimitExceeded` günlük kota hatası
+  gözlendi. Diğer sorgular için genelleme yapılamaz; yeni API anahtarı, fallback
+  sorgusu veya zorunlu ağ kullanımı onaylanmadı. Kanıt [metadata mimarisi](../architecture/metadata-providers.md)
+  ve [doğrulama](../../VERIFICATION.md) belgelerinde.
+- **IDEA-0006 / M3 seriler:** İnce Memed, Monte Cristo ve Sherlock Holmes PO testlerinde
+  yeterli seri önerisi yoktu. Kullanıcının elindeki bağımsız Edition kayıtlarının
+  onaylı seri organizasyonu M3 planlamasında kalır; bu M3 uygulama izni değildir.
+- **IDEA-0008 — Çok ciltli kitap ile fiziksel nüsha önerisini ayırt eden UX (YENİ,
+  KEŞİF / ONAYLANMADI):** PO'nun 23 Ekim çok ciltli kitap deneyiminde aynı takım ISBN'si
+  için "nüsha ekle" seçeneği ile ayrı cilt/Edition oluşturma kararı karışabilir.
+  İhtiyaç, kitap takımını bir birim olarak kataloglama, ayrı cilt Edition oluşturma
+  ve aynı Edition'dan ikinci Physical Copy ekleme yollarının açıklığının incelenmesidir.
+  Exact örnek ISBN'ler ve uyarı sınıfı doğrulanmadı; otomatik birleşme veya
+  doğrulanmış uygulama hatası iddiası yok. Başlık benzerliğinden birleştirme,
+  Work tablosu, ISBN'den cilt parçalayıp otomatik kayıt oluşturma veya kullanıcı
+  kararını atlama yok. Bağımsız bir kapsam/öncelik ve PO uygulama kararı gerekir.
+- **Diğer ertelenenler değişmedi:** IDEA-0001 kamera yönlendirme UX'i ve IDEA-0003
+  webcam kalite optimizasyonu PARKED; IDEA-0002 M2-F yalnız PLANNED; IDEA-0004
+  uygulamasız telefon taraması V2 sonrası keşif. CQ-02-B/C/D/E ve DEV-01 adayları
+  [post-V2 keşif](post-v2-discovery.md) kapsamında ayrı yetki bekler;
+  otomatik eski/yetim kapak silme onaylı değildir.
+
+**Genel M2 OPEN.** Bu kayıt ne M2-F ne M3 geliştirmesini, ne de tag/release işlemlerini başlatır.

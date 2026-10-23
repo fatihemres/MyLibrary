@@ -16,26 +16,36 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current checkpoint — M2-E draft PR preparation, 2026-10-23
+## Current checkpoint — M2-E integrated, 2026-10-23
 
-- Live GitHub `v2` remains `11f7a767bb24d14139b489ab153b564e9e8a7d48`.
-  Documentation [PR #14](https://github.com/fatihemres/MyLibrary/pull/14) integrated at
-  `6caa620aed95d852a53ed3d413bc59d6f4f8a9f4`; [PR #15](https://github.com/fatihemres/MyLibrary/pull/15)
-  at `11f7a767bb24d14139b489ab153b564e9e8a7d48`. PR #16 closed without merge.
-- **M2-E local implementation accepted by PO on 2026-10-23.** Commit, feature-branch push and
-  a draft PR targeting `v2` are authorized and in preparation; integration remains pending and
-  requires separate exact-SHA PO approval. This candidate is not part of live `v2`.
-- Independent static review PASS (PO-reported); Codex automated evidence: 295 frontend / 86 Rust
-  tests and quality/build checks PASS. PO-executed Windows build and isolated smoke: 35/35 PASS;
-  PO manual acceptance covers lookup, genre selection, preservation, Apply/Save, reopening,
-  Cancel and keyboard controls. Evidence and executable hash are in [VERIFICATION](VERIFICATION.md).
-  Existing base CI success does not validate this candidate; draft PR CI must be checked separately.
-- Accepted limits: community series tags offer sparse, fallible name suggestions; no inferred order.
-  Google Books returned HTTP 429 daily-quota rejection in two live probes. Publisher corruption
-  for `9789752444102` is upstream and manually correctable. Richer discovery and Google availability
-  need separate scope decisions. Multi-volume records retain explicit Edition/Copy decisions.
-- **M2 remains OPEN. M2-F and M3 remain PLANNED and unauthorized for implementation.**
-  No integration, release or cleanup authority follows from acceptance or successful CI.
+- GitHub `v2` was verified at `7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef` after PO-authorized
+  [PR #17](https://github.com/fatihemres/MyLibrary/pull/17) integration by **exact-SHA
+  fast-forward** (2026-10-23). GitHub reports the PR as merged with
+  `merge_commit_sha=7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef`. Its sole commit has parent
+  `11f7a767bb24d14139b489ab153b564e9e8a7d48`; no merge commit, squash or rebase.
+  Documentation [PR #14](https://github.com/fatihemres/MyLibrary/pull/14) and
+  [PR #15](https://github.com/fatihemres/MyLibrary/pull/15) were integrated earlier;
+  PR #16 was closed without merge.
+- **Final `v2` push-triggered CI for that exact SHA: 7/7 PASS**:
+  [V2 foundation run 39946788500](https://github.com/fatihemres/MyLibrary/actions/runs/39946788500)
+  (Windows x64, Linux x64, macOS Apple Silicon/Intel 4/4) and
+  [CodeQL run 39946788497](https://github.com/fatihemres/MyLibrary/actions/runs/39946788497)
+  (JavaScript/TypeScript, Rust, Actions 3/3). PR CI on the same candidate also passed 7/7;
+  neither substitutes for native macOS/Linux desktop acceptance.
+- **M2-E was PO-accepted on 2026-10-23 with explicit limitations**, after independent
+  static review and isolated Windows native/manual verification (295 frontend and 86 Rust
+  tests Codex-reported; 35/35 native smoke PO-executed). See
+  [verification evidence](VERIFICATION.md); the candidate's local test artifacts were
+  not committed.
+- **Open follow-ups, not newly authorized work:** Google Books returned HTTP 429 daily
+  quota rejection in two live ISBN probes; community-tag series suggestions are sparse
+  and have no inferred order; multi-volume/one-set-ISBN duplicate messaging needs separate
+  UX discovery. Upstream `Panama Yay?nc?l?k` can be manually corrected.
+  See [metadata provider policy](docs/architecture/metadata-providers.md) and
+  [Idea Register](docs/product/idea-register.md) IDEA-0006/0008.
+- **Overall M2 remains OPEN.** M2-F remains PLANNED / implementation not authorized;
+  M3 and later remain planned. No release, tag, signing, updater activation or cleanup
+  is authorized by M2-E integration.
 
 ## Checkpoint 2026-10-22 (historical)
 

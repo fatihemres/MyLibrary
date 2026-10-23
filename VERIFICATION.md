@@ -1,4 +1,45 @@
-# M2-E accepted local candidate — 2026-10-23
+# M2-E integrated verification — 2026-10-23
+
+This is the **integration checkpoint**, verified against GitHub on 2026-10-23,
+not a claim of Windows/macOS/Linux native manual acceptance.
+
+- **Integrated candidate:** [PR #17](https://github.com/fatihemres/MyLibrary/pull/17),
+  exact `v2` SHA `7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef`; its single commit directly follows
+  `11f7a767bb24d14139b489ab153b564e9e8a7d48`. GitHub reports
+  `merged: true` and `merge_commit_sha=7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef`.
+- **Candidate PR CI (same SHA):** V2 foundation run
+  [39940590129](https://github.com/fatihemres/MyLibrary/actions/runs/39940590129)
+  Windows/Linux/macOS Apple Silicon/macOS Intel **4/4 PASS**; CodeQL run
+  [39940590301](https://github.com/fatihemres/MyLibrary/actions/runs/39940590301)
+  JavaScript-TypeScript/Rust/Actions **3/3 PASS**.
+- **Final post-integration `v2` push CI (same SHA):** V2 foundation
+  [39946788500](https://github.com/fatihemres/MyLibrary/actions/runs/39946788500)
+  **4/4 PASS**; CodeQL
+  [39946788497](https://github.com/fatihemres/MyLibrary/actions/runs/39946788497)
+  **3/3 PASS**. Both workflows completed successfully.
+- **Local and PO evidence:** independent static review PASS; Codex-reported 295 frontend
+  and 86 Rust tests PASS; PO-executed isolated Windows build and 35/35 native desktop
+  smoke PASS; PO manually accepted real Open Library lookup, opt-in genres, draft versus
+  Save, persistence, Cancel and keyboard operation on 2026-10-23. Local report and
+  EXE checksum are preserved in the historical candidate section below; metadata smoke
+  fixtures do not validate provider availability.
+- **Boundaries / deferred:** no macOS/Linux native manual acceptance. Two Google Books
+  live probes received HTTP 429 quota exhaustion; neither supports a claim about every
+  user request. Series suggestions depend on fallible, sparse bracketed Open Library
+  community tags and do not infer volume order. Existing duplicate decisions preserve
+  separate Editions versus Physical Copies; set-level ISBN messaging is a future UX
+  discovery concern, not a confirmed unsafe automatic merge. Source-provided corrupted
+  publisher text is not an established MyLibrary UTF-8 defect.
+- **Authority:** PO accepted the limited M2-E behavior and authorized its integration.
+  This does **not** close overall M2, authorize M2-F or M3, or authorize release/tag,
+  cleanup or further external provider integration.
+
+See [project status](PROJECT_STATUS.md), [D-012](docs/DECISIONS.md),
+[roadmap](docs/v2/ROADMAP.md), and [metadata architecture](docs/architecture/metadata-providers.md).
+
+---
+
+# M2-E accepted local candidate — 2026-10-23 (historical pre-integration evidence)
 
 This is candidate evidence, not integration evidence. The PO accepted the limited M2-E scope
 and authorized commit, feature-branch push and draft PR preparation targeting `v2`.
