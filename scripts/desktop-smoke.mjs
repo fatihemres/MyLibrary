@@ -229,6 +229,9 @@ try {
           const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
           if (['isbn_lookup', 'google_books_lookup'].includes(command)) {
             window.__metadataCalls.push(command);
+            if (window.__metadataMode === 'delayed') {
+              await new Promise((resolve) => window.__metadataPending.push(resolve));
+            }
             const failed =
               window.__metadataMode === 'offline' ||
               (command === 'google_books_lookup' && window.__metadataMode === 'partial');
@@ -237,6 +240,13 @@ try {
               : command === 'isbn_lookup'
                 ? {
                     title: 'Open candidate',
+                    subjects: [
+                      { name: '[series:Synthetic cycle]' },
+                      { name: 'Fiction' },
+                      { name: 'Poetry' },
+                      { name: 'Paris' },
+                    ],
+                    series: ['Publisher classics'],
                     authors: [{ name: 'Open author' }],
                     number_of_pages: 200,
                   }
@@ -245,6 +255,11 @@ try {
                       {
                         volumeInfo: {
                           title: 'Google candidate',
+                          categories: ['Fiction / Historical', 'Drama', 'Science'],
+                          seriesInfo: {
+                            bookDisplayNumber: '2',
+                            volumeSeries: [{ seriesId: 'opaque', orderNumber: 2 }],
+                          },
                           authors: ['Google author'],
                           industryIdentifiers: [{ type: 'ISBN_13', identifier: '9780306406157' }],
                         },
@@ -264,6 +279,9 @@ try {
       await button('Quick add').click();
       const editor = page.getByRole('dialog', { name: 'Quick add', exact: true });
       await editor.getByLabel('Title *', { exact: true }).fill('Manual protected title');
+      await editor
+        .getByLabel('Genres (separate with ;)', { exact: true })
+        .fill('My manual genre; FICTION');
       await editor.getByLabel('ISBN-13', { exact: true }).fill('9780306406158');
       assert.equal(await page.evaluate(() => window.__metadataCalls.length), 0);
       await button('Look up ISBN online…', editor).click();
@@ -290,6 +308,17 @@ try {
         .getByRole('group', { name: 'Title', exact: true })
         .getByRole('radio', { name: /Google Books/ })
         .check();
+      const genres = preview.getByRole('group', { name: 'Genre suggestions', exact: true });
+      assert.equal(await genres.getByRole('checkbox', { checked: true }).count(), 0);
+      const series = preview.getByRole('group', { name: 'Series suggestion', exact: true });
+      assert(await series.getByRole('radio', { name: /Keep current/ }).isChecked());
+      await series.getByRole('radio', { name: 'Synthetic cycle', exact: true }).check();
+      await genres.getByRole('checkbox', { name: 'Poetry', exact: true }).focus();
+      await page.keyboard.press('Space');
+      assert(await genres.getByRole('checkbox', { name: 'Poetry', exact: true }).isChecked());
+      await genres.getByRole('checkbox', { name: 'Fiction', exact: true }).first().check();
+      await genres.getByRole('checkbox', { name: 'Fiction', exact: true }).last().check();
+      assert.equal(await genres.getByRole('checkbox', { name: 'Paris', exact: true }).count(), 0);
       await page.screenshot({ animations: 'disabled', path: join(runDir, 'metadata-preview.png') });
       const metrics = await page.context().newCDPSession(page);
       for (const width of [900, 1280]) {
@@ -327,6 +356,10 @@ try {
         'Open author',
       );
       assert.equal((await snapshot()).books.length, 0);
+      assert.equal(
+        await editor.getByLabel('Genres (separate with ;)', { exact: true }).inputValue(),
+        'My manual genre; FICTION; Poetry',
+      );
       for (const mode of ['partial', 'offline']) {
         await page.evaluate((mode) => {
           window.__metadataMode = mode;
@@ -360,12 +393,76 @@ try {
           await editor.getByLabel('Title *', { exact: true }).fill('Google candidate');
         }
       }
-      await button('Cancel', editor).click();
+      // Pending lookups use the latest draft and disappear safely when their section unmounts.
+      await page.evaluate(() => {
+        window.__metadataMode = 'delayed';
+        window.__metadataPending = [];
+      });
+      await button('Look up ISBN online…', editor).click();
+      await page.waitForFunction(() => window.__metadataPending.length === 2);
+      await editor.getByLabel('Title *', { exact: true }).fill('Edited during request');
+      await editor
+        .getByLabel('Genres (separate with ;)', { exact: true })
+        .fill('Latest manual genre');
+      await page.evaluate(() => window.__metadataPending.splice(0).forEach((resolve) => resolve()));
+      await preview.waitFor();
+      assert(
+        await preview
+          .getByRole('group', { name: 'Title', exact: true })
+          .getByRole('radio', { name: /Keep current/ })
+          .isChecked(),
+      );
+      await preview.getByRole('checkbox', { name: 'Poetry', exact: true }).check();
+      await button('Apply selected fields', preview).click();
+      assert.equal(
+        await editor.getByLabel('Title *', { exact: true }).inputValue(),
+        'Edited during request',
+      );
+      assert.equal(
+        await editor.getByLabel('Genres (separate with ;)', { exact: true }).inputValue(),
+        'Latest manual genre; Poetry',
+      );
+      await button('Look up ISBN online…', editor).click();
+      await page.waitForFunction(() => window.__metadataPending.length === 2);
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('9791090636071');
+      await page.evaluate(() => window.__metadataPending.splice(0).forEach((resolve) => resolve()));
+      await button('Look up ISBN online…', editor).waitFor();
+      await page.waitForFunction(
+        () =>
+          !Array.from(document.querySelectorAll('button')).some((b) =>
+            b.textContent.includes('Looking up'),
+          ),
+      );
+      assert.equal(await preview.count(), 0);
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('9780306406157');
+      await button('Open full editor', editor).click();
+      const fullEditor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+      await button('Classification', fullEditor).click();
+      assert.equal(
+        await fullEditor.getByLabel('Series', { exact: true }).inputValue(),
+        'Synthetic cycle',
+      );
+      assert.equal(
+        await fullEditor.getByLabel('Series volume / order', { exact: true }).inputValue(),
+        '',
+      );
+      await button('General', fullEditor).click();
+      await button('Look up ISBN online…', fullEditor).click();
+      await page.waitForFunction(() => window.__metadataPending.length === 2);
+      await button('Publication', fullEditor).click();
+      await page.evaluate(() => window.__metadataPending.splice(0).forEach((resolve) => resolve()));
+      await button('General', fullEditor).click();
+      assert.equal(await preview.count(), 0);
+      await fullEditor.getByLabel('Title *', { exact: true }).fill('');
+      await page.keyboard.press('Control+s');
+      await fullEditor.getByText('Title is required', { exact: true }).waitFor();
+      assert.equal((await snapshot()).books.length, 0);
+      await button('Cancel', fullEditor).click();
       await button(
         'Continue',
         page.getByRole('dialog', { name: 'Please confirm', exact: true }),
       ).click();
-      await editor.waitFor({ state: 'hidden' });
+      await fullEditor.waitFor({ state: 'hidden' });
       await page.evaluate(() => {
         window.fetch = window.__metadataFetch;
       });
@@ -2242,6 +2339,56 @@ try {
           ['isbn_lookup', 'google_books_lookup', 'isbn_cover'].includes(c.command),
         ),
       );
+    },
+  );
+  await check(
+    'M2-E selected series and genres persist only after separate Save and survive restart',
+    async () => {
+      await nav('Dashboard');
+      const before = await snapshot();
+      await page.evaluate(() => {
+        window.__enrichmentFetch = window.fetch.bind(window);
+        window.fetch = async (url, options) => {
+          const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
+          if (['isbn_lookup', 'google_books_lookup'].includes(command)) {
+            const value =
+              command === 'isbn_lookup'
+                ? { subjects: [{ name: '[series:Persistence cycle]' }, { name: 'Poetry' }] }
+                : { items: [] };
+            return new Response(JSON.stringify(value), {
+              headers: { 'Content-Type': 'application/json', 'Tauri-Response': 'ok' },
+            });
+          }
+          return window.__enrichmentFetch(url, options);
+        };
+      });
+      await button('Quick add').click();
+      const editor = page.getByRole('dialog', { name: 'Quick add', exact: true });
+      await editor.getByLabel('Title *', { exact: true }).fill('M2E synthetic persistence');
+      await editor.getByLabel('Genres (separate with ;)', { exact: true }).fill('Manual genre');
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('9791090636071');
+      await button('Look up ISBN online…', editor).click();
+      const preview = page.getByRole('dialog', { name: 'Choose metadata to apply', exact: true });
+      await preview.getByRole('radio', { name: 'Persistence cycle', exact: true }).check();
+      await preview.getByRole('checkbox', { name: 'Poetry', exact: true }).check();
+      await button('Apply selected fields', preview).click();
+      assertDomainUnchanged(await snapshot(), before);
+      await editor.getByLabel('ISBN-13', { exact: true }).fill('');
+      await button('Save book', editor).click();
+      await editor.waitFor({ state: 'hidden' });
+      const saved = (await snapshot()).books.find((b) => b.title === 'M2E synthetic persistence');
+      assert(saved);
+      assert.equal(saved.series, 'Persistence cycle');
+      assert.equal(saved.series_order, null);
+      assert.deepEqual(saved.terms.genre, ['Manual genre', 'Poetry']);
+      assert(saved.id && saved.edition_id);
+      await close();
+      await launch();
+      const restored = (await snapshot()).books.find((b) => b.id === saved.id);
+      assert.equal(restored.series, saved.series);
+      assert.equal(restored.series_order, null);
+      assert.deepEqual(restored.terms.genre, saved.terms.genre);
+      assert.equal(restored.edition_id, saved.edition_id);
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

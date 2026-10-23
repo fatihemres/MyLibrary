@@ -746,5 +746,15 @@
   "camera.ended": "The camera disconnected or stopped. Reconnect it and retry.",
   "camera.retry": "Retry camera",
   "camera.cancel": "Cancel camera",
-  "ui.openFolderError": "The data folder could not be opened."
+  "ui.openFolderError": "The data folder could not be opened.",
+  "metadata.field.series": "Series suggestion",
+  "metadata.field.series_order": "Series volume / order",
+  "metadata.seriesHelp": "Suggestions come from community-supplied [series:…] subject tags. A tag may be incorrect or describe a publisher collection. Confirm that it identifies the intended literary series before applying. Untagged names and series IDs are not offered.",
+  "metadata.noSeries": "No supported series name in this response.",
+  "metadata.seriesOrderConflict": "Your current order belongs to the current series. Review and clear it in the editor before choosing a different series.",
+  "metadata.seriesAlternatives": "Multiple series names were supplied. Choose only the applicable series; no relationship is inferred.",
+  "metadata.noSeriesOrder": "No reliable order linked to a confirmed series name is available from these responses. Your order is kept unchanged.",
+  "metadata.genreSuggestions": "Genre suggestions",
+  "metadata.genreHelp": "Optional suggestions, not verified classifications. Choose individually to add to your genres. Existing values are kept; subjects below are informational.",
+  "metadata.noGenres": "No qualifying genre suggestions."
 }

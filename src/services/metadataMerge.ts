@@ -1,5 +1,10 @@
 import type { Book } from '../domain/types';
-import type { MetadataResult, ProviderId } from './metadata';
+import {
+  suggestionKey,
+  type MetadataResult,
+  type MetadataSuggestion,
+  type ProviderId,
+} from './metadata';
 export const metadataKeys = [
   'title',
   'subtitle',
@@ -13,7 +18,25 @@ export const metadataKeys = [
   'isbn13',
 ] as const;
 export type MetadataKey = (typeof metadataKeys)[number];
-export type Selection = Partial<Record<MetadataKey, ProviderId | 'current'>>;
+export type Selection = Partial<Record<MetadataKey, ProviderId | 'current'>> & {
+  series?: MetadataSuggestion;
+  genres?: MetadataSuggestion[];
+};
+// A name-only suggestion must not carry an existing order to a different series.
+export function canApplySeries(book: Book, value: string): boolean {
+  return book.series_order === null || suggestionKey(book.series) === suggestionKey(value);
+}
+function offered(
+  results: MetadataResult[],
+  field: 'seriesSuggestions' | 'genreSuggestions',
+  candidate: MetadataSuggestion,
+) {
+  return results.some(
+    (r) =>
+      r.provider === candidate.provider &&
+      r[field].some((s) => s.value === candidate.value && s.provider === candidate.provider),
+  );
+}
 export function candidateValues(r: MetadataResult): Record<MetadataKey, string> {
   const year = r.publicationDate?.match(/\b([1-9]\d{3})\b/)?.[1] || '';
   return {
@@ -72,6 +95,18 @@ export function applySelection(book: Book, results: MetadataResult[], selection:
     else if (key === 'synopsis') next.extra.synopsis = value;
     else if (key === 'pages' || key === 'publication_year') next[key] = Number(value);
     else next[key] = value;
+  }
+  if (
+    selection.series &&
+    offered(results, 'seriesSuggestions', selection.series) &&
+    canApplySeries(book, selection.series.value)
+  )
+    next.series = selection.series.value;
+  for (const candidate of selection.genres || []) {
+    if (!offered(results, 'genreSuggestions', candidate)) continue;
+    const genres = next.terms.genre || [];
+    if (!genres.some((g) => suggestionKey(g) === suggestionKey(candidate.value)))
+      next.terms.genre = [...genres, candidate.value];
   }
   return next;
 }

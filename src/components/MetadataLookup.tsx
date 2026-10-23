@@ -5,6 +5,7 @@ import { lookupIsbn } from '../domain/isbn';
 import { lookupMetadata, type ProviderOutcome } from '../services/metadata';
 import {
   applySelection,
+  canApplySeries,
   candidateValues,
   currentValues,
   defaultSelection,
@@ -58,15 +59,21 @@ export function MetadataLookup({
   const [cover, setCover] = useState(false);
   const active = useRef(false);
   const mounted = useRef(true);
+  const generation = useRef(0);
+  const previewChange = useRef(onPreviewChange);
+  previewChange.current = onPreviewChange;
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      generation.current += 1;
+      previewChange.current(false);
     };
   }, []);
   const latestBook = useRef(book);
   latestBook.current = book;
   const requested = useRef('');
+  const requestedIdentity = useRef('');
   const results = outcomes?.flatMap((o) => (o.result ? [o.result] : [])) || [];
   const current = currentValues(book);
   const lookup = async () => {
@@ -79,12 +86,26 @@ export function MetadataLookup({
       return;
     }
     active.current = true;
+    const operation = generation.current;
+    const identity = JSON.stringify([book.id, book.edition_id, book.isbn10, book.isbn13]);
+    requestedIdentity.current = identity;
     setBusy(true);
     try {
       const found = await lookupMetadata(book.isbn10, book.isbn13);
       // Switching editor sections/closing during a request must not open a
       // detached preview or leave the parent Save action blocked.
-      if (!mounted.current) return;
+      if (
+        !mounted.current ||
+        operation !== generation.current ||
+        identity !==
+          JSON.stringify([
+            latestBook.current.id,
+            latestBook.current.edition_id,
+            latestBook.current.isbn10,
+            latestBook.current.isbn13,
+          ])
+      )
+        return;
       setSelection(
         defaultSelection(
           latestBook.current,
@@ -96,7 +117,7 @@ export function MetadataLookup({
       onPreviewChange(true);
     } finally {
       active.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   };
   const apply = async () => {
@@ -104,11 +125,31 @@ export function MetadataLookup({
     active.current = true;
     setBusy(true);
     setError('');
+    const operation = generation.current;
+    const identity = JSON.stringify([book.id, book.edition_id, book.isbn10, book.isbn13]);
     let image: string | undefined;
     if (cover) {
       const acquired = await acquireMetadataCover(requested.current);
       image = acquired.image;
-      if (acquired.error) setError(acquired.error);
+      if (mounted.current && operation === generation.current && acquired.error)
+        setError(acquired.error);
+    }
+    if (!mounted.current || operation !== generation.current) return;
+    if (
+      identity !== requestedIdentity.current ||
+      identity !==
+        JSON.stringify([
+          latestBook.current.id,
+          latestBook.current.edition_id,
+          latestBook.current.isbn10,
+          latestBook.current.isbn13,
+        ])
+    ) {
+      setOutcomes(null);
+      onPreviewChange(false);
+      setBusy(false);
+      active.current = false;
+      return;
     }
     setBook((previous) => ({
       ...applySelection(previous, results, selection),
@@ -191,6 +232,104 @@ export function MetadataLookup({
                     </fieldset>
                   );
                 })}
+              </div>
+            )}
+            {results.length > 0 && (
+              <div className="metadata-choices">
+                <fieldset>
+                  <legend>{t('metadata.field.series')}</legend>
+                  <p>{t('metadata.seriesHelp')}</p>
+                  <label>
+                    <input
+                      type="radio"
+                      name="metadata-series"
+                      checked={!selection.series}
+                      onChange={() => setSelection((s) => ({ ...s, series: undefined }))}
+                    />
+                    <span>
+                      <strong>{t('metadata.keep')}</strong>
+                      <span className="block metadata-value">
+                        {book.series || t('metadata.empty')}
+                      </span>
+                    </span>
+                  </label>
+                  {results.map((r) => (
+                    <div key={r.provider} role="group" aria-label={t(`metadata.${r.provider}`)}>
+                      <strong>{t(`metadata.${r.provider}`)}</strong>
+                      {!r.seriesSuggestions.length && <p>{t('metadata.noSeries')}</p>}
+                      {r.seriesSuggestions.map((candidate) => (
+                        <label key={candidate.value}>
+                          <input
+                            type="radio"
+                            name="metadata-series"
+                            disabled={!canApplySeries(book, candidate.value)}
+                            checked={
+                              selection.series?.provider === candidate.provider &&
+                              selection.series?.value === candidate.value
+                            }
+                            onChange={() => setSelection((s) => ({ ...s, series: candidate }))}
+                          />
+                          <span className="metadata-value">
+                            {candidate.value}
+                            {!canApplySeries(book, candidate.value) && (
+                              <small className="block">{t('metadata.seriesOrderConflict')}</small>
+                            )}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  {results.flatMap((r) => r.seriesSuggestions).length > 1 && (
+                    <p>{t('metadata.seriesAlternatives')}</p>
+                  )}
+                </fieldset>
+                <fieldset>
+                  <legend>{t('metadata.field.series_order')}</legend>
+                  <p>
+                    {t('metadata.keep')}: {book.series_order ?? t('metadata.empty')}
+                  </p>
+                  <p>{t('metadata.noSeriesOrder')}</p>
+                </fieldset>
+                <fieldset>
+                  <legend>{t('metadata.genreSuggestions')}</legend>
+                  <p>{t('metadata.genreHelp')}</p>
+                  <p>
+                    {t('metadata.keep')}:{' '}
+                    {(book.terms.genre || []).join('; ') || t('metadata.empty')}
+                  </p>
+                  {results.map((r) => (
+                    <div key={r.provider} role="group" aria-label={t(`metadata.${r.provider}`)}>
+                      <strong>{t(`metadata.${r.provider}`)}</strong>
+                      {!r.genreSuggestions.length && <p>{t('metadata.noGenres')}</p>}
+                      {r.genreSuggestions.map((candidate) => (
+                        <label key={candidate.value}>
+                          <input
+                            type="checkbox"
+                            checked={
+                              !!selection.genres?.some(
+                                (g) =>
+                                  g.provider === candidate.provider && g.value === candidate.value,
+                              )
+                            }
+                            onChange={(event) =>
+                              setSelection((s) => ({
+                                ...s,
+                                genres: event.target.checked
+                                  ? [...(s.genres || []), candidate]
+                                  : (s.genres || []).filter(
+                                      (g) =>
+                                        g.provider !== candidate.provider ||
+                                        g.value !== candidate.value,
+                                    ),
+                              }))
+                            }
+                          />
+                          <span className="metadata-value">{candidate.value}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </fieldset>
               </div>
             )}
             {results.map((r) => (

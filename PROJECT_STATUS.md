@@ -1,6 +1,6 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-22** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-23** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
@@ -16,7 +16,28 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Checkpoint 2026-10-22
+## Current checkpoint — M2-E draft PR preparation, 2026-10-23
+
+- Live GitHub `v2` remains `11f7a767bb24d14139b489ab153b564e9e8a7d48`.
+  Documentation [PR #14](https://github.com/fatihemres/MyLibrary/pull/14) integrated at
+  `6caa620aed95d852a53ed3d413bc59d6f4f8a9f4`; [PR #15](https://github.com/fatihemres/MyLibrary/pull/15)
+  at `11f7a767bb24d14139b489ab153b564e9e8a7d48`. PR #16 closed without merge.
+- **M2-E local implementation accepted by PO on 2026-10-23.** Commit, feature-branch push and
+  a draft PR targeting `v2` are authorized and in preparation; integration remains pending and
+  requires separate exact-SHA PO approval. This candidate is not part of live `v2`.
+- Independent static review PASS (PO-reported); Codex automated evidence: 295 frontend / 86 Rust
+  tests and quality/build checks PASS. PO-executed Windows build and isolated smoke: 35/35 PASS;
+  PO manual acceptance covers lookup, genre selection, preservation, Apply/Save, reopening,
+  Cancel and keyboard controls. Evidence and executable hash are in [VERIFICATION](VERIFICATION.md).
+  Existing base CI success does not validate this candidate; draft PR CI must be checked separately.
+- Accepted limits: community series tags offer sparse, fallible name suggestions; no inferred order.
+  Google Books returned HTTP 429 daily-quota rejection in two live probes. Publisher corruption
+  for `9789752444102` is upstream and manually correctable. Richer discovery and Google availability
+  need separate scope decisions. Multi-volume records retain explicit Edition/Copy decisions.
+- **M2 remains OPEN. M2-F and M3 remain PLANNED and unauthorized for implementation.**
+  No integration, release or cleanup authority follows from acceptance or successful CI.
+
+## Checkpoint 2026-10-22 (historical)
 
 - GitHub `v2` was verified on 2026-10-22 (GitHub API) at `96b87461f4b3fb75861156d802bcfde0d2f47fc0`,
   the head and merge SHA of [PR #13](https://github.com/fatihemres/MyLibrary/pull/13)

@@ -1,7 +1,8 @@
-# ISBN metadata providers — M2-A
+# ISBN metadata providers — M2-A and local M2-E candidate
 
-M2-A adds explicit manual ISBN lookup and source-aware preview. It does not complete M2:
-duplicate intelligence, USB keyboard-wedge capture, batch scanning and webcam scanning remain deferred.
+M2-A introduced explicit manual ISBN lookup and source-aware preview. The local M2-E candidate
+extends that preview with opt-in series-name and genre suggestions. This document does not declare
+M2-E integrated or close M2; see the roadmap for other slices.
 No schema, migration, edition/copy identity, backup format or updater configuration changes are required.
 
 ## Request and trust boundaries
@@ -62,11 +63,125 @@ Apply. Selecting one source for title does not select that source for authors or
 Apply changes only selected draft fields. Author replacement preserves Translator/Editor/etc.
 Publisher names keep the existing semicolon-separated representation. Synopsis is applied only
 when selected. Publication dates yield only a four-digit year; no month/day is invented. Subjects
-are displayed but never assigned to personal genres/tags. Save remains separate; Ctrl+S is blocked
+remain informational; only the separately filtered M2-E genre suggestions below can be explicitly
+added to personal genres. Tags and other term kinds are never changed by lookup. Save remains separate; Ctrl+S is blocked
 while the preview is open. Cancel/close preserves the draft and normal unsaved-change protection.
 All added UI text is localized in English/Turkish; choices use labeled radio groups and native dialogs.
 
-## Covers
+## M2-E candidate: evidence and limitations
+
+The PO accepted this deliberately limited behavior on 2026-10-23; draft PR preparation is
+approved, integration is not. Live probes that day for `9789752444102` and `9780761936749`
+returned Google HTTP 429 (`RESOURCE_EXHAUSTED / rateLimitExceeded`, daily Queries quota).
+No result items reached ISBN filtering. Open Library successes remain available when Google
+fails; the UI reports provider unavailability and manual entry remains possible. No key,
+fallback query or relaxed matching is added. Google's [identification guidance](https://developers.google.com/books/docs/v1/using)
+requires an API key or OAuth identification for public API requests; the current keyless
+integration's future availability/quota policy requires a separate PO decision.
+
+Open Library returned HTTP 200 for those two probes without bracketed series tags. PO's
+separate Ince Memed, Monte Cristo and Sherlock Holmes examples lack recorded exact ISBNs;
+no claim is made about their individual raw responses. Richer series discovery remains
+[planned M3 scope](../v2/ROADMAP.md), not this implementation. Community labels are not facts.
+For `9789752444102`, raw publisher `Panama Yay?nc?l?k` is confirmed upstream corruption.
+Publisher remains manually editable; Keep current, Cancel and lookup failures preserve it.
+Explicit provider selection may replace it. No speculative character repair is performed.
+Distinct volume Editions must not be mistaken for physical copies merely because a set ISBN
+matches; existing [explicit duplicate decisions](duplicate-decisions.md) remain unchanged.
+
+Observed code before M2-E: `isbn_lookup` selects the requested `/api/books` record, then enriches
+only language and description from the already approved ISBN edition request. The TypeScript
+adapter reads subject names. Google Books passes the existing bounded volume response to an
+exact-ISBN adapter, which reads categories. No additional request, host, redirect or credential is
+introduced; native networking and persistence code are unchanged.
+
+Provider documentation checked on 2026-10-22; tag interpretation corrected on 2026-10-23:
+
+- [Open Library Books API](https://openlibrary.org/dev/docs/api/books) exposes subject objects
+  with names in `jscmd=data`. The [editing guidance](https://openlibrary.org/help/faq/editing.en)
+  documents `[series:series_name]` for literary-series tagging. Only that complete bracketed
+  syntax in `subjects[].name` is offered. Bare `series:name`, malformed brackets, general edition
+  `series`, titles/subtitles and plain subject names do not become selectable series names.
+  The published [jscmd=data serializer](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/plugins/books/dynlinks.py)
+  routes through `DataProcessor.process_doc`: its subject helper assigns the string unchanged to
+  `name`; only the URL lowercases/replaces spaces. It does not remove brackets. MyLibrary's native
+  adapter also leaves subjects unchanged. Thus unbracketed text is not treated as a transformed
+  documented tag. This is source-code evidence, not a guarantee about every deployed response.
+  One explicit public-ISBN check (`9780671729416`) against the existing `/api/books` endpoint on
+  2026-10-23 returned HTTP 200 but no series-tagged subjects; it did not verify a live bracketed
+  example. No extra application endpoint or lookup was added. Edition enrichment is unchanged.
+  Community editors can misuse even bracketed tags: a publisher collection may appear as a
+  suggestion. The UI warns about that ambiguity and asks the user to confirm the intended literary
+  series. No publisher-name blacklist or automatic semantic certification is used.
+- [Google volume fields](https://developers.google.com/books/docs/v1/reference/volumes) document
+  categories. The official [seriesInfo model](https://developers.google.com/resources/api-libraries/documentation/books/v1/csharp/latest/classGoogle_1_1Apis_1_1Books_1_1v1_1_1Data_1_1Volumeseriesinfo.html)
+  describes `shortSeriesBookTitle` as a book title and `bookDisplayNumber` as display-only.
+  Its [volumeSeries entries](https://developers.google.com/resources/api-libraries/documentation/books/v1/csharp/latest/classGoogle_1_1Apis_1_1Books_1_1v1_1_1Data_1_1Volumeseriesinfo_1_1VolumeSeriesData.html)
+  supply `seriesId` and `orderNumber`, not a human-readable series name. These do not produce a
+  selectable series or order, and are never joined to an Open Library name by assumption.
+
+**Order is unsupported in this candidate.** No verified existing response field associates a usable
+series name with a reliable order. Even positive numbers are rejected as suggestions; invalid,
+non-finite, negative and orphan numbers cannot reach the draft. An explicit series tag without an
+order can be applied independently when the current order is empty. If a manual order exists,
+a different series name is disabled and rejected again at Apply using the latest draft. The user
+must review/clear that order in the editor first. Matching names may retain the existing order.
+No order is guessed, silently cleared, or transferred to a different series.
+
+Fixtures are synthetic examples of documented field shapes, not evidence that a particular ISBN
+currently returns a tag/category. The limited public-ISBN observation above does not establish
+live series coverage or provider availability in general. Open
+Library tags remain community-supplied suggestions, not certified bibliographic facts. Multiple
+tagged names are presented as alternatives with provenance; none is selected automatically.
+
+### Conservative genre policy
+
+`metadata.ts` contains a small explicit vocabulary of 19 broad genre/form labels: fiction,
+literature, poetry, drama, science fiction, fantasy, historical fiction, detective and mystery
+stories, mystery, thriller, horror, romance, short stories, biography, autobiography,
+biography & autobiography, comics & graphic novels, juvenile fiction and young adult fiction.
+Open Library subjects must match a complete label. Google categories may match a complete label
+or a slash hierarchy whose first segment matches; only that root is suggested. Empty segments
+or more than four segments reject the hierarchy. This does not classify arbitrary topics, people,
+places or eras. No substring guesses, translation or taxonomy service is used. Labels outside
+this deliberately incomplete English vocabulary stay informational, even in the Turkish UI.
+
+New suggestions inspect at most the first 100 entries per source, reject malformed/non-string
+entries and control/format characters, normalize NFC and whitespace, and reject input over 200
+code units or normalized labels over 160. Each provider yields at most five series names and ten
+genres. Case-insensitive normalized duplicates within a provider collapse; the first spelling is
+kept. Identical suggestions across providers remain separately attributed in preview and collapse
+on application. Raw subjects retain their pre-existing informational normalization behavior.
+
+### Draft, consent and lifecycle
+
+`MetadataResult` adds only `seriesSuggestions` and `genreSuggestions`, each carrying its provider;
+field provenance is also retained. No raw payload or provenance is saved in SQLite. Existing schema,
+Edition/Physical Copy IDs, relationships, transfer format and backup semantics are unchanged.
+
+New fields are always opt-in, including empty current fields. The original defaults for all other
+metadata fields remain unchanged. Genre checkboxes are individual; Apply appends chosen values,
+deduplicating by NFC, whitespace-normalized case-insensitive text, without rewriting/reordering existing manual
+values in the draft. Existing storage behavior is unchanged: SQLite snapshot reads return terms
+alphabetically, so draft insertion order is not a new persisted ordering guarantee. Other term kinds
+and all copy fields are preserved. Unoffered selections are ignored.
+
+Lookup never mutates the draft. Apply uses the functional state update and latest draft; it does
+not save to SQLite. Save remains a separate editor action. Cancel discards selections. Unmount
+invalidates pending operations and releases the preview Save guard; changed record/ISBN identity
+discards late lookup results. Late cover acquisition cannot apply into an unmounted editor.
+Explicit cover acquisition may still create a managed image before Save, as before; no cleanup or
+cover deletion is added. Native cover policy is the integrated CQ-02-A behavior described in
+[the cover verification document](../testing/cq02a-safe-openlibrary-covers.md), not the historical
+M2-A single-response observation below.
+
+Deterministic coverage: `metadataEnrichment.test.ts` covers normalized suggestions, unsupported
+orders, malformed/bounded input, deduplication, partial failures, explicit selection and preservation
+of manual/Edition/Copy data. The existing desktop harness adds synthetic M2-E preview, individual
+selection, Apply/Save separation, latest-draft and section-dismissal assertions. Test presence is not
+execution evidence; consult [VERIFICATION](../../VERIFICATION.md) for attributed commands and platform results.
+
+## Covers (historical M2-A behavior)
 
 Candidate URLs are normalized only for approved HTTPS provider hosts, with no credentials or ports.
 They are not rendered as remote images or fetched automatically. Existing Open Library cover apply
@@ -89,7 +204,7 @@ exercise explicit lookup, invalid ISBN/no request, conflicting candidates, manua
 Ctrl+S separation, Apply, cancellation and partial/offline failure without provider availability.
 Existing restore/schema/import security tests remain part of the full native suite.
 
-Final Windows verification on 2026-10-10:
+Historical M2-A Windows verification on 2026-10-10 (not current M2 status):
 
 - `npm run typecheck`, `npm run lint`, `npm run test`: passed (50 frontend tests,
   including 26 focused ISBN/provider/merge tests).

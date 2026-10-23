@@ -746,5 +746,15 @@
   "camera.ended": "Kamera bağlantısı kesildi veya durdu. Yeniden bağlayıp tekrar deneyin.",
   "camera.retry": "Kamerayı yeniden dene",
   "camera.cancel": "Kamerayı iptal et",
-  "ui.openFolderError": "Veri klasörü açılamadı."
+  "ui.openFolderError": "Veri klasörü açılamadı.",
+  "metadata.field.series": "Seri önerisi",
+  "metadata.field.series_order": "Seri cilt / sıra numarası",
+  "metadata.seriesHelp": "Öneriler, topluluğun eklediği [series:…] konu etiketlerinden gelir. Topluluk etiketleri hatalı olabilir veya bir yayıncı dizisini belirtebilir. Uygulamadan önce etiketin amaçladığınız edebi seriyi tanımladığını doğrulayın. Etiketsiz adlar ve seri kimlikleri önerilmez.",
+  "metadata.noSeries": "Bu yanıtta desteklenen bir seri adı yok.",
+  "metadata.seriesOrderConflict": "Mevcut sıra numarası mevcut seriye aittir. Farklı bir seri seçmeden önce düzenleyicide sıra numarasını gözden geçirip temizleyin.",
+  "metadata.seriesAlternatives": "Birden fazla seri adı sağlandı. Yalnız uygun seriyi seçin; aralarında ilişki varsayılmaz.",
+  "metadata.noSeriesOrder": "Bu yanıtlarda doğrulanmış bir seri adına bağlı güvenilir sıra bilgisi yok. Mevcut sıra numaranız korunur.",
+  "metadata.genreSuggestions": "Tür önerileri",
+  "metadata.genreHelp": "Bunlar doğrulanmış sınıflandırmalar değil, isteğe bağlı önerilerdir. Türlerinize eklemek için tek tek seçin. Mevcut değerler korunur; aşağıdaki konular yalnız bilgi amaçlıdır.",
+  "metadata.noGenres": "Uygun tür önerisi yok."
 }

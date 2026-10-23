@@ -15,6 +15,8 @@ export const lookup = async (isbn: string) =>
       identifiers: { isbn10: [], isbn13: [] },
       languages: [],
       subjects: [],
+      seriesSuggestions: [],
+      genreSuggestions: [],
       covers: [],
       provenance: {},
     },

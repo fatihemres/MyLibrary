@@ -1,6 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { parseIsbn, lookupIsbn } from '../domain/isbn';
 export type ProviderId = 'openLibrary' | 'googleBooks';
+export interface MetadataSuggestion {
+  value: string;
+  provider: ProviderId;
+}
 export interface MetadataResult {
   provider: ProviderId;
   title?: string;
@@ -14,6 +18,8 @@ export interface MetadataResult {
   pages?: number;
   description?: string;
   subjects: string[];
+  seriesSuggestions: MetadataSuggestion[];
+  genreSuggestions: MetadataSuggestion[];
   covers: { url: string; provider: ProviderId }[];
   provenance: Record<string, ProviderId>;
 }
@@ -28,6 +34,61 @@ const unique = (values: string[]) => [...new Set(values)];
 const strings = (v: unknown) => unique(Array.isArray(v) ? v.flatMap((s) => text(s) || []) : []);
 const names = (v: unknown) =>
   unique(Array.isArray(v) ? v.flatMap((item) => text(object(item).name) || []) : []);
+// Small, deliberately incomplete vocabulary. Subjects are not classifications.
+const genreLabels = new Set([
+  'fiction',
+  'literature',
+  'poetry',
+  'drama',
+  'science fiction',
+  'fantasy',
+  'historical fiction',
+  'detective and mystery stories',
+  'mystery',
+  'thriller',
+  'horror',
+  'romance',
+  'short stories',
+  'biography',
+  'autobiography',
+  'biography & autobiography',
+  'comics & graphic novels',
+  'juvenile fiction',
+  'young adult fiction',
+]);
+export const suggestionKey = (value: string) =>
+  value.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase();
+function boundedLabel(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length > 200 || /[\p{Cc}\p{Cf}]/u.test(value)) return;
+  const label = value.normalize('NFC').trim().replace(/\s+/gu, ' ');
+  return label && label.length <= 160 ? label : undefined;
+}
+function suggestions(
+  values: unknown[],
+  provider: ProviderId,
+  series = false,
+): MetadataSuggestion[] {
+  const found = new Map<string, MetadataSuggestion>();
+  for (const value of values.slice(0, 100)) {
+    const label = boundedLabel(value);
+    if (!label) continue;
+    let candidate: string | undefined;
+    if (series) {
+      // jscmd=data preserves subject names. Require the documented brackets.
+      // Community tags are suggestions, not proof of literary-series identity.
+      const match = /^\[series:([^[\]]+)\]$/i.exec(label);
+      candidate = boundedLabel(match?.[1]);
+    } else {
+      const parts = provider === 'googleBooks' ? label.split('/').map((p) => p.trim()) : [label];
+      if (parts.length <= 4 && parts.every(Boolean) && genreLabels.has(suggestionKey(parts[0])))
+        candidate = parts[0];
+    }
+    if (candidate && !found.has(suggestionKey(candidate)))
+      found.set(suggestionKey(candidate), { value: candidate, provider });
+    if (found.size >= (series ? 5 : 10)) break;
+  }
+  return [...found.values()];
+}
 function identifiers(ten: unknown, thirteen: unknown) {
   const valid = (v: unknown, length: number) =>
     strings(v).flatMap((s) => {
@@ -88,6 +149,15 @@ export function normalizeOpenLibrary(input: unknown): MetadataResult {
     pages: pages(v.number_of_pages),
     description: text(v.description) || text(object(v.description).value),
     subjects: names(v.subjects),
+    seriesSuggestions: suggestions(
+      Array.isArray(v.subjects) ? v.subjects.slice(0, 100).map((s) => object(s).name) : [],
+      'openLibrary',
+      true,
+    ),
+    genreSuggestions: suggestions(
+      Array.isArray(v.subjects) ? v.subjects.slice(0, 100).map((s) => object(s).name) : [],
+      'openLibrary',
+    ),
     covers: covers(v.cover, 'openLibrary'),
     provenance: {},
   });
@@ -121,6 +191,8 @@ export function normalizeGoogleBooks(input: unknown, requested: string): Metadat
       pages: pages(v.pageCount),
       description: text(v.description),
       subjects: strings(v.categories),
+      seriesSuggestions: [], // IDs/display numbers do not establish a series name.
+      genreSuggestions: suggestions(Array.isArray(v.categories) ? v.categories : [], 'googleBooks'),
       covers: covers(v.imageLinks, 'googleBooks'),
       provenance: {},
     });

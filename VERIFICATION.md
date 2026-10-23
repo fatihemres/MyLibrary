@@ -1,4 +1,50 @@
-# Latest integrated verification checkpoint — 2026-10-19 (reviewed 2026-10-20)
+# M2-E accepted local candidate — 2026-10-23
+
+This is candidate evidence, not integration evidence. The PO accepted the limited M2-E scope
+and authorized commit, feature-branch push and draft PR preparation targeting `v2`.
+Integration and overall M2 closure require separate PO authorization. Live base is
+`11f7a767bb24d14139b489ab153b564e9e8a7d48`; base CI does not validate candidate code.
+
+- **Independent static review (PO-reported): PASS**, with the earlier MAJOR finding resolved.
+- **Codex-run local automated evidence:** `npm run test` passed **295 tests** (13 files,
+  including 42 M2-E enrichment cases); `npm run test:rust` passed **86 tests**.
+  `npm run typecheck`, `npm run lint`,
+  `cargo fmt --manifest-path src-tauri/Cargo.toml --check`,
+  `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked` and
+  `npm run build` passed. Vite's existing chunk-size advisory is non-blocking.
+  Application/test files were compared with the preserved review index before final preparation:
+  unchanged. Expensive native checks are not repeated for the documentation-only acceptance update.
+- **PO-executed final native Windows build: PASS; desktop smoke: 35/35 PASS.**
+  Local report `C:\Dev\ML-M2E\.cache\desktop-check-1792744658352\report.json` was read back:
+  `passed: true`, 35 checks, no errors. Its executable SHA-256 matches the actual executable:
+  `F7826CBD587EEF6E3D0D53160DB8F7070339F870EB12DE433A034D180A835A86`.
+  The report, executable, synthetic library and isolated WebView2 profile are local evidence,
+  not committed artifacts. Metadata smoke fixtures do not prove live provider availability.
+- **PO manual Windows acceptance**, isolated on 2026-10-23: real Open Library ISBN lookup,
+  individual genre selection, existing-information preservation, separate Apply/Save,
+  persistence after reopening, Cancel preservation and keyboard operation confirmed.
+- **Live diagnostics (Codex, 2026-10-23):** existing Google Books ISBN requests for
+  `9789752444102` and `9780761936749` both returned HTTP **429**,
+  `RESOURCE_EXHAUSTED / rateLimitExceeded`, daily Queries quota exhausted. Neither response
+  contained `items` or `totalItems`; this is upstream rejection before exact-ISBN filtering.
+  No causal link to the reported Google Issue #569300353 regression was established.
+  Open Library returned HTTP 200 for both. The first reproduced `Panama Yay?nc?l?k`, also
+  independently confirmed upstream by PO; manual publisher correction remains supported.
+- **Accepted limitations:** community series coverage is sparse and labels may be wrong.
+  PO found no useful suggestions for tested Ince Memed, Monte Cristo and Sherlock Holmes books;
+  exact ISBNs were not recorded, so their individual raw records were not verified. No order is
+  inferred. Distinct volumes may require separate Editions despite a set-ISBN duplicate warning;
+  the resolver requires an explicit decision. No unsafe automatic merge was confirmed.
+- **Evidence boundaries:** no personal-library access; no macOS/Linux native manual acceptance
+  is claimed. PR CI is separate from local/PO evidence and must be reported for its exact head.
+  Google availability and richer series organization remain separate future scope decisions.
+
+See [provider behavior](docs/architecture/metadata-providers.md), [D-012](docs/DECISIONS.md)
+and [roadmap](docs/v2/ROADMAP.md). M2 remains OPEN.
+
+---
+
+# Historical integrated verification checkpoint — 2026-10-19 (reviewed 2026-10-20)
 
 > **Integration evidence was rechecked on GitHub on 2026-10-20.** PO manual observations
 > and separate integration authorizations are attributed to the PO handoff and confirmation;
