@@ -68,3 +68,21 @@ export function newBookDraft(data: Pick<Snapshot, 'settings'>, seed?: Isbn): Boo
     copy_extra: { currency: prefs.currency || 'TRY' },
   };
 }
+
+/** Per editor opening, never shared between repeated ISBN queue rows. */
+export interface ScanLookupIntent {
+  pending: boolean;
+  isbn13: string;
+}
+/** Defer until effect setup survives cleanup (including StrictMode replay). */
+export function scheduleScanLookup(intent: ScanLookupIntent | undefined, start: () => void) {
+  let cancelled = false;
+  queueMicrotask(() => {
+    if (cancelled || !intent?.pending) return;
+    intent.pending = false;
+    start();
+  });
+  return () => {
+    cancelled = true;
+  };
+}

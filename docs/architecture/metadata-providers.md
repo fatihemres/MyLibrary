@@ -232,3 +232,25 @@ pending; no persisted provenance, schema change or generalized remote-cover down
 `services/updates.ts` remains fail-closed: configured=false, automatic=false, no fetch or installation.
 Activation needs an explicitly approved signed distribution endpoint, secure signing credentials,
 verification and rollback/data-compatibility policy. M2-A does not enable updates or signing.
+
+
+## M2-F scan-origin lookup — local candidate
+
+The optional [Scan Books workflow](barcode-scanning.md#m2-f-optional-scan-to-lookup--local-candidate)
+can initiate the existing lookup once for a new ISBN-only editor. It requires explicit selection of
+online lookup and a valid accepted ISBN. Default ISBN-only scanning remains offline; batch capture
+never queries providers until the user chooses Review & add for a row. Camera capture is cleaned up
+before the editor starts lookup. No manual editor, Quick Add or copy-barcode action gains automatic lookup.
+
+The same bounded provider operation, exact ISBN checks, partial-failure handling and explicit preview
+are used. One operation may call both providers; it is not two automatic lookups. Unavailable providers,
+including the existing native Google Books quota-error mapping, leave manual editing and retry available.
+No API key, alternate search, automatic retry or expanded network access is added. Existing M2-E series
+and genre limitations remain unchanged. Apply updates only the draft and Save persists separately;
+closing or changing ISBN identity prevents late results from opening a stale preview.
+
+
+Draft PR preparation is PO-authorized; physical Windows USB/camera acceptance remains pending.
+Integration and final PO acceptance are not implied, and M2 remains OPEN. The isolated desktop
+harness uses a verified native rejection proxy as well as IPC fixtures so a broken mock cannot
+fall through to upstream provider HTTP. This is test-only; deployed provider boundaries are unchanged.

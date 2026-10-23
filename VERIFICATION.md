@@ -1,3 +1,38 @@
+# M2-F draft checkpoint — 2026-10-23
+
+M2-F is a local candidate based on `441d5481ae21525c42207060cc3d8dd2b9ff97d8`.
+The PO authorized commit, feature-branch push and a DRAFT PR, while deferring physical Windows
+USB/camera acceptance. This is not final PO acceptance, integration or M2 closure; M2 remains OPEN.
+Independent review and separate PO integration authorization are still required.
+
+- **Earlier Codex-run local automation:** `npm run test` 302 PASS; `npm run test:rust` 86 PASS;
+  `node scripts/test-m2f-components.mjs` 8/8 PASS (development React StrictMode). Typecheck,
+  lint, Rust formatting/all-targets check, frontend build and Windows native build passed.
+  These are agent-run results, not independent PO acceptance or candidate GitHub CI.
+- **Preflight correction:** native Tauri `invoke` is non-writable. The first desktop attempt's
+  ineffective mock displayed live data and failed; it is not deterministic test evidence.
+  Fetch-level IPC interception corrected that attempt, producing 38/38 PASS in local
+  `.cache/desktop-check-1792769309474/report.json`. Preflight additionally added a test-only
+  child-process rejection proxy because Tauri can fall back to native IPC on fetch failure.
+- **New preflight execution:** `npm run lint` PASS; `npm run test:desktop` **39/39 PASS** with
+  isolated synthetic libraries and a separate WebView2 profile. Two deliberate native provider
+  calls were blocked locally to verify the guard; zero later native HTTP attempts, zero recorded
+  external WebView requests and zero frontend runtime errors. Report:
+  `.cache/desktop-check-1792770423563/report.json` (local ignored evidence, not a committed artifact).
+- **Executable:** `2FD16D64BEBA075AA184614363DEF7D8A5639A5AF419AA12E776855657943820`
+  (SHA-256). The saved report and binary match the earlier verified executable. Preflight changed
+  only the test harness and documentation; application source and binary are unchanged. The expensive
+  native build, Rust suite, frontend suite and component browser suite were not rerun in preflight.
+- **Boundaries:** physical USB, physical camera and Windows UI PO acceptance remain pending;
+  native macOS/Linux manual acceptance is not established. Synthetic provider fixtures do not prove
+  Google Books availability; its known quota limitation remains separate work. No real personal library
+  was accessed. No schema/provider changes, integration, release or milestone closure are authorized.
+
+See [scanner architecture](docs/architecture/barcode-scanning.md) and
+[metadata boundaries](docs/architecture/metadata-providers.md). Historical evidence follows unchanged.
+
+---
+
 # M2-E integrated verification — 2026-10-23
 
 This is the **integration checkpoint**, verified against GitHub on 2026-10-23,

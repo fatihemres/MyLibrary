@@ -702,7 +702,7 @@
   "scanner.capture": "Yakala",
   "scanner.copyAction": "Kopya barkodunu tara",
   "scanner.copyHelp": "Yalnızca bu fiziksel kopyanın barkodunu doldurur. Baskı seçmez veya kopyayı kaydetmez.",
-  "scanner.help": "Bir ISBN tarayın veya yazın, ardından yeni kitap taslağını inceleyin. Tarama çevrimdışı çalışır; üst veri araması isteğe bağlıdır ve siz başlatırsınız.",
+  "scanner.help": "Bir ISBN tarayın veya yazın, ardından yeni kitap taslağını inceleyin. Varsayılan yalnız ISBN taraması çevrimdışı kalır.",
   "scanner.mode": "Tarama modu",
   "scanner.single": "Tekli",
   "scanner.batch": "Toplu",
@@ -730,7 +730,7 @@
   "scanner.close": "Taramayı kapat",
   "camera.open": "Kamerayla tara",
   "camera.title": "Kitap ISBN’sini kamerayla tara",
-  "camera.help": "Bir kitap EAN-13 barkodunu okutun. Kamera görüntüleri bu cihazda kalır. İnceleme ve Kaydet ayrı adımlardır; üst veri istenmez.",
+  "camera.help": "Bir kitap EAN-13 barkodunu okutun. Kamera görüntüleri bu cihazda kalır. Çekim bittikten sonraki çevrimiçi aramayı Kitap tara ekranında seçilen akış belirler; Uygula ve Kaydet ayrı kalır.",
   "camera.preview": "Canlı kamera önizlemesi",
   "camera.loading": "Yerel barkod okuyucu hazırlanıyor…",
   "camera.requesting": "Kamera izni bekleniyor…",
@@ -756,5 +756,9 @@
   "metadata.noSeriesOrder": "Bu yanıtlarda doğrulanmış bir seri adına bağlı güvenilir sıra bilgisi yok. Mevcut sıra numaranız korunur.",
   "metadata.genreSuggestions": "Tür önerileri",
   "metadata.genreHelp": "Bunlar doğrulanmış sınıflandırmalar değil, isteğe bağlı önerilerdir. Türlerinize eklemek için tek tek seçin. Mevcut değerler korunur; aşağıdaki konular yalnız bilgi amaçlıdır.",
-  "metadata.noGenres": "Uygun tür önerisi yok."
+  "metadata.noGenres": "Uygun tür önerisi yok.",
+  "scanner.workflow": "Tarama sonrası",
+  "scanner.isbnOnly": "Yalnız ISBN tara",
+  "scanner.withLookup": "Tara ve kitap bilgilerini ara",
+  "scanner.lookupHelp": "Çevrimiçi arama ISBN bilgisini Open Library ve Google Books hizmetlerine gönderir. Toplu modda arama yalnız İncele ve ekle seçildiğinde başlar. Önerileri inceleyin, Uygula ve ardından ayrıca Kaydet adımlarını kullanın. Kuyrukta öğe varken akış değiştirilemez."
 }

@@ -43,7 +43,11 @@
   UX discovery. Upstream `Panama Yay?nc?l?k` can be manually corrected.
   See [metadata provider policy](docs/architecture/metadata-providers.md) and
   [Idea Register](docs/product/idea-register.md) IDEA-0006/0008.
-- **Overall M2 remains OPEN.** M2-F remains PLANNED / implementation not authorized;
+- **Overall M2 remains OPEN.** M2-F is a local implementation candidate based on live `v2`
+  `441d5481ae21525c42207060cc3d8dd2b9ff97d8` (documentation PR #18 integrated). The PO
+  authorized commit/push and a DRAFT PR on 2026-10-23; automated evidence is in
+  [VERIFICATION.md](VERIFICATION.md). Physical USB/camera Windows acceptance is deferred,
+  not waived. Independent review and separate integration authorization remain required.
   M3 and later remain planned. No release, tag, signing, updater activation or cleanup
   is authorized by M2-E integration.
 

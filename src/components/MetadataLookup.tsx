@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import type { Book } from '../domain/types';
 import { t } from '../i18n';
 import { lookupIsbn } from '../domain/isbn';
+import { scheduleScanLookup, type ScanLookupIntent } from '../domain/scanner';
 import { lookupMetadata, type ProviderOutcome } from '../services/metadata';
 import {
   applySelection,
@@ -46,11 +47,13 @@ export function MetadataLookup({
   setBook,
   disabled,
   onPreviewChange,
+  scanLookupIntent,
 }: {
   book: Book;
   setBook: Dispatch<SetStateAction<Book>>;
   disabled: boolean;
   onPreviewChange: (open: boolean) => void;
+  scanLookupIntent?: ScanLookupIntent;
 }) {
   const [outcomes, setOutcomes] = useState<ProviderOutcome[] | null>(null);
   const [selection, setSelection] = useState<Selection>({});
@@ -76,7 +79,7 @@ export function MetadataLookup({
   const requestedIdentity = useRef('');
   const results = outcomes?.flatMap((o) => (o.result ? [o.result] : [])) || [];
   const current = currentValues(book);
-  const lookup = async () => {
+  const lookup = async (fromScan = false) => {
     if (active.current || disabled) return;
     setError('');
     try {
@@ -90,6 +93,9 @@ export function MetadataLookup({
     const identity = JSON.stringify([book.id, book.edition_id, book.isbn10, book.isbn13]);
     requestedIdentity.current = identity;
     setBusy(true);
+    // A scan-started lookup blocks Save while loading, but the editor may still be closed.
+    if (fromScan) previewChange.current(true);
+    let presented = false;
     try {
       const found = await lookupMetadata(book.isbn10, book.isbn13);
       // Switching editor sections/closing during a request must not open a
@@ -106,6 +112,7 @@ export function MetadataLookup({
           ])
       )
         return;
+      presented = true;
       setSelection(
         defaultSelection(
           latestBook.current,
@@ -117,9 +124,21 @@ export function MetadataLookup({
       onPreviewChange(true);
     } finally {
       active.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        setBusy(false);
+        if (fromScan && !presented) previewChange.current(false);
+      }
     }
   };
+  const startup = useRef(() => {});
+  startup.current = () => {
+    if (!disabled && !book.id && !book.edition_id && scanLookupIntent?.isbn13 === book.isbn13)
+      void lookup(true);
+  };
+  useEffect(
+    () => scheduleScanLookup(scanLookupIntent, () => startup.current()),
+    [scanLookupIntent],
+  );
   const apply = async () => {
     if (active.current) return;
     active.current = true;

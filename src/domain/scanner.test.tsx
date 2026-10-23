@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ScannerInput } from '../components/ScannerInput';
 import {
+  scheduleScanLookup,
+  type ScanLookupIntent,
   isScanTerminator,
   newBookDraft,
   queueScan,
@@ -150,5 +152,68 @@ describe('scanner session and new-record boundary', () => {
     expect(html).toContain('type="button"');
     expect(html).not.toContain('<form');
     expect(called).toBe(false);
+  });
+});
+
+describe('M2-F one-shot startup intent', () => {
+  const intent = (): ScanLookupIntent => ({ pending: true, isbn13: '9780306406157' });
+  it('does nothing without explicit scan intent', async () => {
+    let calls = 0;
+    scheduleScanLookup(undefined, () => calls++);
+    await Promise.resolve();
+    expect(calls).toBe(0);
+  });
+  it('starts only after setup and consumes the intent once', async () => {
+    const value = intent();
+    let calls = 0;
+    scheduleScanLookup(value, () => calls++);
+    expect(calls).toBe(0);
+    await Promise.resolve();
+    scheduleScanLookup(value, () => calls++);
+    await Promise.resolve();
+    expect(calls).toBe(1);
+    expect(value.pending).toBe(false);
+  });
+  it('survives StrictMode setup-cleanup-setup without duplicate requests', async () => {
+    const value = intent();
+    let calls = 0;
+    const cleanup = scheduleScanLookup(value, () => calls++);
+    cleanup();
+    scheduleScanLookup(value, () => calls++);
+    await Promise.resolve();
+    expect(calls).toBe(1);
+  });
+  it('does not start after dismissal before the microtask', async () => {
+    const value = intent();
+    let calls = 0;
+    scheduleScanLookup(value, () => calls++)();
+    await Promise.resolve();
+    expect(calls).toBe(0);
+    expect(value.pending).toBe(true);
+  });
+  it('does not replay a consumed intent after section remount or failure', async () => {
+    const value = intent();
+    let calls = 0;
+    const cleanup = scheduleScanLookup(value, () => calls++);
+    await Promise.resolve();
+    cleanup();
+    scheduleScanLookup(value, () => calls++);
+    await Promise.resolve();
+    expect(calls).toBe(1);
+  });
+  it('separate editor openings with the same ISBN each receive one intent', async () => {
+    let calls = 0;
+    scheduleScanLookup(intent(), () => calls++);
+    scheduleScanLookup(intent(), () => calls++);
+    await Promise.resolve();
+    expect(calls).toBe(2);
+  });
+  it('documents explicit provider access and offline default in both languages', () => {
+    for (const locale of [en, tr]) {
+      expect(locale['scanner.lookupHelp']).toContain('Open Library');
+      expect(locale['scanner.lookupHelp']).toContain('Google Books');
+      expect(locale['scanner.isbnOnly']).toBeTruthy();
+      expect(locale['scanner.withLookup']).toBeTruthy();
+    }
   });
 });

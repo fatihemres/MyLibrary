@@ -4,6 +4,9 @@ M2-C is CLOSED at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration 
 `38365564445` passed all four platforms. See [verification](../../VERIFICATION.md) for
 separate local desktop and CI evidence. M2 remains OPEN; M2-D webcam scanning is pending.
 
+The M2-C/M2-D sections below describe their original behavior. The local M2-F extension
+is described at the end; its opt-in workflow changes when metadata lookup may begin.
+
 ## Capture boundary
 
 USB HID keyboard-wedge scanners act as keyboards. `ScannerInput` is a visible, labeled,
@@ -146,3 +149,49 @@ is added. Native camera leases do not change database/schema, capabilities or up
 See [M2-D audit](../testing/m2d-requirements-audit.md) and [verification](../../VERIFICATION.md).
 Synthetic video in the real Windows executable is distinct from physical webcam acceptance.
 M2-D is a local candidate; Issue #6 and M2 remain open until review, CI and integration gates finish.
+
+
+## M2-F optional scan-to-lookup — local candidate
+
+Scan Books defaults to **Scan ISBN only**, which makes no provider requests. Users may explicitly
+select **Scan and look up book details**; EN/TR help explains that the ISBN is sent to Open Library
+and Google Books. Workflow and single/batch choices are locked while the queue contains entries
+or a camera/editor dialog is active. Copy-barcode capture, Quick Add and ordinary editors are unchanged.
+
+In single mode, a valid USB HID or camera capture retains its queue row and opens a new ISBN-only
+BookEditor draft. Camera capture stops its tracks and decoder before acceptance, and ScanBooks waits
+for CameraScan unmount cleanup before opening the editor. In batch mode, capture stays offline;
+only an explicit **Review & add** starts lookup for that row. Repeated ISBNs remain independent.
+Cancel keeps the row pending; only successful explicit Save marks it added.
+
+An explicit `lookupAfterScan` prop creates a per-opening intent in BookEditor. MetadataLookup consumes
+it after effect setup survives cleanup, including React StrictMode replay. The editor-owned ref survives
+section remounts. One intent starts one existing lookup operation (normally two provider calls), with
+no automatic retries or extra fan-out. New editor openings get fresh intents. Unmount and changed ISBN identity
+invalidate late results; lookup failure preserves manual entry and the existing retry action.
+
+The existing provider preview, field choices and cover protections remain authoritative. Lookup does
+not fill or persist the draft. Apply changes selected draft fields; Save remains separate and runs fresh
+backend duplicate validation. Save is unavailable while the scan-started request or preview is active;
+dismissal releases that guard. No database schema, provider endpoint, permission or dependency changes
+are introduced. Edition and Physical Copy boundaries are unchanged.
+
+Focused tests are in `src/domain/scanner.test.tsx`. Run
+`node scripts/test-m2f-components.mjs` for actual development React StrictMode checks in an isolated
+headless Edge profile. Its synthetic Tauri bridge cannot persist library data, external requests are
+blocked, and Vite file watching is disabled to avoid watching native build artifacts on Windows.
+`npm run test:desktop` adds deterministic M2-F provider fixtures to the existing isolated Windows
+WebView2/SQLite smoke suite. Synthetic keyboard/video and provider fixtures do not establish hardware
+acceptance or live provider availability. M2-F integration and milestone closure are not implied.
+
+
+The 2026-10-23 PO authorization permits commit, feature-branch push and a DRAFT PR for this
+candidate. Physical USB scanner, camera and Windows UI acceptance remain pending; automation is
+not PO hardware acceptance. Independent review and separate integration authorization are required.
+Overall M2 remains OPEN. See [verification](../../VERIFICATION.md) for attributed evidence.
+
+The native smoke harness also supplies a child-process-only loopback rejection proxy. It never
+forwards requests upstream. A deliberate fixture-bypass probe verifies that both native provider
+clients fail through this guard; any later native HTTP attempt fails the suite. This covers Tauri's
+native IPC fallback if a fetch mock breaks. The guard changes neither application networking nor
+system proxy settings, and fixture results are not evidence of live provider availability.

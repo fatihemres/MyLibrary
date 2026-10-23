@@ -1,6 +1,6 @@
 import { DuplicateResolver } from './DuplicateResolver';
 import { BarcodeScan } from './BarcodeScan';
-import { newBookDraft } from '../domain/scanner';
+import { newBookDraft, type ScanLookupIntent } from '../domain/scanner';
 import type { Isbn } from '../domain/isbn';
 import { hasSignals, type DuplicateReport, type DuplicateDecision } from '../domain/duplicates';
 import { MetadataLookup } from './MetadataLookup';
@@ -27,6 +27,7 @@ export function BookEditor({
   initial,
   seed,
   protectSession = false,
+  lookupAfterScan = false,
   data,
   quick,
   onClose,
@@ -35,6 +36,7 @@ export function BookEditor({
   initial?: Book;
   seed?: Isbn;
   protectSession?: boolean;
+  lookupAfterScan?: boolean;
   data: Snapshot;
   quick: boolean;
   onClose: () => void;
@@ -42,6 +44,10 @@ export function BookEditor({
 }) {
   const [book, setBook] = useState<Book>(() =>
     initial ? structuredClone(initial) : newBookDraft(data, seed),
+  );
+  // This ref survives section remounts; only a fresh scan-seeded editor can own an intent.
+  const scanLookup = useRef<ScanLookupIntent | undefined>(
+    lookupAfterScan && seed && !initial ? { pending: true, isbn13: book.isbn13 } : undefined,
   );
   const baseline = useRef(JSON.stringify(book));
   useUnsaved(protectSession || baseline.current !== JSON.stringify(book));
@@ -299,6 +305,7 @@ export function BookEditor({
                 {!full && location}
                 <MetadataLookup
                   book={book}
+                  scanLookupIntent={scanLookup.current}
                   setBook={setBook}
                   disabled={busy}
                   onPreviewChange={setMetadataOpen}
@@ -538,7 +545,7 @@ export function BookEditor({
           <button type="button" onClick={close}>
             {t('ui.cancel')}{' '}
           </button>
-          <button className="primary" disabled={busy} type="submit">
+          <button className="primary" disabled={busy || metadataOpen} type="submit">
             <Save size={16} />
             {busy ? t('ui.working') : t('ui.saveBook')}
           </button>
