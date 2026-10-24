@@ -99,3 +99,55 @@ fn updates_reopen_and_backup_restore_keep_normalized_search() {
         "Diyarbakır"
     );
 }
+
+#[test]
+fn nul_is_rejected_explicitly_and_other_controls_remain_literal() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::open(dir.path().join("library")).unwrap();
+    store
+        .save(&book("İhsan Işık Diyarbakır O'Neil bilim-kurgu"))
+        .unwrap();
+    let before = store.snapshot("", false).unwrap();
+    let index = || {
+        let c = store.conn().unwrap();
+        let mut stmt = c
+            .prepare("SELECT copy_id, body FROM book_search ORDER BY rowid")
+            .unwrap();
+        stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))
+            .unwrap()
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .unwrap()
+    };
+    let before_index = index();
+    for q in ["\0", "İhsan\0missing", "\0IŞIK", "isik\0"] {
+        let error = store.snapshot(q, false).unwrap_err().to_string();
+        assert_eq!(error, "Search cannot contain NUL characters.", "{q:?}");
+    }
+    assert_eq!(store.snapshot("", false).unwrap(), before);
+    assert_eq!(index(), before_index);
+    for q in ["İHSAN\tışık", "İhsan\nIŞIK", "İhsan\r\nDiyarbakir"] {
+        assert_eq!(matches(&store, q), 1, "{q:?}");
+    }
+    for q in [
+        "\u{1}",
+        "\u{7}",
+        "\u{1b}",
+        "\u{7f}",
+        "\u{85}",
+        "\"İhsan\"",
+        "İhsan*",
+        "İhsan OR missing",
+        "{title}:isik",
+        "[isik]",
+        "İhsan + IŞIK",
+        "İhsan\\IŞIK",
+        "İhsan\u{1}IŞIK",
+    ] {
+        assert!(store.snapshot(q, false).is_ok(), "{q:?}");
+    }
+    assert_eq!(matches(&store, "ihs isi"), 1);
+    assert_eq!(
+        store.snapshot("", false).unwrap()["books"][0]["title"],
+        "İhsan Işık Diyarbakır O'Neil bilim-kurgu"
+    );
+}

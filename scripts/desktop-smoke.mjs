@@ -2775,6 +2775,16 @@ try {
       const before = await snapshot();
       assert.deepEqual(before.books.map((b) => b.id).sort(), ['copy1', 'copy2']);
       assert(before.books.every((b) => b.edition_id === 'edition' && b.title === title));
+      await assert.rejects(
+        page.evaluate(() =>
+          window.__TAURI_INTERNALS__.invoke('database', {
+            action: 'snapshot',
+            payload: { query: 'İhsan\u0000missing' },
+          }),
+        ),
+        /Search cannot contain NUL characters/,
+      );
+      assertDomainUnchanged(await snapshot(), before);
       for (const query of ['ihs isi', 'IŞIK Diyarbakir', "O'Neil", 'bilim-kurgu']) {
         const result = await page.evaluate(
           (query) =>

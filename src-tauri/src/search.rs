@@ -11,6 +11,9 @@ pub fn normalize(text: &str) -> String {
 }
 
 pub fn query(text: &str) -> Result<String> {
+    if text.contains('\0') {
+        return Err("Search cannot contain NUL characters.".into());
+    }
     if text.chars().count() > 1024 || text.split_whitespace().count() > 32 {
         return Err("Search is limited to 1024 characters and 32 terms.".into());
     }
