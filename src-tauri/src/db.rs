@@ -61,16 +61,12 @@ impl Store {
         Ok(c)
     }
     pub fn snapshot(&self, query: &str, trash: bool) -> Result<Value> {
+        let q = crate::search::query(query)?;
         let c = self.conn()?;
         let books = list(&c, trash)?;
         let ids = if query.trim().is_empty() {
             Value::Null
         } else {
-            let q = query
-                .split_whitespace()
-                .map(|t| format!("\"{}\"*", t.replace('"', "\"\"")))
-                .collect::<Vec<_>>()
-                .join(" AND ");
             let mut stmt =
                 c.prepare("SELECT copy_id FROM book_search WHERE book_search MATCH ?")?;
             let rows = stmt
@@ -904,7 +900,13 @@ pub fn list(c: &Connection, trash: bool) -> Result<Vec<Value>> {
 }
 pub fn reindex(c: &Connection) -> Result<()> {
     c.execute("DELETE FROM book_search", [])?;
-    c.execute("INSERT INTO book_search(copy_id,body) SELECT c.id, e.title||' '||e.subtitle||' '||e.isbn10||' '||e.isbn13||' '||c.barcode||' '||e.extra||' '||c.extra||' '||coalesce(p.name,'')||' '||coalesce(s.name,'')||' '||coalesce((SELECT group_concat(pp.name,' ') FROM contributors cc JOIN people pp ON pp.id=cc.person_id WHERE cc.edition_id=e.id),'')||' '||coalesce((SELECT group_concat(t.name,' ') FROM edition_terms et JOIN terms t ON t.id=et.term_id WHERE et.edition_id=e.id),'')||' '||coalesce((SELECT group_concat(en.title||' '||en.content,' ') FROM entries en WHERE en.copy_id=c.id),'') FROM copies c JOIN editions e ON e.id=c.edition_id LEFT JOIN publishers p ON p.id=e.publisher_id LEFT JOIN series s ON s.id=e.series_id WHERE c.deleted_at IS NULL",[])?;
+    let mut source = c.prepare("SELECT c.id, e.title||' '||e.subtitle||' '||e.isbn10||' '||e.isbn13||' '||c.barcode||' '||e.extra||' '||c.extra||' '||coalesce(p.name,'')||' '||coalesce(s.name,'')||' '||coalesce((SELECT group_concat(pp.name,' ') FROM contributors cc JOIN people pp ON pp.id=cc.person_id WHERE cc.edition_id=e.id),'')||' '||coalesce((SELECT group_concat(t.name,' ') FROM edition_terms et JOIN terms t ON t.id=et.term_id WHERE et.edition_id=e.id),'')||' '||coalesce((SELECT group_concat(en.title||' '||en.content,' ') FROM entries en WHERE en.copy_id=c.id),'') FROM copies c JOIN editions e ON e.id=c.edition_id LEFT JOIN publishers p ON p.id=e.publisher_id LEFT JOIN series s ON s.id=e.series_id WHERE c.deleted_at IS NULL")?;
+    let rows = source.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?;
+    let mut insert = c.prepare("INSERT INTO book_search(copy_id,body) VALUES(?,?)")?;
+    for row in rows {
+        let (id, body) = row?;
+        insert.execute(rusqlite::params![id, crate::search::normalize(&body)])?;
+    }
     Ok(())
 }
 pub fn safe_file(root: &Path, relative: &str) -> Result<PathBuf> {

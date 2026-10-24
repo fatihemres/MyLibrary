@@ -760,5 +760,13 @@
   "scanner.workflow": "Tarama sonrası",
   "scanner.isbnOnly": "Yalnız ISBN tara",
   "scanner.withLookup": "Tara ve kitap bilgilerini ara",
-  "scanner.lookupHelp": "Çevrimiçi arama ISBN bilgisini Open Library ve Google Books hizmetlerine gönderir. Toplu modda arama yalnız İncele ve ekle seçildiğinde başlar. Önerileri inceleyin, Uygula ve ardından ayrıca Kaydet adımlarını kullanın. Kuyrukta öğe varken akış değiştirilemez."
+  "scanner.lookupHelp": "Çevrimiçi arama ISBN bilgisini Open Library ve Google Books hizmetlerine gönderir. Toplu modda arama yalnız İncele ve ekle seçildiğinde başlar. Önerileri inceleyin, Uygula ve ardından ayrıca Kaydet adımlarını kullanın. Kuyrukta öğe varken akış değiştirilemez.",
+  "search.active": "Etkin filtreler",
+  "search.invalid": "Filtre değerlerini ve yıl aralıklarını kontrol edin. Geçersiz ölçütler sonuç döndürmez.",
+  "search.presentation": "Gelişmiş arama görünümü",
+  "search.concise": "Özet",
+  "search.detailed": "Ayrıntılı",
+  "search.retained": "Etkin ayrıntılı filtreler özet görünümde de gösterilir. Filtreleri temizlemek için Sıfırla seçeneğini kullanın.",
+  "search.pending": "Arama sonuçları güncelleniyor…",
+  "search.limit": "En fazla 1.024 karakter ve 32 arama sözcüğü kullanın."
 }

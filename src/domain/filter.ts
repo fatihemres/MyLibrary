@@ -1,5 +1,53 @@
 import { author, locationName, type Book, type Snapshot } from './types';
 export type Filters = Record<string, string>;
+export const filterLabels: Record<string, string> = {
+  author: 'Author',
+  publisher: 'Publisher',
+  genre: 'Genre',
+  tag: 'Tag',
+  language: 'Language',
+  series: 'Series',
+  status: 'Reading status',
+  condition: 'Condition',
+  minYear: 'Year from',
+  maxYear: 'Year to',
+  acquisitionYear: 'Acquired in year',
+  rating: 'Minimum rating',
+  favorite: 'Favorites',
+  signed: 'Signed copies',
+  first_edition: 'First editions',
+  lent: 'Lent out',
+  location_id: 'Location',
+  source: 'Acquisition source',
+};
+export const conciseFilters = new Set(['author', 'genre', 'status', 'location_id']);
+export function visibleFilter(key: string, detailed: boolean, filters: Filters) {
+  return detailed || conciseFilters.has(key) || Boolean(filters[key]);
+}
+/** A bounded conjunction, independent of presentation; never persisted as SQL or rules. */
+export interface SearchCriteria {
+  query: string;
+  filters: Filters;
+}
+export function validateCriteria({ query, filters }: SearchCriteria): boolean {
+  if (query.length > 1024 || query.trim().split(/\s+/).filter(Boolean).length > 32) return false;
+  if (Object.keys(filters).length > Object.keys(filterLabels).length) return false;
+  for (const [key, value] of Object.entries(filters)) {
+    if (typeof value !== 'string' || value.length > 512 || !Object.hasOwn(filterLabels, key))
+      return false;
+    if (!value) continue;
+    if (['minYear', 'maxYear', 'acquisitionYear'].includes(key) && !/^[1-9]\d{0,3}$/.test(value))
+      return false;
+    if (key === 'acquisitionYear' && value.length !== 4) return false;
+    if (key === 'rating' && !/^(?:[0-4](?:\.5)?|5)$/.test(value)) return false;
+    if (
+      ['favorite', 'signed', 'first_edition', 'lent'].includes(key) &&
+      !['yes', 'no'].includes(value)
+    )
+      return false;
+  }
+  return !(filters.minYear && filters.maxYear && Number(filters.minYear) > Number(filters.maxYear));
+}
 export function navigationFilters(view: string): Filters {
   if (view === 'Finished' || view === 'Unread' || view === 'Want to Read') return { status: view };
   if (view === 'Currently Reading') return { status: 'Reading' };
@@ -23,6 +71,7 @@ export function editionCards(matching: Book[], all: Book[], trash = false) {
   }));
 }
 export function filterBooks(data: Snapshot, filters: Filters, sort: string, desc: boolean) {
+  if (!validateCriteria({ query: '', filters })) return [];
   const active = new Set(data.loans.filter((l) => !l.returned_date).map((l) => l.copy_id));
   const matches = data.searchIds ? new Set(data.searchIds) : null;
   const result = data.books.filter(
@@ -41,14 +90,14 @@ export function filterBooks(data: Snapshot, filters: Filters, sort: string, desc
           case 'maxYear':
             return b.publication_year !== null && b.publication_year <= Number(v);
           case 'acquisitionYear':
-            return b.acquisition_date.startsWith(v);
+            return b.acquisition_date.slice(0, 4) === v;
           case 'rating':
             return b.rating !== null && b.rating >= Number(v);
           case 'favorite':
-            return b.favorite;
+            return b.favorite === (v === 'yes');
           case 'signed':
           case 'first_edition':
-            return !!b.copy_extra[key];
+            return !!b.copy_extra[key] === (v === 'yes');
           case 'lent':
             return active.has(b.id) === (v === 'yes');
           case 'location_id': {
@@ -66,6 +115,25 @@ export function filterBooks(data: Snapshot, filters: Filters, sort: string, desc
         }
       }),
   );
+  if (
+    ![
+      'title',
+      'isbn13',
+      'publisher',
+      'language',
+      'status',
+      'author',
+      'location',
+      'created_at',
+      'publication_year',
+      'rating',
+      'pages',
+      'acquisition_date',
+      'updated_at',
+      'series_order',
+    ].includes(sort)
+  )
+    sort = 'title';
   const value = (b: Book): string | number | null =>
     sort === 'author'
       ? author(b)
@@ -75,6 +143,7 @@ export function filterBooks(data: Snapshot, filters: Filters, sort: string, desc
   return result.sort((a, b) => {
     const av = value(a),
       bv = value(b);
+    if (av === null && bv === null) return a.id.localeCompare(b.id);
     if (av === null) return 1;
     if (bv === null) return -1;
     const n =

@@ -1,6 +1,6 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-23** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-24** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
@@ -16,7 +16,23 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current checkpoint — M2-E integrated, 2026-10-23
+## Current checkpoint — M3-A stacked draft preparation, 2026-10-24
+
+- Live integrated `v2` remains `441d5481ae21525c42207060cc3d8dd2b9ff97d8` (PR #18).
+- M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) remains OPEN/DRAFT at
+  `4ca8bf7811751fbb4345db817c307aab509e43b6`; its seven requested CI jobs passed.
+- The PO separately authorized the bounded M3-A search/filter slice, local verification and now
+  commit/push plus a stacked DRAFT PR from `codex/m3a-search-foundation` targeting
+  `codex/m2f-scan-lookup`. This supersedes earlier planning-only statements solely for M3-A.
+- M3-A adds Turkish-aware FTS5 search, a transactional schema-3 derived-index rebuild and validated
+  copy-aware concise/detailed filters. See [search architecture](docs/architecture/search.md)
+  and [agent-run evidence](VERIFICATION.md). Application/test file hashes match the verified candidate.
+- Independent review and physical Windows PO acceptance remain pending. The stacked PR base is
+  outside the existing workflows' `v2` PR filters; parent CI is not M3-A CI.
+- **M2 remains OPEN. No M3 integration, milestone closure or release is authorized.** Other M3
+  features remain planned and unauthorized. No integration into either the parent branch or `v2`.
+
+## Checkpoint — M2-E integrated, 2026-10-23 (historical)
 
 - GitHub `v2` was verified at `7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef` after PO-authorized
   [PR #17](https://github.com/fatihemres/MyLibrary/pull/17) integration by **exact-SHA

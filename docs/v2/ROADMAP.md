@@ -55,6 +55,14 @@ Existing optional lookup and M1 provider boundaries are foundations, not proof t
 
 ## M3 — Organization — PLANNED
 
+**M3-A scoped exception (2026-10-24 checkpoint):** the PO separately authorized Turkish FTS5
+search foundation and bounded advanced filters, including concise/detailed presentation. The local
+candidate is verified and commit/push plus a stacked DRAFT PR targeting M2-F
+[PR #19](https://github.com/fatihemres/MyLibrary/pull/19) is authorized. See
+[search architecture](../architecture/search.md) and [verification](../../VERIFICATION.md).
+Independent review and physical Windows acceptance remain pending. No integration or milestone
+closure is authorized; M2 stays OPEN. Other M3 features below remain planned and unauthorized.
+
 - Smart Collections.
 - Manual collections.
 - Wishlist.

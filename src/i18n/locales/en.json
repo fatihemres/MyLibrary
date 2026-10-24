@@ -760,5 +760,13 @@
   "scanner.workflow": "After scanning",
   "scanner.isbnOnly": "Scan ISBN only",
   "scanner.withLookup": "Scan and look up book details",
-  "scanner.lookupHelp": "Online lookup sends the ISBN to Open Library and Google Books. In batch mode, lookup starts only when you choose Review & add. Review suggestions, Apply, then Save separately. The workflow is locked while the queue has entries."
+  "scanner.lookupHelp": "Online lookup sends the ISBN to Open Library and Google Books. In batch mode, lookup starts only when you choose Review & add. Review suggestions, Apply, then Save separately. The workflow is locked while the queue has entries.",
+  "search.active": "Active filters",
+  "search.invalid": "Check filter values and year ranges. Invalid criteria return no matches.",
+  "search.presentation": "Advanced search presentation",
+  "search.concise": "Concise",
+  "search.detailed": "Detailed",
+  "search.retained": "Active detailed filters remain visible in concise view. Reset clears filters explicitly.",
+  "search.pending": "Updating search results…",
+  "search.limit": "Use at most 1,024 characters and 32 search terms."
 }

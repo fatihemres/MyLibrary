@@ -1,3 +1,44 @@
+# M3-A stacked draft preparation — 2026-10-24
+
+M3-A is stacked on M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19), parent
+`4ca8bf7811751fbb4345db817c307aab509e43b6`. The PO authorized commit, push and a DRAFT PR
+against `codex/m2f-scan-lookup`; independent review and physical Windows PO acceptance are
+pending. M2 remains OPEN; no integration or milestone closure is authorized.
+
+**Codex-run local verification, not independent PO acceptance or GitHub CI:**
+
+- `npm run test`: 315/315; `npm run test:rust`: 92/92.
+- `node scripts/test-m3a-components.mjs`: 4/4;
+  `node scripts/test-m2f-components.mjs`: 8/8.
+- `npm run test:desktop`: 41/41 with fresh synthetic libraries, isolated WebView2 profile,
+  deterministic provider fixtures and the native rejection guard. Zero frontend errors and
+  unexpected external requests; exactly two deliberate native guard self-test requests blocked.
+- `npm run typecheck`, `npm run lint`, `cargo fmt --manifest-path src-tauri/Cargo.toml --check`,
+  `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked`, `npm run build` and
+  `npm run desktop:build -- --no-bundle`: PASS, exit 0. EN/TR parity: 770 keys.
+- Migration/restore tests cover populated V1/V2 upgrades, committed WAL preservation, safety
+  snapshots, unchanged domain values/IDs/media references, rollback, idempotent reopen,
+  current and V1/V2 archives, trusted restore schemas and future-version rejection.
+- Executable SHA-256: `A8AFF15ED8617E9A315B1995C8585C7C9DD406761582D47C7AA1B4DC728D9311`.
+  Local ignored evidence: `.cache/m3a-verification/summary.json`,
+  `.cache/m3a-verification/rust-tests-final.log`,
+  `.cache/desktop-check-1792822847454/report.json` and
+  `.cache/m3a-browser-1792822694644/report.json`. Reports/binaries are not committed.
+- Kaspersky script injection was independently observed on a script-free control page using
+  parser initiators and timing; three requests remained blocked. Only that exact independently
+  observed script is attributed separately. Unexpected application requests still fail the test.
+  This was not a quarantine detection, antivirus exclusion or networking permission change.
+- Commit preflight revalidated all 17 candidate file hashes and the executable/report identity.
+  Only scoped documentation changed afterward; native builds and test suites were not needlessly
+  rerun. Documentation links, localization parity and Git whitespace/staging checks were repeated.
+
+Large-library reindex performance is unbenchmarked. Real USB/camera and Windows PO acceptance,
+macOS/Linux native manual acceptance and independent migration review remain outstanding.
+The V2 foundation and CodeQL workflows filter PRs to `v2`; this stacked base does not automatically
+run their seven jobs. Absent checks are NOT RUN, not PASS. No workflow changes or dispatch are authorized.
+
+---
+
 # M2-F draft checkpoint — 2026-10-23
 
 M2-F is a local candidate based on `441d5481ae21525c42207060cc3d8dd2b9ff97d8`.
