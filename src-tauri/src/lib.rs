@@ -7,6 +7,7 @@ mod isbn;
 mod metadata;
 pub mod migrations;
 mod platform;
+mod search;
 use db::{Result, Store};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};

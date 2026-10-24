@@ -9,7 +9,14 @@ import {
   type Book,
   type Snapshot,
 } from '../domain/types';
-import { editionCards, filterBooks, type Filters } from '../domain/filter';
+import {
+  editionCards,
+  filterBooks,
+  filterLabels,
+  validateCriteria,
+  visibleFilter,
+  type Filters,
+} from '../domain/filter';
 import { Cover, Empty, Field } from '../components/common';
 export function Library({
   data,
@@ -19,6 +26,7 @@ export function Library({
   onBulk,
   onExport,
   trash = false,
+  searchPending = false,
 }: {
   data: Snapshot;
   filters: Filters;
@@ -27,11 +35,13 @@ export function Library({
   onBulk: (ids: string[], field: string, value: unknown) => void;
   onExport: (books: Book[]) => void;
   trash?: boolean;
+  searchPending?: boolean;
 }) {
   const [view, setView] = useState(localStorage.getItem('view') || 'grid');
   const [sort, setSort] = useState(localStorage.getItem('sort') || 'title');
   const [desc, setDesc] = useState(false);
   const [showFilters, setShowFilters] = useState(Object.values(filters).some(Boolean));
+  const [detailed, setDetailed] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [columns, setColumns] = useState<string[]>(() => {
     try {
@@ -80,21 +90,29 @@ export function Library({
         : [...new Set([...selected, ...group])],
     );
   };
-  const choices = (key: string, label: string, values: string[]) => (
-    <Field label={trLabel(label)}>
-      <select value={filters[key] || ''} onChange={(e) => setFilter(key, e.target.value)}>
-        <option value="">{t('ui.any')}</option>
-        {[...new Set(values)]
-          .filter(Boolean)
-          .sort()
-          .map((v) => (
-            <option key={v} value={v}>
-              {['status', 'condition', 'lent'].includes(key) ? trLabel(v) : v}
-            </option>
-          ))}
-      </select>
-    </Field>
-  );
+  const shown = (key: string) => visibleFilter(key, detailed, filters);
+  const activeFilters = Object.entries(filters).filter(([, value]) => value);
+  const valid = validateCriteria({ query: '', filters });
+  const choices = (key: string, label: string, values: string[]) =>
+    shown(key) && (
+      <Field label={trLabel(label)}>
+        <select
+          aria-label={trLabel(label)}
+          value={filters[key] || ''}
+          onChange={(e) => setFilter(key, e.target.value)}
+        >
+          <option value="">{t('ui.any')}</option>
+          {[...new Set([...values, filters[key] || ''])]
+            .filter(Boolean)
+            .sort()
+            .map((v) => (
+              <option key={v} value={v}>
+                {['status', 'condition', 'lent'].includes(key) ? trLabel(v) : v}
+              </option>
+            ))}
+        </select>
+      </Field>
+    );
   const cell = (b: Book, key: string) =>
     key === 'author'
       ? author(b)
@@ -123,9 +141,16 @@ export function Library({
   return (
     <>
       <div className="toolbar">
-        <span className="muted">
-          {cards.length} {trash ? t('ui.copiesAlt') : t('library.editions')} · {books.length}{' '}
-          {t('ui.matchingCopies')} {Object.values(filters).some(Boolean) && t('library.filtered')}
+        <span className="muted" role="status" aria-live="polite">
+          {searchPending ? (
+            t('search.pending')
+          ) : (
+            <>
+              {cards.length} {trash ? t('ui.copiesAlt') : t('library.editions')} · {books.length}{' '}
+              {t('ui.matchingCopies')}{' '}
+              {Object.values(filters).some(Boolean) && t('library.filtered')}
+            </>
+          )}
         </span>
         {filters.status && (
           <span className="badge">
@@ -133,6 +158,8 @@ export function Library({
           </span>
         )}
         <button
+          aria-expanded={showFilters}
+          aria-controls="advanced-search-filters"
           onClick={() => setShowFilters(!showFilters)}
           className={showFilters ? 'selected' : ''}
         >
@@ -218,90 +245,133 @@ export function Library({
           ))}
         </div>
       )}
+      {activeFilters.length > 0 && (
+        <div className="panel inline wrap" aria-label={t('search.active')}>
+          {activeFilters.map(([key, value]) => (
+            <span className="badge" key={key}>
+              {trLabel(filterLabels[key] || key)}:{' '}
+              {key === 'location_id'
+                ? locationName(value, data.locations)
+                : ['status', 'condition', 'lent', 'favorite', 'signed', 'first_edition'].includes(
+                      key,
+                    )
+                  ? trLabel(value)
+                  : value}
+            </span>
+          ))}
+        </div>
+      )}
+      {!valid && <p role="alert">{t('search.invalid')}</p>}
       {showFilters && (
-        <div className="filter-grid panel">
-          {choices(
-            'author',
-            'Author',
-            data.people.map((p) => p.name),
-          )}
-          {choices(
-            'publisher',
-            'Publisher',
-            data.publishers.map((p) => p.name),
-          )}
-          {choices(
-            'genre',
-            'Genre',
-            data.terms.filter((t) => t.kind === 'genre').map((t) => t.name),
-          )}
-          {choices(
-            'tag',
-            'Tag',
-            data.terms.filter((t) => t.kind === 'tag').map((t) => t.name),
-          )}
-          {choices(
-            'language',
-            'Language',
-            data.books.map((b) => b.language),
-          )}
-          {choices(
-            'series',
-            'Series',
-            data.series.map((s) => s.name),
-          )}
-          {choices('status', 'Reading status', statuses)}
-          {choices('condition', 'Condition', conditions)}
-          {['minYear', 'maxYear', 'acquisitionYear'].map((key, i) => (
-            <Field key={key} label={trLabel(['Year from', 'Year to', 'Acquired in year'][i])}>
-              <input
-                type="number"
-                value={filters[key] || ''}
-                onChange={(e) => setFilter(key, e.target.value)}
-              />
+        <div id="advanced-search-filters" className="panel">
+          <div className="segmented" role="group" aria-label={t('search.presentation')}>
+            {[false, true].map((value) => (
+              <button
+                type="button"
+                key={String(value)}
+                aria-pressed={detailed === value}
+                onClick={() => setDetailed(value)}
+              >
+                {t(value ? 'search.detailed' : 'search.concise')}
+              </button>
+            ))}
+          </div>
+          <p className="muted">{t('search.retained')}</p>
+          <div className="filter-grid">
+            {choices(
+              'author',
+              'Author',
+              data.people.map((p) => p.name),
+            )}
+            {choices(
+              'publisher',
+              'Publisher',
+              data.publishers.map((p) => p.name),
+            )}
+            {choices(
+              'genre',
+              'Genre',
+              data.terms.filter((t) => t.kind === 'genre').map((t) => t.name),
+            )}
+            {choices(
+              'tag',
+              'Tag',
+              data.terms.filter((t) => t.kind === 'tag').map((t) => t.name),
+            )}
+            {choices(
+              'language',
+              'Language',
+              data.books.map((b) => b.language),
+            )}
+            {choices(
+              'series',
+              'Series',
+              data.series.map((s) => s.name),
+            )}
+            {choices('status', 'Reading status', statuses)}
+            {choices('condition', 'Condition', conditions)}
+            {choices(
+              'source',
+              'Acquisition source',
+              data.sources.map((source) => source.name),
+            )}
+            {['minYear', 'maxYear', 'acquisitionYear'].map(
+              (key, i) =>
+                shown(key) && (
+                  <Field key={key} label={trLabel(['Year from', 'Year to', 'Acquired in year'][i])}>
+                    <input
+                      type="number"
+                      value={filters[key] || ''}
+                      onChange={(e) => setFilter(key, e.target.value)}
+                    />
+                  </Field>
+                ),
+            )}
+            {choices('rating', 'Minimum rating', [
+              '0',
+              '0.5',
+              '1',
+              '1.5',
+              '2',
+              '2.5',
+              '3',
+              '3.5',
+              '4',
+              '4.5',
+              '5',
+            ])}
+            <Field label={t('ui.locationIncludesChildren')}>
+              <select
+                value={filters.location_id || ''}
+                onChange={(e) => setFilter('location_id', e.target.value)}
+              >
+                <option value="">{t('ui.anywhere')}</option>
+                {data.locations.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {locationName(l.id, data.locations)}
+                  </option>
+                ))}
+              </select>
             </Field>
-          ))}
-          {choices('rating', 'Minimum rating', [
-            '0',
-            '0.5',
-            '1',
-            '1.5',
-            '2',
-            '2.5',
-            '3',
-            '3.5',
-            '4',
-            '4.5',
-            '5',
-          ])}
-          <Field label={t('ui.locationIncludesChildren')}>
-            <select
-              value={filters.location_id || ''}
-              onChange={(e) => setFilter('location_id', e.target.value)}
-            >
-              <option value="">{t('ui.anywhere')}</option>
-              {data.locations.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {locationName(l.id, data.locations)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          {choices('lent', 'Lent out', ['yes', 'no'])}
-          {[
-            ['favorite', 'Favorites'],
-            ['signed', 'Signed copies'],
-            ['first_edition', 'First editions'],
-          ].map(([k, l]) => (
-            <label className="check" key={k}>
-              <input
-                type="checkbox"
-                checked={!!filters[k]}
-                onChange={(e) => setFilter(k, e.target.checked ? 'yes' : '')}
-              />
-              {trLabel(l)}
-            </label>
-          ))}
+            {choices('lent', 'Lent out', ['yes', 'no'])}
+            {[
+              ['favorite', 'Favorites'],
+              ['signed', 'Signed copies'],
+              ['first_edition', 'First editions'],
+            ].map(
+              ([k, l]) =>
+                shown(k) && (
+                  <label className="check" key={k}>
+                    <input
+                      type="checkbox"
+                      checked={!!filters[k]}
+                      onChange={(e) => setFilter(k, e.target.checked ? 'yes' : '')}
+                    />
+                    {trLabel(l)}
+                  </label>
+                ),
+            )}
+          </div>
         </div>
       )}
       <div className="selectionbar">

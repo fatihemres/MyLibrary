@@ -1468,7 +1468,7 @@ try {
       const platform = await page.evaluate(() =>
         window.__TAURI_INTERNALS__.invoke('database', { action: 'platform', payload: {} }),
       );
-      assert.equal(platform.schema, 2);
+      assert.equal(platform.schema, 3);
       assert.equal(resolve(platform.paths.data), resolve(dataDir));
       await nav('Settings');
       await button('Open data folder').click();
@@ -2694,6 +2694,151 @@ try {
       assert.equal(restored.series_order, null);
       assert.deepEqual(restored.terms.genre, saved.terms.genre);
       assert.equal(restored.edition_id, saved.edition_id);
+    },
+  );
+  await check(
+    'M3-A Turkish search and concise/detailed filters preserve criteria and original data',
+    async () => {
+      await nav('Library');
+      await button('Quick add').click();
+      await dialog().getByLabel('Title *', { exact: true }).fill('İhsan Işık Diyarbakır');
+      await button('Save book', dialog()).click();
+      await dialog().waitFor({ state: 'hidden' });
+      await nav('Library');
+      const search = page.getByLabel('Search entire library');
+      for (const query of ['ihsan isik', 'IŞIK', 'Diyarbakir']) {
+        await search.fill(query);
+        await page
+          .locator('.toolbar')
+          .getByText('1 editions · 1 matching copies', { exact: true })
+          .waitFor();
+        await page.getByRole('button', { name: 'İhsan Işık Diyarbakır', exact: true }).waitFor();
+      }
+      await button('Filters').click();
+      await button('Detailed').focus();
+      await page.keyboard.press('Enter');
+      await page.getByLabel('Year from', { exact: true }).fill('2100');
+      await page
+        .locator('.toolbar')
+        .getByText('0 editions · 0 matching copies · filtered', { exact: true })
+        .waitFor();
+      await button('Concise').click();
+      assert.equal(await page.getByLabel('Year from', { exact: true }).inputValue(), '2100');
+      await button('Filters').click();
+      await page
+        .getByLabel('Active filters')
+        .getByText('Year from: 2100', { exact: true })
+        .waitFor();
+      await button('Reset').click();
+      await page
+        .locator('.toolbar')
+        .getByText('1 editions · 1 matching copies', { exact: true })
+        .waitFor();
+      await search.fill('');
+      const before = await snapshot();
+      assert(before.books.some((b) => b.title === 'İhsan Işık Diyarbakır'));
+      await close();
+      await launch();
+      await nav('Library');
+      await page.getByLabel('Search entire library').fill('isik diyarbakir');
+      await page
+        .locator('.toolbar')
+        .getByText('1 editions · 1 matching copies', { exact: true })
+        .waitFor();
+      assertDomainUnchanged(await snapshot(), before);
+    },
+  );
+  await check(
+    'M3-A populated V2 upgrade, restart, copy-aware filters and Turkish controls',
+    async () => {
+      await close();
+      dataDir = join(runDir, 'm3a-v2-migration');
+      await mkdir(join(dataDir, 'covers'), { recursive: true });
+      await mkdir(join(dataDir, 'attachments'), { recursive: true });
+      const title = "İhsan Işık Diyarbakır O'Neil bilim-kurgu";
+      execFileSync('python', [
+        '-X',
+        'utf8',
+        '-c',
+        'import sqlite3,sys,pathlib; c=sqlite3.connect(sys.argv[1]); c.executescript(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8-sig")); c.executescript(pathlib.Path(sys.argv[3]).read_text(encoding="utf-8-sig")); c.executescript("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); INSERT INTO schema_migrations VALUES(1,\'original\'),(2,\'original\'); PRAGMA user_version=2;"); c.execute("UPDATE editions SET title=?",(sys.argv[4],)); c.commit(); c.close()',
+        join(dataDir, 'library.sqlite3'),
+        join(root, 'src-tauri/tests/fixtures/v1-schema.sql'),
+        join(root, 'src-tauri/tests/fixtures/v1-library.sql'),
+        title,
+      ]);
+      await writeFile(
+        join(dataDir, 'covers/fixture.png'),
+        await readFile(join(runDir, 'test-cover.png')),
+      );
+      await writeFile(join(dataDir, 'attachments/fixture.txt'), 'synthetic receipt');
+      await launch();
+      const before = await snapshot();
+      assert.deepEqual(before.books.map((b) => b.id).sort(), ['copy1', 'copy2']);
+      assert(before.books.every((b) => b.edition_id === 'edition' && b.title === title));
+      for (const query of ['ihs isi', 'IŞIK Diyarbakir', "O'Neil", 'bilim-kurgu']) {
+        const result = await page.evaluate(
+          (query) =>
+            window.__TAURI_INTERNALS__.invoke('database', {
+              action: 'snapshot',
+              payload: { query },
+            }),
+          query,
+        );
+        assert.deepEqual(result.searchIds.sort(), ['copy1', 'copy2']);
+      }
+      await nav('Library');
+      await button('Filters').click();
+      await button('Detailed').click();
+      await page.getByLabel('Reading status', { exact: true }).selectOption('Finished');
+      await page.getByLabel('Minimum rating', { exact: true }).selectOption('4');
+      await page
+        .locator('.toolbar')
+        .getByText('0 editions · 0 matching copies · filtered', { exact: true })
+        .waitFor();
+      await page.getByLabel('Reading status', { exact: true }).selectOption('Reading');
+      await page
+        .locator('.toolbar')
+        .getByText('1 editions · 1 matching copies · filtered', { exact: true })
+        .waitFor();
+      await page.getByLabel('Year from', { exact: true }).fill('2100');
+      await page.getByLabel('Year to', { exact: true }).fill('1900');
+      await page.getByRole('alert').waitFor();
+      await page.getByLabel('Year from', { exact: true }).fill('');
+      await page.getByLabel('Year to', { exact: true }).fill('');
+      assert.equal(await page.getByRole('alert').count(), 0);
+      await button('Reset').click();
+      await page
+        .locator('.toolbar')
+        .getByText('1 editions · 2 matching copies', { exact: true })
+        .waitFor();
+      assertDomainUnchanged(await snapshot(), before);
+      await close();
+      await launch();
+      assertDomainUnchanged(await snapshot(), before);
+      const result = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', {
+          action: 'snapshot',
+          payload: { query: 'isik diyarbakir' },
+        }),
+      );
+      assert.deepEqual(result.searchIds.sort(), ['copy1', 'copy2']);
+      assert.equal(
+        (await readdir(join(dataDir, 'backups'))).filter((name) =>
+          name.startsWith('pre-migration-v2-'),
+        ).length,
+        1,
+      );
+      await nav('Settings');
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await nav('Kütüphane');
+      await button('Filtreler').click();
+      await button('Ayrıntılı').focus();
+      await page.keyboard.press('Enter');
+      await page.getByLabel('Başlangıç yılı', { exact: true }).fill('2000');
+      await button('Özet').click();
+      assert.equal(await page.getByLabel('Başlangıç yılı', { exact: true }).inputValue(), '2000');
+      await button('Sıfırla').click();
+      assertDomainUnchanged(await snapshot(), before);
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');
