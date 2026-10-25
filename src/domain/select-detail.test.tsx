@@ -193,6 +193,10 @@ describe.each(groups)('$key built-in select', (group) => {
           const html = renderToStaticMarkup(<Capture />);
           expect(html).toContain(group.labels[language === 'tr' ? 1 : 0]);
           for (const [option, turkish] of group.options) {
+            if (group.key === 'ownership' && option === 'Wishlist' && value !== 'Wishlist') {
+              expect(html).not.toContain('<option value="Wishlist"');
+              continue;
+            }
             expect(html).toContain(
               `<option value="${option}"${option === value ? ' selected=""' : ''}>${language === 'tr' ? turkish : option}</option>`,
             );

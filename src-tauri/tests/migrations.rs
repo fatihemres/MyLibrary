@@ -124,12 +124,24 @@ fn analyzed_v1_archive_remains_compatible() {
 fn v2_archive_rebuilds_search_in_staging() {
     restore_archive(false, 2);
 }
+#[test]
+fn v3_archive_keeps_copy_search_and_upgrades_only_staging() {
+    restore_archive(false, 3);
+}
 fn restore_archive(analyzed: bool, version: i64) {
     let dir = temp();
     let root = dir.path().join("v1");
     fixture(&root);
-    if version == 2 {
+    if version >= 2 {
         Connection::open(root.join("library.sqlite3")).unwrap().execute_batch("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); INSERT INTO schema_migrations VALUES(1,'original'),(2,'original'); PRAGMA user_version=2;").unwrap();
+    }
+    if version == 3 {
+        let c = Connection::open(root.join("library.sqlite3")).unwrap();
+        mylibrary_lib::db::reindex(&c).unwrap();
+        c.execute_batch(
+            "INSERT INTO schema_migrations VALUES(3,'original'); PRAGMA user_version=3;",
+        )
+        .unwrap();
     }
     if analyzed {
         Connection::open(root.join("library.sqlite3"))
@@ -295,9 +307,9 @@ fn synthetic_schema2_migration_benchmark() {
             after
                 .query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))
                 .unwrap(),
-            3
+            CURRENT_SCHEMA
         );
-        assert_eq!(after.query_row("SELECT group_concat(version) FROM (SELECT version FROM schema_migrations ORDER BY version)", [], |r| r.get::<_, String>(0)).unwrap(), "1,2,3");
+        assert_eq!(after.query_row("SELECT group_concat(version) FROM (SELECT version FROM schema_migrations ORDER BY version)", [], |r| r.get::<_, String>(0)).unwrap(), "1,2,3,4");
         assert_eq!(
             after
                 .query_row("PRAGMA integrity_check", [], |r| r.get::<_, String>(0))
@@ -357,7 +369,7 @@ fn synthetic_schema2_migration_benchmark() {
                 .len(),
             copies as usize
         );
-        reports.push(serde_json::json!({"copies":copies,"editions":copies/2,"migration_open_ms":migration_ms,"reopen_ms":reopen_ms,"database_logical_bytes_before":before_size,"database_logical_bytes_after":after_size,"fts_data_payload_bytes_before":before_index,"fts_data_payload_bytes_after":after_index,"committed_wal_bytes":wal_bytes,"backup_bytes":std::fs::metadata(&safety).unwrap().len(),"domain_values_identical":true,"asset_bytes_identical":true,"schema":3,"passed":true}));
+        reports.push(serde_json::json!({"copies":copies,"editions":copies/2,"migration_open_ms":migration_ms,"reopen_ms":reopen_ms,"database_logical_bytes_before":before_size,"database_logical_bytes_after":after_size,"fts_data_payload_bytes_before":before_index,"fts_data_payload_bytes_after":after_index,"committed_wal_bytes":wal_bytes,"backup_bytes":std::fs::metadata(&safety).unwrap().len(),"domain_values_identical":true,"asset_bytes_identical":true,"schema":CURRENT_SCHEMA,"passed":true}));
     }
     let report = output.join("report.json");
     std::fs::write(&report, serde_json::to_string_pretty(&reports).unwrap()).unwrap();

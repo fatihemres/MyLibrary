@@ -17,3 +17,13 @@ ZIP format remains 1; its manifest now records schema 2 and application version.
 Schema 3 rebuilds only the existing derived FTS5 index with symmetric Turkish-I normalization; see [search architecture](search.md). Original domain values, IDs and media references remain unchanged. Fresh libraries and V1/V2 upgrades run all pending migrations in one transaction after the existing populated-library snapshot. Restore accepts trusted schema versions 1, 2 and 3, and upgrades older archives in staging. The ZIP format remains 1. Historical bootstrap/ledger migrations and schema-1 fixtures remain unchanged.
 
 Migration tests compare the 17 original domain tables separately from the intentionally rebuilt search index, including populated V1/V2 upgrades, reopen, restore and index/version rollback on failure. Schema-3 databases must not be opened by older builds; retain the pre-upgrade backup. This is a local candidate, not an integrated schema release.
+
+## M3-B local candidate: schema 4
+
+Schema 4 adds independent Wishlist items, ordered retailers, status history and a separate derived
+FTS index. Explicit version guards run the historical schema-3 rebuild only for versions below 3;
+V3 upgrades leave Copy search untouched. See [Wishlist architecture](wishlist.md).
+Trusted reference schemas and staging restore support V1/V2/V3/V4, preserving the existing
+snapshot, WAL, transactional rollback, FK, media and safety-backup protections. Wishlist business
+values, history and derived search consistency are validated before live replacement. The frozen
+V1 SQL and fixtures are unchanged. This is a local candidate, not an integrated schema release.

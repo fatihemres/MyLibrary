@@ -1,3 +1,4 @@
+import { WishlistExport } from './Wishlist';
 import { DuplicateChoices } from '../components/DuplicateResolver';
 import { requiresDecision, type ImportGroup, type DuplicateDecision } from '../domain/duplicates';
 import { t, label as trLabel } from '../i18n';
@@ -41,6 +42,7 @@ export function DataPage({
   onReload: () => Promise<void>;
   onNavigate: (route: string) => void;
 }) {
+  const [exportGroup, setExportGroup] = useState('Library');
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [jsonBooks, setJsonBooks] = useState<Book[] | null>(null);
@@ -278,21 +280,39 @@ export function DataPage({
         </section>
         <section className="panel" hidden={section !== 'Export CSV/JSON'}>
           <h2>{t('ui.exportCsvJson')}</h2>
-          <p>{t('ui.exportAllActiveBooksHereOrUseLibraryToExportSelectedOrFilteredResults')} </p>
-          <div className="inline">
-            <button onClick={() => onAction(() => exportBooks(data.books, 'csv', data))}>
-              <Download size={16} />
-              {t('ui.csv')}{' '}
-            </button>
-            <button onClick={() => onAction(() => exportBooks(data.books, 'json', data))}>
-              {t('ui.json')}{' '}
-            </button>
-          </div>
-          <small className="block">
-            {t(
-              'ui.exportsUseANewFilenameToAvoidOverwritingExistingFilesJsonPreservesNestedBookFieldsCsvIsAPortableCatalogueSubset',
-            )}{' '}
-          </small>
+          <Field label={t('wishlist.exportGroup')}>
+            <select
+              aria-label={t('wishlist.exportGroup')}
+              value={exportGroup}
+              onChange={(e) => setExportGroup(e.target.value)}
+            >
+              <option value="Library">{t('ui.library')}</option>
+              <option value="Wishlist">{t('ui.wishlist')}</option>
+            </select>
+          </Field>
+          {exportGroup === 'Wishlist' ? (
+            <WishlistExport />
+          ) : (
+            <>
+              <p>
+                {t('ui.exportAllActiveBooksHereOrUseLibraryToExportSelectedOrFilteredResults')}{' '}
+              </p>
+              <div className="inline">
+                <button onClick={() => onAction(() => exportBooks(data.books, 'csv', data))}>
+                  <Download size={16} />
+                  {t('ui.csv')}{' '}
+                </button>
+                <button onClick={() => onAction(() => exportBooks(data.books, 'json', data))}>
+                  {t('ui.json')}{' '}
+                </button>
+              </div>
+              <small className="block">
+                {t(
+                  'ui.exportsUseANewFilenameToAvoidOverwritingExistingFilesJsonPreservesNestedBookFieldsCsvIsAPortableCatalogueSubset',
+                )}{' '}
+              </small>
+            </>
+          )}
         </section>
       </div>
       {errors.length > 0 && <div className="alert">{errors.join('\n')}</div>}

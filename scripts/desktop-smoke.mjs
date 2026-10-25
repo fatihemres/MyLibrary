@@ -1468,7 +1468,7 @@ try {
       const platform = await page.evaluate(() =>
         window.__TAURI_INTERNALS__.invoke('database', { action: 'platform', payload: {} }),
       );
-      assert.equal(platform.schema, 3);
+      assert.equal(platform.schema, 4);
       assert.equal(resolve(platform.paths.data), resolve(dataDir));
       await nav('Settings');
       await button('Open data folder').click();
@@ -2849,6 +2849,195 @@ try {
       assert.equal(await page.getByLabel('Başlangıç yılı', { exact: true }).inputValue(), '2000');
       await button('Sıfırla').click();
       assertDomainUnchanged(await snapshot(), before);
+    },
+  );
+  await check('M3-B independent wishes, exact targets and multi-retailer persistence', async () => {
+    await nav('Ayarlar');
+    await page.getByLabel('Uygulama dili', { exact: true }).selectOption('en');
+    const before = await snapshot();
+    await nav('Wishlist');
+    await button('Add a wish').click();
+    await page.getByLabel('Title', { exact: true }).fill('M3B İhsan Işık');
+    await page.getByLabel('Author(s)', { exact: true }).fill('Synthetic author');
+    await page.getByLabel('Amount (decimal point)', { exact: true }).fill('12.34');
+    await button('Add retailer').click();
+    await page.getByLabel('Retailer name', { exact: true }).fill('Synthetic store');
+    await page.getByLabel('HTTPS URL', { exact: true }).fill('https://shop.example/book');
+    await page.getByLabel('Retailer notes', { exact: true }).fill('private offer note');
+    await page.screenshot({
+      path: join(runDir, 'm3b-wishlist-editor.png'),
+      animations: 'disabled',
+    });
+    await button('Save wish').click();
+    await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    await button('Edit M3B İhsan Işık').waitFor();
+    const wishes = await page.evaluate(() =>
+      window.__TAURI_INTERNALS__.invoke('database', {
+        action: 'wishlist_list',
+        payload: { query: 'isik' },
+      }),
+    );
+    assert.equal(wishes.items.length, 1);
+    assert.equal(wishes.items[0].draft.edition_id, null);
+    assert.equal(wishes.items[0].draft.retailers.length, 1);
+    assert.deepEqual(wishes.budget, [{ currency: 'TRY', minor: '1234' }]);
+    assertDomainUnchanged(await snapshot(), before);
+    await button('Detailed list').focus();
+    await page.keyboard.press('Enter');
+    await page.locator('.wish-list .wish-card').waitFor();
+    await button('Cover gallery').click();
+    await page.locator('.wish-gallery .wish-card').waitFor();
+    await page.screenshot({
+      path: join(runDir, 'm3b-wishlist-gallery.png'),
+      animations: 'disabled',
+    });
+  });
+  await check(
+    'M3-B explicit metadata Apply, partial failure and cancel never persist',
+    async () => {
+      const before = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', {
+          action: 'wishlist_list',
+          payload: { query: '' },
+        }),
+      );
+      await page.evaluate(() => {
+        window.__wishCalls = [];
+        window.__wishFetch = window.fetch.bind(window);
+        window.fetch = async (url, options) => {
+          const command = decodeURIComponent(String(url)).replace('http://ipc.localhost/', '');
+          if (!['isbn_lookup', 'google_books_lookup'].includes(command))
+            return window.__wishFetch(url, options);
+          window.__wishCalls.push(command);
+          const failed = command === 'google_books_lookup';
+          return new Response(
+            JSON.stringify(failed ? 'metadata.unavailable' : { title: 'M3B provider fixture' }),
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Tauri-Response': failed ? 'error' : 'ok',
+              },
+            },
+          );
+        };
+      });
+      try {
+        await button('Add a wish').click();
+        await page.getByLabel('ISBN-13', { exact: true }).fill('9791090636071');
+        await button('Look up ISBN').click();
+        const preview = page.getByRole('dialog', { name: 'Review Wishlist suggestions' });
+        await preview.waitFor();
+        await preview.getByLabel('Title', { exact: true }).selectOption('openLibrary');
+        await button('Apply selected fields', preview).click();
+        assert.equal(
+          await page.getByLabel('Title', { exact: true }).inputValue(),
+          'M3B provider fixture',
+        );
+        assert.equal(await page.getByLabel('ISBN-10', { exact: true }).inputValue(), '');
+        assert.deepEqual((await page.evaluate(() => window.__wishCalls)).sort(), [
+          'google_books_lookup',
+          'isbn_lookup',
+        ]);
+        assert.deepEqual(
+          await page.evaluate(() =>
+            window.__TAURI_INTERNALS__.invoke('database', {
+              action: 'wishlist_list',
+              payload: { query: '' },
+            }),
+          ),
+          before,
+        );
+        await button('Cancel', page.getByRole('dialog', { name: 'Add a wish' })).click();
+        await button('Continue', page.getByRole('dialog', { name: 'Please confirm' })).click();
+        assert.deepEqual(
+          await page.evaluate(() =>
+            window.__TAURI_INTERNALS__.invoke('database', {
+              action: 'wishlist_list',
+              payload: { query: '' },
+            }),
+          ),
+          before,
+        );
+      } finally {
+        await page.evaluate(() => {
+          window.fetch = window.__wishFetch;
+        });
+      }
+    },
+  );
+  await check(
+    'M3-B archive/reopen, status history, ZIP restore and restart preserve identity',
+    async () => {
+      await button('Edit M3B İhsan Işık').click();
+      await page
+        .getByRole('dialog', { name: 'Edit wish', exact: true })
+        .getByLabel('Purchase status', { exact: true })
+        .selectOption('On Order');
+      await page.getByLabel('Archived — clear this to reopen', { exact: true }).check();
+      await button('Save wish').click();
+      await page.getByRole('dialog').waitFor({ state: 'hidden' });
+      await page.getByLabel('Archived', { exact: true }).check();
+      await button('Edit M3B İhsan Işık').click();
+      await page.getByLabel('Archived — clear this to reopen', { exact: true }).uncheck();
+      await button('Save wish').click();
+      await page.getByRole('dialog').waitFor({ state: 'hidden' });
+      const before = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', {
+          action: 'wishlist_list',
+          payload: { query: '' },
+        }),
+      );
+      assert.deepEqual(
+        before.items[0].history.map((h) => h.status),
+        ['Wishing', 'On Order'],
+      );
+      const archive = join(runDir, 'm3b-roundtrip.zip');
+      await page.evaluate(
+        (path) =>
+          window.__TAURI_INTERNALS__.invoke('database', { action: 'backup', payload: { path } }),
+        archive,
+      );
+      await page.evaluate(
+        (path) =>
+          window.__TAURI_INTERNALS__.invoke('database', { action: 'restore', payload: { path } }),
+        archive,
+      );
+      assert.deepEqual(
+        await page.evaluate(() =>
+          window.__TAURI_INTERNALS__.invoke('database', {
+            action: 'wishlist_list',
+            payload: { query: '' },
+          }),
+        ),
+        before,
+      );
+      await close();
+      await launch();
+      assert.deepEqual(
+        await page.evaluate(() =>
+          window.__TAURI_INTERNALS__.invoke('database', {
+            action: 'wishlist_list',
+            payload: { query: '' },
+          }),
+        ),
+        before,
+      );
+      await nav('Settings');
+      await page.getByLabel('Application language', { exact: true }).selectOption('tr');
+      await nav('İstek listesi');
+      await button('İstek ekle').click();
+      await page.getByLabel('Başlık', { exact: true }).fill('Kaydedilmeyecek');
+      await button('İptal', page.getByRole('dialog', { name: 'İstek ekle' })).click();
+      await button('Devam', page.getByRole('dialog', { name: 'Lütfen onaylayın' })).click();
+      assert.deepEqual(
+        await page.evaluate(() =>
+          window.__TAURI_INTERNALS__.invoke('database', {
+            action: 'wishlist_list',
+            payload: { query: '' },
+          }),
+        ),
+        before,
+      );
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

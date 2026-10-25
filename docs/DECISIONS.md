@@ -27,6 +27,19 @@ The following PO discovery directions are recorded in the 19 October Master Hand
 | **D-010** | **M3 discovery direction only:** a Wishlist entry represents not-yet-owned material, never a fake Physical Copy. After explicit acquisition flow it may become Edition/Copy; fulfilled/purchased Wishlist history is retained. Multiple retailer links and currency-aware budget summaries are PO discovery preferences, **not** an approved schema or implementation scope. | Protect ownership semantics and historical purchase intent; separate detailed M3 acceptance decision. | 19 October PO Master Handoff (not committed; not independently reviewed here); [roadmap](v2/ROADMAP.md) defines only approved milestone scope |
 | **D-011** | **M3 export direction only:** catalogue export defaults to Library with selectable groups such as Wishlist/Collections when implemented; comprehensive Backup/Restore remains separate from catalogue export. "All Data" needs explicit design review. | Do not mistake a partial export for full recoverability or omit new relationships from backups. | 19 October PO Master Handoff (not committed; not independently reviewed here); [architecture](../ARCHITECTURE.md) documents backup integrity |
 
+### M3-B scoped authorization supplement — 2026-10-25
+
+D-010/D-011 above retain their historical provenance. The PO subsequently approved the Real
+Wishlist implementation specification and explicitly authorized local coding, schema-4 migration,
+synthetic tests and scoped documentation. The approved B+ model has independent Wishlist UUIDs,
+optional deliberate Edition links, multiple retailers, precise currency-grouped target budgets,
+manual ISBN/explicit lookup, list/gallery views, archive/reopen and privacy-aware JSON export.
+Legacy Copy ownership values are preserved. No fake Copy, automatic merge or conversion is allowed.
+See [implementation boundaries](architecture/wishlist.md). Conversion is M3-C; Wishlist Studio
+PDF/PNG/print/sharing is future M5 discovery and adds no M3-B implementation scope.
+Commit, push, PR, integration, milestone closure and release remain separate unauthorized gates.
+This supplement does not authorize Collections, Visual Shelves or other M3 work. M2 remains OPEN.
+
 ## Historical PO directions from the 19 October Master Handoff — not approved schema or scope
 
 Source: `MYLIBRARY_MASTER_HANDOFF_2026-10-19.md`, as relayed by the PO in the 2026-10-22 documentation instruction. The file itself and the original first-chat transcript were **not** independently reviewed here; no quotation, approval date or acceptance criterion is asserted. Status for all entries: **HISTORICAL PO DIRECTION**. They are **not** an approved schema, and they do **not** authorize M3 implementation (Q-002 remains open). Wishlist direction is already recorded in **D-010**.

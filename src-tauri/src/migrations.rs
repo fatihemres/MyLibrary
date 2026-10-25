@@ -3,7 +3,7 @@ use crate::db::{id, Result};
 use rusqlite::Connection;
 use std::path::Path;
 
-pub const CURRENT_SCHEMA: i64 = 3;
+pub const CURRENT_SCHEMA: i64 = 4;
 const FOUNDATION: &str = "CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); INSERT INTO schema_migrations VALUES(1,strftime('%Y-%m-%dT%H:%M:%fZ','now')); INSERT INTO schema_migrations VALUES(2,strftime('%Y-%m-%dT%H:%M:%fZ','now')); PRAGMA user_version=2;";
 
 /// Trusted schema reference for restore. schema.sql is the unchanged V1 baseline;
@@ -13,10 +13,13 @@ pub(crate) fn restore_reference(version: i64) -> Result<Connection> {
     c.execute_batch(include_str!("schema.sql"))?;
     match version {
         1 => {}
-        2 | 3 => {
+        2 | 3 | 4 => {
             c.execute_batch(FOUNDATION)?;
-            if version == 3 {
+            if version >= 3 {
                 c.execute_batch(SEARCH_NORMALIZATION)?;
+            }
+            if version >= 4 {
+                c.execute_batch(include_str!("wishlist-schema.sql"))?;
             }
         }
         _ => return Err("Unsupported backup schema version.".into()),
@@ -61,8 +64,13 @@ fn apply(c: &mut Connection, root: &Path, foundation: &str) -> Result<()> {
     if version < 2 {
         tx.execute_batch(foundation)?;
     }
-    crate::db::reindex(&tx)?;
-    tx.execute_batch(SEARCH_NORMALIZATION)?;
+    if version < 3 {
+        crate::db::reindex(&tx)?;
+        tx.execute_batch(SEARCH_NORMALIZATION)?;
+    }
+    if version < 4 {
+        tx.execute_batch(include_str!("wishlist-schema.sql"))?;
+    }
     if tx.prepare("PRAGMA foreign_key_check")?.exists([])? {
         return Err(
             "Migration found invalid relationships. The original library is unchanged.".into(),

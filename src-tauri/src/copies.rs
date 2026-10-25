@@ -29,6 +29,9 @@ pub fn save(c: &Connection, value: &Value, create: bool) -> Result<String> {
             c.query_row("SELECT extra FROM copies WHERE id=?", [&key], |r| r.get(0))?;
         serde_json::from_str(&text)?
     };
+    if s(&value["copy_extra"], "ownership") == "Wishlist" && s(&extra, "ownership") != "Wishlist" {
+        return Err("wishlist.legacyOnly".into());
+    }
     // Merge only physical fields; reading history/custom values remain independent and intact.
     for name in [
         "inventory_code",

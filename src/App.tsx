@@ -35,6 +35,7 @@ import { api, snapshot } from './services/api';
 import { BookEditor } from './components/BookEditor';
 import { RecordDialog, type RecordRequest } from './components/RecordDialog';
 import { Modal } from './components/common';
+import { Wishlist } from './pages/Wishlist';
 import { Dashboard } from './pages/Dashboard';
 import { Library } from './pages/Library';
 import { Detail } from './pages/Detail';
@@ -58,6 +59,7 @@ const navigation = [
       ['Currently Reading', BookOpen],
       ['Want to Read', BookMarked],
       ['Favorites', Heart],
+      ['Wishlist', Heart],
     ],
   },
   {
@@ -364,6 +366,8 @@ export default function App() {
                   onOpen={openBook}
                   onReload={reload}
                 />
+              ) : route === 'Wishlist' ? (
+                <Wishlist />
               ) : route === 'Dashboard' ? (
                 <Dashboard
                   data={data}
