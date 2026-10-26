@@ -40,9 +40,17 @@ export function ScanBooks({
     if (camera || editing || cameraReview || focusReview.current === null) return;
     const id = focusReview.current;
     focusReview.current = null;
-    const frame = requestAnimationFrame(() =>
-      body.current?.querySelector<HTMLButtonElement>(`[data-scan-id="${id}"] button`)?.focus(),
-    );
+    const frame = requestAnimationFrame(() => {
+      const container = body.current;
+      const target =
+        container?.querySelector<HTMLButtonElement>(
+          `[data-scan-id="${id}"] button:not(:disabled)`,
+        ) ??
+        container?.closest('dialog')?.querySelector<HTMLButtonElement>(
+          'footer button:not(:disabled)',
+        );
+      target?.focus();
+    });
     return () => cancelAnimationFrame(frame);
   }, [camera, editing, cameraReview]);
   const replace = (next: ScanItem[]) => {

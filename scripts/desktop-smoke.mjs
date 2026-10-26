@@ -2642,6 +2642,90 @@ try {
       assertDomainUnchanged(await snapshot(), saved);
     },
   );
+
+  await check('M2-F native keyboard focus restores after single Save and preserves Cancel/batch/lookup', async () => {
+    await nav('Dashboard');
+    await page.evaluate(() => {
+      window.__scanLookup.calls = [];
+      window.__scanLookup.mode = 'both';
+    });
+    const focusMatches = async (selector) => {
+      await page.waitForFunction((targetSelector) => {
+        const element = document.querySelector(targetSelector);
+        return element && element === document.activeElement &&
+          !element.disabled && element.getClientRects().length > 0;
+      }, selector);
+    };
+    const scan = page.getByRole('dialog', { name: 'Scan books', exact: true });
+    const editor = page.getByRole('dialog', { name: 'Add a book', exact: true });
+    const scanRow = () => scan.locator('.scan-queue > li').first();
+    const submitIsbn = async (isbn) => {
+      const input = scan.getByLabel('Scanner input', { exact: true });
+      await input.fill(isbn);
+      await input.press('Enter');
+      await scanRow().waitFor();
+    };
+
+    // Single mode Save: disabled Review must not receive focus; enabled Remove must.
+    await button('Scan books').click();
+    assert(await scan.getByLabel('Single', { exact: true }).isChecked());
+    assert(await scan.getByLabel('Scan ISBN only', { exact: true }).isChecked());
+    await submitIsbn('9780199535569');
+    await button('Review & add', scanRow()).click();
+    await editor.getByLabel('Title *', { exact: true }).fill('Synthetic single focus Save');
+    await button('Save book', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    await focusMatches('.scan-queue > li button:not(:disabled)');
+    assert(await button('Review & add', scanRow()).isDisabled());
+    assert(await button('Remove scan', scanRow()).evaluate(el => document.activeElement === el));
+    await button('Remove scan', scanRow()).click();
+    await button('Close scanning', scan).click();
+
+    // Single Cancel: still returns focus to the enabled Review button.
+    await button('Scan books').click();
+    await submitIsbn('9780140449136');
+    await button('Review & add', scanRow()).click();
+    await button('Cancel', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    await focusMatches('.scan-queue > li button:not(:disabled)');
+    assert(await button('Review & add', scanRow()).evaluate(el => document.activeElement === el));
+    await button('Remove scan', scanRow()).click();
+    await button('Close scanning', scan).click();
+
+    // Batch Save: scanner input must own focus again for the next scan.
+    await button('Scan books').click();
+    await scan.getByLabel('Batch', { exact: true }).check();
+    await submitIsbn('9780061120084');
+    await button('Review & add', scanRow()).click();
+    await editor.getByLabel('Title *', { exact: true }).fill('Synthetic batch focus Save');
+    await button('Save book', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    assert(await scan.getByLabel('Scanner input', { exact: true }).evaluate(
+      el => document.activeElement === el,
+    ));
+    await button('Close scanning', scan).click();
+
+    // Opt-in metadata: Apply is distinct from Save, then focus restores to Remove.
+    await button('Scan books').click();
+    await scan.getByLabel('Scan and look up book details', { exact: true }).check();
+    await submitIsbn('9781400079988');
+    const preview = page.getByRole('dialog', {
+      name: 'Choose metadata to apply', exact: true,
+    });
+    await preview.waitFor();
+    await preview.getByRole('group', { name: 'Title', exact: true })
+      .getByRole('radio', { name: /Open Library/ }).check();
+    await button('Apply selected fields', preview).click();
+    await preview.waitFor({ state: 'hidden' });
+    assert((await editor.getByLabel('Title *', { exact: true }).inputValue()).includes('M2F synthetic'));
+    await button('Save book', editor).click();
+    await editor.waitFor({ state: 'hidden' });
+    await focusMatches('.scan-queue > li button:not(:disabled)');
+    assert(await button('Review & add', scanRow()).isDisabled());
+    assert(await button('Remove scan', scanRow()).evaluate(el => document.activeElement === el));
+    await button('Remove scan', scanRow()).click();
+    await button('Close scanning', scan).click();
+  });
   // Release this fixture before the existing M2-E fetch-level provider fixture.
   await page.evaluate(() => {
     if (window.__scanOriginalFetch) window.fetch = window.__scanOriginalFetch;
