@@ -326,7 +326,17 @@ pub fn validate_database(c: &Connection) -> Result<()> {
     }
     Ok(())
 }
+pub const ACTIVE_COUNT_SQL: &str =
+    "SELECT count(*) FROM wishlist_items WHERE archived_at IS NULL AND status != 'Cancelled'";
+
 impl Store {
+    pub fn wishlist_active_count(&self) -> Result<Value> {
+        let count: i64 = self
+            .conn()?
+            .query_row(ACTIVE_COUNT_SQL, [], |row| row.get(0))?;
+        Ok(json!(count))
+    }
+
     pub fn wishlist_list(&self, query: &str) -> Result<Value> {
         let q = crate::search::query(query)?;
         let c = self.conn()?;

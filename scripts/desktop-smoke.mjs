@@ -1,3 +1,4 @@
+import { verifyWishlistUx } from './m3b-ux-checks.mjs';
 /* global window, document */
 // End-to-end checks against the real Windows executable and Rust/SQLite backend.
 // OS file pickers use isolated paths; metadata lookup uses deterministic provider fixtures.
@@ -3038,6 +3039,12 @@ try {
         ),
         before,
       );
+    },
+  );
+  await check(
+    'M3-B corrective UX: viewport matrix, localized import and active Dashboard count',
+    async () => {
+      await verifyWishlistUx({ page, nav, snapshot, fileChoice, runDir });
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

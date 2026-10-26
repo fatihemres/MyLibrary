@@ -74,6 +74,7 @@ async fn database(
                 .unwrap_or("The library could not be opened. Restart the application.")
         })?;
         match action.as_str() {
+            "wishlist_active_count" => store.wishlist_active_count(),
             "wishlist_list" => store.wishlist_list(db::s(&payload, "query")),
             "wishlist_editions" => store.wishlist_editions(db::s(&payload, "query")),
             "wishlist_save" => store.wishlist_save(
