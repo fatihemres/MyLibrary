@@ -19,6 +19,17 @@ No push, cleanup, tag or release is authorized merely by this document.
 Protect `main`, `v1-maintenance` and immutable `v1.0.0`. Never force-push or move published tags.
 Use only synthetic verification data; never access production libraries or commit runtime data.
 
+## Issues and review evidence boundary — PO process decision of 2026-10-26
+
+Use the [Issue/PR/Review workflow](issue-review-workflow.md) and
+[Issue #23](https://github.com/fatihemres/MyLibrary/issues/23) as linked tracking infrastructure, not a
+competing roadmap. Independently attributed human/agent audits are not submitted GitHub
+`Approve` reviews. Verify the exact candidate SHA, actual review scope/threads, CI
+source and native PO acceptance separately. Parent checks cannot certify stacked child
+PRs whose branches do not trigger the V2 workflows. Never alter branch ancestry,
+PR target, CI workflow or integration method without separately authorized review.
+An Issue, green build or Review is not PO merge/closure/release permission.
+
 ## CI configuration and evidence boundary
 
 `v2-foundation.yml` retains its four-platform checks, bundles and artifacts. Normal

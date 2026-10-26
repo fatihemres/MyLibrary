@@ -1,6 +1,6 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-23** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-26** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
@@ -16,7 +16,15 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current checkpoint — M2-E integrated, 2026-10-23
+## Governance and open-PR checkpoint — 2026-10-26
+
+- Live GitHub `v2` HEAD: `441d5481ae21525c42207060cc3d8dd2b9ff97d8` with completed push V2 Foundation four-platform and CodeQL three-language success. **No new PR was integrated.**
+- Draft stacked PRs: [#19 M2-F](https://github.com/fatihemres/MyLibrary/pull/19) at `4ca8bf7811751fbb4345db817c307aab509e43b6`, base `v2` (7/7 checks PASS); [#20 M3-A](https://github.com/fatihemres/MyLibrary/pull/20) at `0afab459cf050f82c4479b1a387f643b0b910069`, base M2-F (**0 checks**); [#22 M3-B](https://github.com/fatihemres/MyLibrary/pull/22) at `ccabe38b9d4475364d8036a8b35c62f18fb6bf8a`, base M3-A (**0 checks**). Submitted GitHub PR Review count was zero for all three when checked. This does not negate prior separately attributed independent agent reviews.
+- PO's isolated Windows M3-B behavioral checklist **38/38 PASS** and narrow gallery checklist **6/6 PASS**. Codex subsequently reported local **unstaged** responsive/focus/hover corrective changes: 336 frontend and 107 Rust tests; 20/20 browser regressions, 60/60 emulated viewport cases; desktop 45/45 **before** last spacing/focus changes, followed by eight browser interaction checks. These numbers are **agent-reported**, not rerun by this documentation task. The newest native build/regression, real Windows DPI and final PO focus/hover signoff remain pending; remote PR #22 does not yet include local fixes.
+- PO approved GitHub Issue lifecycle and review/CI evidence standard **D-022**; [Issue #23](https://github.com/fatihemres/MyLibrary/issues/23) indexes the 16 newly created tracking issues [#23–#38](https://github.com/fatihemres/MyLibrary/issues). Acceptance [#24–#26](https://github.com/fatihemres/MyLibrary/issues/23), responsive/performance/provider follow-ups [#27–#30](https://github.com/fatihemres/MyLibrary/issues/23), M2 closure [#31](https://github.com/fatihemres/MyLibrary/issues/31) and M3–M6 planned/discovery [#32–#38](https://github.com/fatihemres/MyLibrary/issues/23) are distinct gates. Existing rights audit [#21](https://github.com/fatihemres/MyLibrary/issues/21) remains OPEN; [#6 webcam](https://github.com/fatihemres/MyLibrary/issues/6) stays CLOSED.
+- [Issues/Review workflow](docs/development/issue-review-workflow.md) formalizes independent report versus submitted GitHub Review, exact-SHA PR/final-push CI, PO Windows acceptance and **separate PO fast-forward integration**. M2 remains **OPEN**. No feature merge, cleanup, tag, release or `main` update is authorized by this checkpoint.
+
+## Historical checkpoint — M2-E integrated, 2026-10-23
 
 - GitHub `v2` was verified at `7c3430eacc47b1c5cf7996e9fbf71a4b25f636ef` after PO-authorized
   [PR #17](https://github.com/fatihemres/MyLibrary/pull/17) integration by **exact-SHA
