@@ -200,6 +200,9 @@ impl Store {
                 if Some(version) != manifest["schema"].as_i64() || check != "ok" || foreign {
                     return Err("Backup database failed integrity validation.".into());
                 }
+                if version >= 4 {
+                    crate::wishlist::validate_database(&c)?;
+                }
                 let mut books = crate::db::list(&c, false)?;
                 books.extend(crate::db::list(&c, true)?);
                 for b in books {
@@ -237,6 +240,7 @@ impl Store {
                 let staged = Store::open(stage.clone())?;
                 validate_restore_schema(&staged.conn()?, crate::migrations::CURRENT_SCHEMA)?;
                 staged.snapshot("schema validation", false)?;
+                crate::wishlist::validate_database(&staged.conn()?)?;
             }
             let safety = self
                 .root

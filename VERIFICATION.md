@@ -1,3 +1,66 @@
+# M3-B local implementation verification — 2026-10-25
+
+Local uncommitted candidate on `codex/m3b-real-wishlist`, based on exact M3-A commit
+`0afab459cf050f82c4479b1a387f643b0b910069`. These are Codex-run synthetic Windows checks,
+not independent review, GitHub CI or physical Windows PO acceptance. M2 remains OPEN.
+
+| Command | Observed result |
+| --- | --- |
+| `npm run typecheck` | PASS, exit 0 |
+| `npm run lint` | PASS, exit 0, no lint warnings |
+| `npm run test` | PASS, 333/333, exit 0 |
+| `npm run test:rust` | PASS, 106 tests; one opt-in synthetic performance benchmark ignored; exit 0 |
+| `cargo fmt --manifest-path src-tauri/Cargo.toml --check` | PASS, exit 0 |
+| `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked --jobs 2` | PASS, exit 0 |
+| `npm run build` (native build's beforeBuildCommand) | PASS, exit 0; large-chunk advisory remains |
+| `npm run desktop:build -- --no-bundle` | PASS, exit 0; local executable only |
+| `node scripts/test-m3b-components.mjs` | PASS, 8/8 |
+| `node scripts/test-m3a-components.mjs` | PASS, 4/4 |
+| `node scripts/test-m2f-components.mjs` | PASS, 8/8 |
+| `npm run test:desktop` | PASS, 44/44, exit 0 |
+
+Frontend adds 18 Wishlist tests. Rust adds 12 Wishlist tests plus a V3 archive regression.
+Existing ownership select tests still iterate every historical value, verify EN/TR display and
+unchanged save payloads, and additionally assert that Wishlist is absent for non-legacy records.
+Backend tests preserve imported/edited/omitted legacy ownership and round-trip it with a linked
+Wishlist, managed cover, retailers and history. Coverage was not removed to obtain a pass.
+
+Migration/restore checks cover populated V1/V2/V3 upgrades, committed WAL snapshots, original
+IDs/domain values/media, no V3 Copy-FTS rebuild, V4 rollback, V1–V4 archives, trusted schema checks,
+malformed Wishlist values/history/index rejection before live replacement, and idempotent reopen.
+Budgets test distinct currencies, a total exceeding SQLite's signed-64-bit range, excluded
+cancelled/archived items and one-target-per-item semantics. No new performance threshold is claimed.
+
+Final ignored local evidence:
+
+- `.cache/m3b-verification/` contains command logs, exit-code records and review checks.
+- `.cache/m3b-verification/rust-complete.log`: 106 PASS; historical interrupted/earlier runs retained.
+- `.cache/m3b-browser-1792940298272/report.json`: M3-B 8/8.
+- `.cache/m3a-browser-1792939903507/report.json`: M3-A 4/4.
+- `.cache/desktop-check-1792940511723/report.json`: final native 44/44, with synthetic screenshots.
+- Final executable SHA-256: `46F47EF21C112E7D18E09A62B5B7DBA2D2BD18A7B84203A276B7FEB08C4E800C`.
+- Windows toolchain: Node v24.21.0, Rust 1.98.1. EN/TR parity: 869 keys.
+
+The first extended native run (`.cache/desktop-check-1792940064125/report.json`) passed 43 checks
+and failed locating the Wishlist status selector. Explicit accessible names and dialog-scoped
+assertions fixed it; the rebuilt full run passed. Focused browser iterations also caught preview
+label ambiguity and a premature post-Save list assertion. Failed evidence is retained.
+
+All desktop data and WebView2 profiles were isolated synthetic directories. The test-only native
+rejection proxy remained active: exactly two deliberate provider bypass probes were blocked and
+no fixture leaked into native HTTP. Final report has zero frontend errors/unexpected network calls.
+Browser control pages independently identified three blocked Kaspersky script injections; those
+are reported separately from application requests. No antivirus detection, exclusion or disabling
+was performed/reported by these commands. Deterministic metadata fixtures do not establish live
+Google Books availability.
+
+NOT RUN: new GitHub CI, physical USB/camera or real Windows PO acceptance, macOS/Linux native
+manual acceptance, and the opt-in migration performance benchmark. Large Wishlist performance,
+offline currency-table maintenance, independent data-integrity/security review and later PO
+acceptance remain review boundaries. No commit, push, PR or integration is authorized.
+
+---
+
 # M3-A stacked draft preparation — 2026-10-24
 
 M3-A is stacked on M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19), parent

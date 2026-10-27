@@ -267,6 +267,13 @@ export function exportCsv(books: Book[], data?: Snapshot) {
 }
 export function parseJson(text: string): Book[] {
   const data: unknown = JSON.parse(text);
+  if (
+    data &&
+    typeof data === 'object' &&
+    'format' in data &&
+    data.format === 'MyLibrary Wishlist catalogue'
+  )
+    throw new Error('wishlist.importUnsupported');
   if (data && typeof data === 'object' && 'application' in data && data.application === 'MyLibrary')
     throw new Error(
       'This appears to be a MyLibrary backup. Use Restore Backup instead. Select the original ZIP, not manifest.json.',

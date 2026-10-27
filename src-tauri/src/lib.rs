@@ -8,6 +8,7 @@ mod metadata;
 pub mod migrations;
 mod platform;
 mod search;
+pub mod wishlist;
 use db::{Result, Store};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};
@@ -24,6 +25,20 @@ async fn database(
     action: String,
     payload: Value,
 ) -> std::result::Result<Value, String> {
+    if action == "wishlist_open_retailer" {
+        let url = {
+            let guard = state.store.lock().map_err(|_| "wishlist.busy")?;
+            let store = guard.as_ref().ok_or("wishlist.unavailable")?;
+            store
+                .wishlist_retailer_url(db::s(&payload, "item"), db::s(&payload, "retailer"))
+                .map_err(|e| e.to_string())?
+        };
+        return app
+            .opener()
+            .open_url(url, None::<&str>)
+            .map(|_| json!(true))
+            .map_err(|e| e.to_string());
+    }
     if action == "open_folder" {
         let root = {
             let guard = state
@@ -59,6 +74,12 @@ async fn database(
                 .unwrap_or("The library could not be opened. Restart the application.")
         })?;
         match action.as_str() {
+            "wishlist_list" => store.wishlist_list(db::s(&payload, "query")),
+            "wishlist_editions" => store.wishlist_editions(db::s(&payload, "query")),
+            "wishlist_save" => store.wishlist_save(
+                &serde_json::from_value::<wishlist::Draft>(payload["draft"].clone())?,
+                payload["review_token"].as_str(),
+            ),
             "platform" => Ok(platform::info(&store.root)),
             "snapshot" => store.snapshot(
                 db::s(&payload, "query"),

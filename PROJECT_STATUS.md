@@ -1,6 +1,6 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-24** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-25** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 
@@ -16,7 +16,21 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current checkpoint — M3-A stacked draft preparation, 2026-10-24
+## Current checkpoint — M3-B local implementation, 2026-10-25
+
+- Preflight verified integrated `v2` at `441d5481ae21525c42207060cc3d8dd2b9ff97d8`,
+  M2-F Draft PR #19 at `4ca8bf7811751fbb4345db817c307aab509e43b6`, and M3-A Draft PR #20
+  at `0afab459cf050f82c4479b1a387f643b0b910069`. Neither feature PR is integrated.
+- The PO explicitly authorized M3-B local implementation/testing/docs on that exact M3-A parent.
+  The uncommitted candidate adds independent Wishlist, schema 4, retailer/target-budget handling,
+  explicit metadata review, list/gallery UI and private-by-default JSON catalogue export.
+- See [Wishlist architecture](docs/architecture/wishlist.md) and [verification](VERIFICATION.md)
+  for actual scope and evidence. Parent CI is not M3-B CI. Independent review and physical Windows
+  PO acceptance remain separate gates; no M3-B commit, push or PR is authorized.
+- **M2 remains OPEN.** No integration, milestone closure, release or cleanup. M3-C conversion,
+  other organization slices and M5 Wishlist Studio are outside this implementation.
+
+## Historical checkpoint — M3-A stacked draft preparation, 2026-10-24
 
 - Live integrated `v2` remains `441d5481ae21525c42207060cc3d8dd2b9ff97d8` (PR #18).
 - M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) remains OPEN/DRAFT at

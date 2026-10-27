@@ -335,6 +335,9 @@ impl Store {
         Ok(report(draft, &all_books(&self.conn()?)?))
     }
     pub fn create_decided(&self, draft: &Value, decision: Option<&Decision>) -> Result<String> {
+        if s(&draft["copy_extra"], "ownership") == "Wishlist" {
+            return Err("wishlist.legacyOnly".into());
+        }
         let mut c = self.conn()?;
         let tx = c.transaction()?;
         if !s(draft, "id").is_empty()

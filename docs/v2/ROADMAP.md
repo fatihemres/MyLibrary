@@ -61,7 +61,13 @@ candidate is verified and commit/push plus a stacked DRAFT PR targeting M2-F
 [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) is authorized. See
 [search architecture](../architecture/search.md) and [verification](../../VERIFICATION.md).
 Independent review and physical Windows acceptance remain pending. No integration or milestone
-closure is authorized; M2 stays OPEN. Other M3 features below remain planned and unauthorized.
+closure is authorized; M2 stays OPEN. Other M3 features remain planned except the separate M3-B authorization below.
+
+**M3-B scoped local authorization (2026-10-25):** the PO approved Real Wishlist local implementation,
+schema-4 migration, synthetic verification and documentation on the exact M3-A parent. See
+[Wishlist architecture](../architecture/wishlist.md) and [D-010 supplement](../DECISIONS.md).
+No commit/push/PR, integration, PO acceptance or milestone closure is authorized. M3-C conversion,
+Collections and Visual Shelves are not started. Wishlist Studio remains future M5 discovery.
 
 - Smart Collections.
 - Manual collections.

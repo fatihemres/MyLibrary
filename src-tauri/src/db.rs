@@ -81,7 +81,29 @@ impl Store {
     pub fn save(&self, book: &Value) -> Result<String> {
         let mut c = self.conn()?;
         let tx = c.transaction()?;
-        let key = save_book(&tx, book)?;
+        let mut draft = book.clone();
+        let previous: Option<String> = tx
+            .query_row(
+                "SELECT extra FROM copies WHERE id=?",
+                [s(book, "id")],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let previous: Value = serde_json::from_str(previous.as_deref().unwrap_or("{}"))?;
+        if s(&draft["copy_extra"], "ownership") == "Wishlist"
+            && s(&previous, "ownership") != "Wishlist"
+        {
+            return Err("wishlist.legacyOnly".into());
+        }
+        // An omitted legacy field is not an instruction to erase historical ownership.
+        if s(&previous, "ownership") == "Wishlist" && draft["copy_extra"].get("ownership").is_none()
+        {
+            if !draft["copy_extra"].is_object() {
+                draft["copy_extra"] = json!({});
+            }
+            draft["copy_extra"]["ownership"] = json!("Wishlist");
+        }
+        let key = save_book(&tx, &draft)?;
         reindex(&tx)?;
         tx.commit()?;
         Ok(key)

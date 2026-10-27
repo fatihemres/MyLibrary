@@ -1,0 +1,99 @@
+.wish-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+.wish-intro h2 {
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  margin: 0.3rem 0;
+}
+.wish-toolbar,
+.wish-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin: 1rem 0;
+}
+.wish-totals strong {
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+.wish-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+.wish-open {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+.wish-open .cover {
+  margin: auto;
+  max-width: 100%;
+}
+.wish-open h3 {
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+.wish-open p {
+  overflow-wrap: anywhere;
+}
+.wish-list .wish-card {
+  margin-bottom: 1rem;
+}
+.wish-list .wish-open {
+  flex-direction: row;
+  gap: 1.5rem;
+  align-items: center;
+}
+.wish-list .cover {
+  flex-shrink: 0;
+  margin: 0;
+}
+.wish-retailers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.wish-amount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.wish-amount input {
+  min-width: 5rem;
+  flex: 1;
+}
+.wishlist fieldset {
+  margin-block: 1rem;
+}
+.eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+.wish-toolbar .field:first-child {
+  flex: 1;
+  min-width: 180px;
+}
+@media (max-width: 600px) {
+  .wish-intro {
+    align-items: start;
+    flex-direction: column;
+  }
+  .wish-list .wish-open {
+    align-items: start;
+  }
+}

@@ -136,11 +136,16 @@ export function BookEditor({
             onChange={(e) => update(scope, { ...book[scope], [f.key]: e.target.value })}
           >
             <option value="">{t('ui.notSpecified')}</option>
-            {f.options?.map((o) => (
-              <option key={o} value={o}>
-                {trLabel(o)}
-              </option>
-            ))}
+            {f.options
+              ?.filter(
+                (o) =>
+                  f.key !== 'ownership' || o !== 'Wishlist' || book[scope][f.key] === 'Wishlist',
+              )
+              .map((o) => (
+                <option key={o} value={o}>
+                  {trLabel(o)}
+                </option>
+              ))}
           </select>
         ) : (
           <input

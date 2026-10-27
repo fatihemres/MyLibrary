@@ -256,11 +256,18 @@ export function CopyEditor({
                       onChange={(e) => extra(f.key, e.target.value)}
                     >
                       <option value="">{t('ui.notSpecified')}</option>
-                      {f.options?.map((o) => (
-                        <option key={o} value={o}>
-                          {trLabel(o)}
-                        </option>
-                      ))}
+                      {f.options
+                        ?.filter(
+                          (o) =>
+                            f.key !== 'ownership' ||
+                            o !== 'Wishlist' ||
+                            value.copy_extra[f.key] === 'Wishlist',
+                        )
+                        .map((o) => (
+                          <option key={o} value={o}>
+                            {trLabel(o)}
+                          </option>
+                        ))}
                     </select>
                   ) : f.type === 'checkbox' ? (
                     <input
