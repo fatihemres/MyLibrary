@@ -8,6 +8,13 @@ Future milestone scopes may be refined by the owner. Agents must not infer or mo
 milestones, or start future work, without approval. A roadmap entry is not evidence of implementation
 or verification.
 
+## Dated implementation checkpoint — 2026-10-27 (no milestone closure)
+
+- **M2-F Optional Scan-to-Lookup — INTEGRATED:** [PR #19](https://github.com/fatihemres/MyLibrary/pull/19), exact commit `6b62eb8c9dbc87df351e4d1a4b87f3ca3b7e6eaf`; user-selected lookup after USB/camera scanning only, preserving offline scan and separate Apply/Save. Earlier candidate-only M2-F wording below is historical, not current status.
+- **M3-A Turkish Search/Advanced Filters — INTEGRATED:** [PR #41](https://github.com/fatihemres/MyLibrary/pull/41) at `ec742660f9c2e2bb33df9f4434b8dcf9efd0fab8`; old stacked [#20](https://github.com/fatihemres/MyLibrary/pull/20) closed unmerged/superseded.
+- **M3-B Real Wishlist — INTEGRATED:** [PR #42](https://github.com/fatihemres/MyLibrary/pull/42) at `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`; wishlist records are independent from owned Physical Copies; former stacked [#22](https://github.com/fatihemres/MyLibrary/pull/22) is superseded, not a merged feature. See [verification](../../VERIFICATION.md) for final CI status and attributed review.
+- **M2 milestone remains OPEN** pending [#31](https://github.com/fatihemres/MyLibrary/issues/31) and a separate PO decision. Remaining M3 Organization areas are **PLANNED** pending scoped authorization. This checkpoint does not authorize release, signing, updater, tag, other feature development, or milestone closure.
+
 ## M1 — Foundation — CLOSED
 
 - English/Turkish i18n foundation and RTL readiness.

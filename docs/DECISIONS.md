@@ -68,12 +68,14 @@ Status terms: **ACCEPTED — planning direction** = the PO requested or approved
 | **D-020** | **M5 addition:** limited offline PNG card from manually selected books, with explicit privacy preview. No automatic social posting, personal-information export or advanced Wrapped/profile features. | ACCEPTED — planning direction. NOT AUTHORIZED. | PO: placement. Assistant: milestone-level wording — PROPOSED. | [ROADMAP](v2/ROADMAP.md) |
 | **D-021** | **M6 addition:** small outstanding TR/EN book-detail timestamp localization fixes, if not already addressed. | ACCEPTED — planning direction. NOT AUTHORIZED. | PO: placement. Assistant: wording — PROPOSED. | [ROADMAP](v2/ROADMAP.md) |
 
+| **D-022** | **GitHub Issue–PR–Review governance.** Track independent actionable issues, risks, future discovery and acceptance/closure gates in a linked board; keep separate PR diffs, attributed independent code review, submitted GitHub PR Review, exact-SHA CI, actual native PO observation, and separate PO integration/cleanup/milestone/release decisions. | ACCEPTED — PO process decision, 2026-10-26. Does not grant implementation, merge, settings or release authority. | PO requested the sustainable Issues standard and its permanent project documentation. GitHub Reviews cannot be impersonated by AI audit reports; planned issues cannot create roadmap authority. | [Issue/Review workflow](development/issue-review-workflow.md), [Issue #23](https://github.com/fatihemres/MyLibrary/issues/23) |
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |
 | --- | --- | --- |
 | **Q-001** | Is the **M2 milestone formally closed**, and are any remaining acceptance checks necessary? | **OPEN**. M2-D integration and Issue #6 closure are confirmed but not sufficient for automatic M2 closure. [ROADMAP](v2/ROADMAP.md) |
-| **Q-002** | Which M3 Organization feature slices/acceptance criteria should start, and in what order? | **NOT AUTHORIZED**. Requires PO scoping against M3 Discovery and [ROADMAP](v2/ROADMAP.md). |
+| **Q-002** | Which remaining M3 Organization feature slices/acceptance criteria should proceed, and in what order? | **PARTIALLY RESOLVED (2026-10-27)**: M3-A Turkish Search/Filters [#41](https://github.com/fatihemres/MyLibrary/pull/41) and M3-B Real Wishlist [#42](https://github.com/fatihemres/MyLibrary/pull/42) integrated with scoped PO authorization. Remaining M3 slices require fresh scoped PO decisions; this is not overall M3 closure. See [ROADMAP](v2/ROADMAP.md). |
 | **Q-003** | Should Reading Garden grow only when books are completed, or also from ongoing reading progress? | **DISCOVERY ONLY**. See [post-V2 ideas](product/post-v2-discovery.md). |
 | **Q-004** | Should CQ-02-B cover cache / performance profiling receive a scoped discovery task? | **NOT AUTHORIZED**. Static risks are not measured performance defects. |
 | **Q-005** | When, if ever, should optional share-card templates become paid? | **DISCOVERY ONLY**. No monetization/payment authorization. |

@@ -26,6 +26,22 @@ If sources conflict, report the conflict and defer scope or integration to the P
 - Stay within the approved task and milestone. Do not start future milestones or infer, expand,
   or move features between milestones without owner approval. Prefer minimal, evidence-based changes.
 
+## GitHub Issues, PR Reviews and evidence gates
+
+- Track actionable tasks, validated defects, explicit discovery, technical debt and acceptance gates
+  via the [V2 issue board](https://github.com/fatihemres/MyLibrary/issues/23). The
+  [Issue and Review workflow](docs/development/issue-review-workflow.md) specifies conventions,
+  deduplication, provenance, closure and evidence. An Issue or planned milestone is never
+  implementation, commit, PR, merge, milestone closure or release authorization.
+- Distinguish agent/independent **source review**, a submitted GitHub PR Review, local automated
+  tests, exact-candidate GitHub CI, final push CI and real Windows PO acceptance. AI review
+  is not GitHub `Approve`; an author cannot independently review/approve their own PR.
+- Stacked PRs never inherit parent checks. Reconfirm reviewed SHA, CI, ancestry and explicit
+  PO permission **before each** exact-SHA fast-forward integration; verify post-push checks.
+- On important developments update Issue links and `PROJECT_STATUS.md`/`VERIFICATION.md`;
+  record accepted PO governance/product decisions in `docs/DECISIONS.md`. Ideas and roadmap
+  placement do not authorize implementation. Cleanup and release retain independent owner gates.
+
 ## Data, architecture, and privacy
 
 - Never access or modify real production library data. Use isolated synthetic libraries and sanitized
