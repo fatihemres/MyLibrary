@@ -864,6 +864,7 @@
   "wishlist.changed": "Bu istek başka bir yerde değişti. Kaydetmeden önce yeniden açın.",
   "wishlist.invalidHistory": "Veritabanında geçersiz istek geçmişi.",
   "wishlist.legacyOnly": "Eski Wishlist sahiplik değeri korunabilir; yeni istekler İstek Listesi’ne eklenmelidir.",
+  "wishlist.activeCount": "Aktif istekler",
   "wishlist.importUnsupported": "İstek kataloğu içe aktarma desteklenmez. Tam yedek için ZIP geri yüklemeyi kullanın.",
   "wishlist.busy": "Kitaplık meşgul.",
   "wishlist.unavailable": "Kitaplık kullanılamıyor.",

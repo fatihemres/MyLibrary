@@ -24,7 +24,7 @@
 }
 .wish-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: 1.2rem;
 }
 .wish-open {
@@ -43,8 +43,10 @@
   max-width: 100%;
 }
 .wish-open h3 {
-  font-family: Georgia, serif;
-  font-size: 1.35rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  margin-block: 0.5rem;
   overflow-wrap: anywhere;
 }
 .wish-open p {
@@ -54,6 +56,7 @@
   margin-bottom: 1rem;
 }
 .wish-list .wish-open {
+  justify-content: flex-start;
   flex-direction: row;
   gap: 1.5rem;
   align-items: center;
@@ -95,5 +98,83 @@
   }
   .wish-list .wish-open {
     align-items: start;
+  }
+}
+
+/* Keep constraints local to Wishlist; titles remain fully readable below covers. */
+.wish-card,
+.wish-open,
+.wish-open > div,
+.wish-intro > div,
+.wish-toolbar > * {
+  min-width: 0;
+}
+.wish-open {
+  white-space: normal;
+  gap: 1rem;
+  overflow-wrap: anywhere;
+}
+.wish-gallery .wish-open > .cover {
+  width: min(100%, 160px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+  max-height: none;
+}
+.wish-list .wish-open > .cover {
+  width: 64px;
+  height: 96px;
+  padding: 8px;
+  flex: 0 0 64px;
+}
+.wish-list .cover span {
+  font-size: 11px;
+}
+.wish-list .cover svg {
+  width: 18px;
+  height: 18px;
+  margin-bottom: 5px;
+}
+.wish-list .cover i {
+  display: none;
+}
+.wish-retailers > button {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.wish-toolbar .field:first-child {
+  min-width: min(180px, 100%);
+}
+.wish-toolbar input,
+.wish-toolbar select {
+  max-width: 100%;
+  min-width: 0;
+}
+.wish-intro {
+  flex-wrap: wrap;
+}
+
+.wish-list .wish-open > div:last-child {
+  flex: 1;
+}
+
+/* The opener's focus belongs to the card; retailer buttons keep their own rings. */
+.wish-open:hover {
+  background: transparent;
+}
+@media (hover: hover) {
+  .wish-card:hover {
+    border-color: var(--muted);
+  }
+}
+@supports selector(:has(*)) {
+  .wish-card:has(> .wish-open:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .wish-card > .wish-open:focus-visible {
+    outline: none;
   }
 }

@@ -864,6 +864,7 @@
   "wishlist.changed": "This wish changed elsewhere. Reopen it before saving.",
   "wishlist.invalidHistory": "Invalid Wishlist history in the database.",
   "wishlist.legacyOnly": "Legacy Wishlist ownership can be preserved, but new wishes belong in Wishlist.",
+  "wishlist.activeCount": "Active wishes",
   "wishlist.importUnsupported": "Wishlist catalogue import is not supported. Use ZIP restore for a full backup.",
   "wishlist.busy": "The library is busy.",
   "wishlist.unavailable": "The library is unavailable.",

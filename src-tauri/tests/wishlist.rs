@@ -439,3 +439,45 @@ fn budget_sums_wider_than_sql_integer_without_mixing_currencies() {
         json!([{"currency":"JPY","minor":"42"},{"currency":"USD","minor":"18446744073709551614"}])
     );
 }
+
+#[test]
+fn active_count_excludes_archived_and_cancelled_without_loading_relationships() {
+    let (_dir, s) = store();
+    assert_eq!(s.wishlist_active_count().unwrap(), 0);
+    for status in ["Wishing", "On Order", "Pre-Order", "Cancelled"] {
+        for archived in [false, true] {
+            let mut d = draft();
+            d.title = format!("{status} {archived}");
+            d.status = status.into();
+            d.archived = archived;
+            save(&s, &d);
+        }
+    }
+    let c = s.conn().unwrap();
+    let before: i64 = c
+        .query_row("SELECT count(*) FROM copies", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(s.wishlist_active_count().unwrap(), 3);
+    let plan: Vec<String> = c
+        .prepare(&format!(
+            "EXPLAIN QUERY PLAN {}",
+            mylibrary_lib::wishlist::ACTIVE_COUNT_SQL
+        ))
+        .unwrap()
+        .query_map([], |r| r.get(3))
+        .unwrap()
+        .collect::<rusqlite::Result<_>>()
+        .unwrap();
+    println!("Active Wishlist count query plan: {plan:?}");
+    assert!(plan.iter().all(|line| !line.contains("retailers")
+        && !line.contains("history")
+        && !line.contains("editions")));
+    c.execute("DROP TABLE wishlist_retailers", []).unwrap();
+    c.execute("DROP TABLE wishlist_status_history", []).unwrap();
+    assert_eq!(s.wishlist_active_count().unwrap(), 3);
+    assert_eq!(
+        c.query_row("SELECT count(*) FROM copies", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        before
+    );
+}

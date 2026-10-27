@@ -1,6 +1,8 @@
 import { label, locale, t } from '../i18n';
 /** Technical detail remains available without exposing raw native errors as the primary Turkish UI. */
 export function ErrorText({ message }: { message: string }) {
+  if (message === 'wishlist.importUnsupported' || message === 'Error: wishlist.importUnsupported')
+    return <>{t('wishlist.importUnsupported')}</>;
   if (message.startsWith('duplicate.')) return <>{t(message)}</>;
   if (locale() === 'en') return <>{message}</>;
   const translated = label(message);

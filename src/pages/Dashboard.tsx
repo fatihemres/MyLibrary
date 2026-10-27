@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { api } from '../services/api';
 import { t, label as trLabel, number, date } from '../i18n';
 import { author, progress, today, type Book, type Snapshot } from '../domain/types';
 import { Cover, Empty } from '../components/common';
@@ -12,6 +14,21 @@ export function Dashboard({
   onNavigate: (view: string) => void;
   onAdd: () => void;
 }) {
+  const [wishCount, setWishCount] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    setWishCount(null);
+    void api<number>('wishlist_active_count')
+      .then((count) => {
+        if (live) setWishCount(count);
+      })
+      .catch(() => {
+        /* Keep navigation available without presenting a false zero. */
+      });
+    return () => {
+      live = false;
+    };
+  }, [data]);
   const books = data.books;
   const active = data.loans.filter((l) => !l.returned_date);
   const reading = books.filter((b) => b.status === 'Reading');
@@ -71,6 +88,10 @@ export function Dashboard({
         ))}
       </div>
       <div className="secondary-stats" aria-label={t('ui.moreLibraryStatistics')}>
+        <button onClick={() => onNavigate('Wishlist')}>
+          <span>{t('wishlist.activeCount')}</span>
+          <strong>{wishCount === null ? '—' : number(wishCount)}</strong>
+        </button>
         {[
           ['Pages', books.reduce((n, b) => n + (b.pages || 0), 0), 'Library'],
           ['Unread', books.filter((b) => b.status === 'Unread').length, 'Unread'],

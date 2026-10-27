@@ -275,6 +275,8 @@ export function Wishlist() {
               {item.draft.retailers.map((r) => (
                 <button
                   key={r.id}
+                  title={r.name}
+                  aria-label={r.name}
                   onClick={() =>
                     void api('wishlist_open_retailer', {
                       item: item.draft.id,
