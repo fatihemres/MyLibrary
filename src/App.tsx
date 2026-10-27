@@ -30,7 +30,7 @@ import {
   ScanLine,
 } from 'lucide-react';
 import type { Book, Snapshot } from './domain/types';
-import { navigationFilters, type Filters } from './domain/filter';
+import { navigationFilters, validateCriteria, type Filters } from './domain/filter';
 import { api, snapshot } from './services/api';
 import { BookEditor } from './components/BookEditor';
 import { RecordDialog, type RecordRequest } from './components/RecordDialog';
@@ -120,14 +120,30 @@ export default function App() {
   }, [query]);
   const reload = useCallback(async () => {
     const g = ++generation.current;
+    if (!validateCriteria({ query: debounced, filters: {} })) {
+      setData((previous) => (previous ? { ...previous, searchIds: [] } : previous));
+      setError(t('search.limit'));
+      return;
+    }
     const next = await snapshot(debounced, route === 'Trash');
-    if (g === generation.current) setData(next);
+    if (g === generation.current) {
+      setData(next);
+      setError('');
+    }
   }, [debounced, route]);
   useEffect(() => {
+    let current = true;
     setLoading(true);
     reload()
-      .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (current) setError(String(e));
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [reload]);
   const action = useCallback(
     async (f: () => Promise<unknown>) => {
@@ -265,8 +281,10 @@ export default function App() {
               ref={searchRef}
               aria-label={t('ui.searchEntireLibrary')}
               placeholder={t('ui.searchYourLibrary')}
+              maxLength={1024}
               value={query}
               onChange={(e) => {
+                generation.current++;
                 setQuery(e.target.value);
                 setDetail(null);
                 if (
@@ -359,6 +377,7 @@ export default function App() {
                 <Library
                   key={route}
                   data={data}
+                  searchPending={loading || query !== debounced}
                   filters={filters}
                   setFilters={setFilters}
                   onOpen={openBook}
