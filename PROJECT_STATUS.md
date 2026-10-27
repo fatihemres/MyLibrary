@@ -1,13 +1,22 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-25** (see below). Dated checkpoint, not a live Git/CI feed.
+> **Current checkpoint: 2026-10-27** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
+
+## Current checkpoint — 2026-10-27: M2-F / M3-A / M3-B integrated
+
+- Verified canonical `v2` HEAD: `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`. [PR #19 M2-F](https://github.com/fatihemres/MyLibrary/pull/19) integrated at `6b62eb8c9dbc87df351e4d1a4b87f3ca3b7e6eaf`; [PR #41 M3-A](https://github.com/fatihemres/MyLibrary/pull/41) at `ec742660f9c2e2bb33df9f4434b8dcf9efd0fab8`; [PR #42 M3-B](https://github.com/fatihemres/MyLibrary/pull/42) at `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`, exact-SHA FF, GitHub MERGED/CLOSED. The original stacked [#20](https://github.com/fatihemres/MyLibrary/pull/20) was closed unmerged as superseded. Original stacked [#22](https://github.com/fatihemres/MyLibrary/pull/22) remains a superseded source record, not a merged feature; its administrative closure follows only after verified final push CI.
+- PR #42 exact candidate [V2 Foundation #40482774114](https://github.com/fatihemres/MyLibrary/actions/runs/40482774114) **4/4 PASS** and [CodeQL #40482773994](https://github.com/fatihemres/MyLibrary/actions/runs/40482773994) **3/3 PASS**. On canonical `v2` after FF, [CodeQL #40498418115](https://github.com/fatihemres/MyLibrary/actions/runs/40498418115) **3/3 SUCCESS**. [V2 Foundation #40498417989](https://github.com/fatihemres/MyLibrary/actions/runs/40498417989) still **IN PROGRESS at this dated checkpoint**; do not describe final post-push as 7/7 until all platform jobs succeed. See current GitHub status and [VERIFICATION](VERIFICATION.md).
+- The independent Antigravity final #42 delta/security report, **PASS WITH FINDINGS** (0 critical/high/medium; four low), explicitly reviews its exact SHA. Attribution is an external agent report, **not a submitted GitHub PR Approve**. Earlier PO isolated Windows functional **38/38 PASS** and gallery **6/6 PASS**; separate final appearance checklist **4/6** with two cosmetic criteria deferred by PO to [Issue #27](https://github.com/fatihemres/MyLibrary/issues/27). Historic agent native tests are not presented as tests rerun on #42. See [Issue #26](https://github.com/fatihemres/MyLibrary/issues/26) and [verification](VERIFICATION.md).
+- **Governance:** PO's D-022 GitHub Issues/Review decision (2026-10-26) is implemented in a separate docs-only successor to old [draft #39](https://github.com/fatihemres/MyLibrary/pull/39); the original docs PR and its 26 Oct source checkpoint have not been merged. [Issue #23](https://github.com/fatihemres/MyLibrary/issues/23) tracks delivery. [#24](https://github.com/fatihemres/MyLibrary/issues/24) and [#25](https://github.com/fatihemres/MyLibrary/issues/25) are CLOSED; [#26](https://github.com/fatihemres/MyLibrary/issues/26) remains OPEN in this checkpoint.
+- **M2 milestone is still OPEN** awaiting explicit PO decision [#31](https://github.com/fatihemres/MyLibrary/issues/31). Remaining M3 areas are planned/discovery only. No tag, release, updater/signing activation, main/V1 ref changes, real personal library tests or unsafe cleanup are authorized. GitHub cannot verify local Windows worktree cleanliness; unrelated agent worktrees are not touched.
 
 ## Sources of truth
 
 - [AGENTS.md](AGENTS.md): agent safety and working rules.
 - [Decision Register](docs/DECISIONS.md): accepted PO decisions, discovery directions and open questions.
+- [Issue/PR/Review workflow](docs/development/issue-review-workflow.md): attributed independent reviews, Github Reviews and exact-SHA gates.
 - [V2 roadmap](docs/v2/ROADMAP.md): approved milestone scope and closure.
 - [VERIFICATION.md](VERIFICATION.md): CI, automated tests and attributed manual observations.
 - [Post-V2 discovery](docs/product/post-v2-discovery.md): unapproved ideas, not implementation scope.
@@ -16,7 +25,7 @@
 - [Architecture](ARCHITECTURE.md), [versioning](docs/versioning.md) and
   [repository hardening](docs/development/repository-hardening.md): design and delivery policies.
 
-## Current checkpoint — M3-B local implementation, 2026-10-25
+## Historical checkpoint — M3-B local implementation, 2026-10-25
 
 - Preflight verified integrated `v2` at `441d5481ae21525c42207060cc3d8dd2b9ff97d8`,
   M2-F Draft PR #19 at `4ca8bf7811751fbb4345db817c307aab509e43b6`, and M3-A Draft PR #20
