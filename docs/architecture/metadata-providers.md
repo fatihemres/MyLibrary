@@ -232,9 +232,9 @@ Activation needs an explicitly approved signed distribution endpoint, secure sig
 verification and rollback/data-compatibility policy. M2-A does not enable updates or signing.
 
 
-## M2-F scan-origin lookup — local candidate
+## M2-F scan-origin lookup — integrated (original candidate design record)
 
-The optional [Scan Books workflow](barcode-scanning.md#m2-f-optional-scan-to-lookup--local-candidate)
+The optional [Scan Books workflow](barcode-scanning.md#m2-f-optional-scan-to-lookup--integrated-original-candidate-design-record)
 can initiate the existing lookup once for a new ISBN-only editor. It requires explicit selection of
 online lookup and a valid accepted ISBN. Default ISBN-only scanning remains offline; batch capture
 never queries providers until the user chooses Review & add for a row. Camera capture is cleaned up
@@ -248,7 +248,6 @@ and genre limitations remain unchanged. Apply updates only the draft and Save pe
 closing or changing ISBN identity prevents late results from opening a stale preview.
 
 
-Draft PR preparation is PO-authorized; physical Windows USB/camera acceptance remains pending.
-Integration and final PO acceptance are not implied, and M2 remains OPEN. The isolated desktop
+**Historical M2-F candidate checkpoint:** The 2026-10-23 PO authorization permitted draft PR preparation; device acceptance and integration were pending *at that time*. **Current:** [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) is integrated, and on 2026-10-28 the PO reported both physical USB and camera opt-in scan-to-lookup workflows working in isolated Windows testing (see [VERIFICATION](../../VERIFICATION.md) for precise evidence limits). Overall M2 remains OPEN pending an explicit separate PO closure decision. The isolated desktop
 harness uses a verified native rejection proxy as well as IPC fixtures so a broken mock cannot
 fall through to upstream provider HTTP. This is test-only; deployed provider boundaries are unchanged.

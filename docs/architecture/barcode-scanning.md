@@ -4,7 +4,7 @@ M2-C is CLOSED at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration 
 `38365564445` passed all four platforms. See [verification](../../VERIFICATION.md) for
 separate local desktop and CI evidence. M2 remains OPEN; M2-D webcam scanning was integrated through [PR #7](https://github.com/fatihemres/MyLibrary/pull/7) and opt-in M2-F scan-to-metadata through [PR #19](https://github.com/fatihemres/MyLibrary/pull/19). Earlier candidate details below are historical.
 
-The M2-C/M2-D sections below describe their original behavior. The local M2-F extension
+The M2-C/M2-D sections below describe their original behavior. The now-integrated M2-F extension
 is described at the end; its opt-in workflow changes when metadata lookup may begin.
 
 ## Capture boundary
@@ -71,7 +71,7 @@ macOS/Linux interactive scanner testing require separate evidence. No camera/ima
 automatic bulk lookup, queue persistence, destructive merging or M3+ work is included.
 
 
-## M2-D camera scanning — implementation candidate
+## M2-D camera scanning — integrated (original candidate design record)
 
 Camera capture is available only from the explicit **Scan with camera** action inside Scan Books.
 It is not mounted at startup and is not offered in BookEditor, CopyEditor or copy-barcode capture.
@@ -148,10 +148,11 @@ is added. Native camera leases do not change database/schema, capabilities or up
 
 See [M2-D audit](../testing/m2d-requirements-audit.md) and [verification](../../VERIFICATION.md).
 Synthetic video in the real Windows executable is distinct from physical webcam acceptance.
-M2-D is a local candidate; Issue #6 and M2 remain open until review, CI and integration gates finish.
+At the original candidate checkpoint, M2-D and Issue #6 were OPEN; that is historical evidence.
+M2-D was subsequently integrated through [PR #7](https://github.com/fatihemres/MyLibrary/pull/7), Issue #6 is CLOSED, and only overall M2 remains OPEN.
 
 
-## M2-F optional scan-to-lookup — local candidate
+## M2-F optional scan-to-lookup — integrated (original candidate design record)
 
 Scan Books defaults to **Scan ISBN only**, which makes no provider requests. Users may explicitly
 select **Scan and look up book details**; EN/TR help explains that the ISBN is sent to Open Library
@@ -182,13 +183,11 @@ headless Edge profile. Its synthetic Tauri bridge cannot persist library data, e
 blocked, and Vite file watching is disabled to avoid watching native build artifacts on Windows.
 `npm run test:desktop` adds deterministic M2-F provider fixtures to the existing isolated Windows
 WebView2/SQLite smoke suite. Synthetic keyboard/video and provider fixtures do not establish hardware
-acceptance or live provider availability. M2-F integration and milestone closure are not implied.
+acceptance or live provider availability. Integration was separately verified through [PR #19](https://github.com/fatihemres/MyLibrary/pull/19); M2 milestone closure is not implied.
 
 
-The 2026-10-23 PO authorization permits commit, feature-branch push and a DRAFT PR for this
-candidate. Physical USB scanner, camera and Windows UI acceptance remain pending; automation is
-not PO hardware acceptance. Independent review and separate integration authorization are required.
-Overall M2 remains OPEN. See [verification](../../VERIFICATION.md) for attributed evidence.
+**Historical 2026-10-23 candidate status:** PO authorized a local feature-branch commit and DRAFT PR only; physical device acceptance and integration were then pending. This does not grant any new permissions.
+**Current dated evidence:** [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) integrated 2026-10-27 after separately attributed review, exact-SHA CI and authorization. On 2026-10-28 the PO reported PASS for both physical USB and physical camera to opt-in single-scan metadata transitions on an isolated Windows test EXE. Device selection and actual media-track teardown were not instrumented, and device-level results are not macOS/Linux acceptance. Overall M2 remains OPEN; see [verification](../../VERIFICATION.md) and [Issue #31](https://github.com/fatihemres/MyLibrary/issues/31).
 
 The native smoke harness also supplies a child-process-only loopback rejection proxy. It never
 forwards requests upstream. A deliberate fixture-bypass probe verifies that both native provider

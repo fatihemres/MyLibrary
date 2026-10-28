@@ -1,7 +1,6 @@
 # M2-B: local edition and physical-copy decisions
 
-Status: implementation candidate; M2 remains open. No schema, migration, Work entity,
-provider/network, dependency, updater or signing changes are required.
+Status: **M2-B CLOSED / integrated** through [PR #3](https://github.com/fatihemres/MyLibrary/pull/3) at exact SHA `f469306b9f8edd720046376fee07f3de913323dc`; **M2 overall remains OPEN**. The original M2-B candidate required no new schema, migration, Work entity, provider/network, dependency, updater or signing changes. This is an integration-status clarification, not a new schema or feature change.
 
 ## Signals and identity
 
