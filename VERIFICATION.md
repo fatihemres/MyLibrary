@@ -1,3 +1,13 @@
+# M3-A/M3-B archival verification and additional historical remote cleanup — 2026-10-28
+
+**PO-provided local preflight and archive:** `C:\Dev\ML-M3A` (original `0afab459...`) and `C:\Dev\ML-M3B` (original `0b0ce136...`) were reported Git-clean in tracked/untracked files, with ignored `.cache` historical test/benchmark/UX records and generated build artifacts. A non-destructive PowerShell archiver copied 13 M3-A and 26 M3-B selected evidence entries (323,499,333 bytes excluding Git bundles) and created two complete original-branch Git bundles under `C:\Dev\MyLibrary-Evidence-Archives\M3AB-Historical-20261028-163151`. A separate read-only verification run reported **3,503 SHA-256 files PASS**, **M3A bundle PASS**, **M3B bundle PASS**, `ARCHIVE VERIFICATION PASS`, and no local deletions. These results are taken from user-provided Windows output; this assistant did not directly read the archived file bytes or rerun their hashes. Excluded `cargo`, `npm` and `tmp` contents remain on disk.
+
+**Separate PO-authorized remote-ref cleanup:** After archiving, Windows `git push` output showed exact-SHA lease guarded deletion of original `codex/m3a-search-foundation` (PR #20), `codex/m3b-real-wishlist` (PR #22), and `docs/issue-review-governance-20261026` (PR #39). Live GitHub recheck verified their absence and exactly **5 surviving remote branches**, including new Draft PR #46's docs branch; protected `main`, `v1-maintenance`, `v2` and old closed-unmerged PR #16's branch were retained. Across both cleanup phases **10 earlier remote refs were deleted** from the pre-cleanup set of 14. The 5th surviving ref was newly created for PR #46; this does not imply an arithmetic discrepancy.
+
+**No silent integration or worktree deletion:** Original #20/#22/#39 PRs remain closed unmerged; feature/governance successors #41/#42/#43 were integrated independently on `v2`. Two original-branch Git bundles have PO-reported verification; remote deletion does not delete the local M3-A/M3-B worktrees, their ignored caches, or any other worktree, especially unrelated Codex-owned directories. M2 milestone and Issue #31 remain OPEN, and nothing here authorizes a release, tag, or subsequent cleanup.
+
+---
+
 # PR #45 exact-SHA integration, final push CI and remote-cleanup evidence — 2026-10-28
 
 **GitHub-observed integration:** [PR #45](https://github.com/fatihemres/MyLibrary/pull/45) is MERGED/CLOSED. Canonical `v2` and PR `merge_commit_sha` are `19affab7743ab0d96faf1195d02f6936cf3c9833`, direct fast-forward from `42f963e450186d81da3922a209eaffae11e843c6`. The parent chain is linear and the PR is **11 Markdown files**, without app code, schema, workflow or license changes.
