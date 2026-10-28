@@ -1,3 +1,24 @@
+# PR #45 exact-SHA integration, final push CI and remote-cleanup evidence — 2026-10-28
+
+**GitHub-observed integration:** [PR #45](https://github.com/fatihemres/MyLibrary/pull/45) is MERGED/CLOSED. Canonical `v2` and PR `merge_commit_sha` are `19affab7743ab0d96faf1195d02f6936cf3c9833`, direct fast-forward from `42f963e450186d81da3922a209eaffae11e843c6`. The parent chain is linear and the PR is **11 Markdown files**, without app code, schema, workflow or license changes.
+
+| Evidence trigger on exact `19affab...` | Workflow | Result |
+| --- | --- | --- |
+| PR candidate | [V2 Foundation #40671321982](https://github.com/fatihemres/MyLibrary/actions/runs/40671321982) | **4/4 SUCCESS**, Windows, Linux, macOS Intel and Apple Silicon |
+| PR candidate | [CodeQL #40671321994](https://github.com/fatihemres/MyLibrary/actions/runs/40671321994) | **3/3 SUCCESS**, JS/TS, Rust, Actions |
+| Final `push` after integration | [V2 Foundation #40674452979](https://github.com/fatihemres/MyLibrary/actions/runs/40674452979) | **4/4 SUCCESS**, all four platforms |
+| Final `push` after integration | [CodeQL #40674453015](https://github.com/fatihemres/MyLibrary/actions/runs/40674453015) | **3/3 SUCCESS**, all three analyses |
+
+**Review provenance:** PO-supplied independent Antigravity read-only report classified PR #45 **PASS WITH FINDINGS**: one Medium for outdated top-level PR description, corrected before integration without a Git commit, and one informational CI dependency that cleared when the exact-head checks completed. This is an external agent report, **not** an eligible GitHub user's submitted `Approve`. All actual CI classifications above are separately GitHub-verified; CI does not establish real device/GUI acceptance.
+
+**Remote cleanup evidence:** PO-shared Windows terminal output reported seven successful exact-SHA guarded remote-ref deletions. Separate GitHub branch listings confirmed 14 remote branches before cleanup and **7 after**, before this documentation branch existed: protected `main`, `v1-maintenance`, `v2`, plus closed/unmerged historical candidates [#20](https://github.com/fatihemres/MyLibrary/pull/20), [#22](https://github.com/fatihemres/MyLibrary/pull/22), [#39](https://github.com/fatihemres/MyLibrary/pull/39), [#16](https://github.com/fatihemres/MyLibrary/pull/16). No local worktree or folder deletion is claimed. Any later new documentation branch/PR changes live branch count and must be interpreted separately.
+
+**Superseded source and local-state limits:** Original M3-A/M3-B branches are **not ancestors of `v2`**. GitHub tree/blob comparison against merged successors #41/#42 found only the already-integrated scanner focus source and native smoke-test differences; no unreviewed code transfer is authorized. PO terminal evidence showed `ML-M2E` clean with ignored test caches, `ML-M2F` dirty with two historically integrated source/test corrections and ignored test caches, and separate M3-A/M3-B worktrees still registered. Local ignored contents and other agent worktrees have **not** been certified disposable. No production/personal library data was accessed, no Windows filesystem cleanup was executed, and no new local test suite was run during this GitHub review.
+
+**PO decision boundaries:** M2 and [#31](https://github.com/fatihemres/MyLibrary/issues/31) remain OPEN; [#26](https://github.com/fatihemres/MyLibrary/issues/26), [#21](https://github.com/fatihemres/MyLibrary/issues/21), [#29](https://github.com/fatihemres/MyLibrary/issues/29) and [#30](https://github.com/fatihemres/MyLibrary/issues/30) retain their existing independent dispositions. No milestone acceptance, release or separate cleanup action follows from this evidence.
+
+---
+
 # M2 milestone closeout evidence and physical Scan-to-Lookup acceptance — 2026-10-28 (OPEN)
 
 **Purpose and source boundary.** This is a 28 October evidence addendum, **not** a declaration that M2 or Issue #31 is CLOSED. The PO provided an independent Antigravity M2 audit Revision 2 (read-only source review and GitHub evidence assessment) reporting **PASS WITH FINDINGS**, zero Critical/High findings and the 39-criterion reviewer classification **33 VERIFIED / 5 PARTIALLY VERIFIED / 1 ACCEPTED DEFERMENT** (camera optimization D-014). It was **not** a GitHub PR Review/Approve, newly executed desktop test suite, or an explicit decision to close M2. The partial classifications were assigned before the new physical-device observations and are not silently rewritten.
