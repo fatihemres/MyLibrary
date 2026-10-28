@@ -1,8 +1,6 @@
-# ISBN metadata providers — M2-A and local M2-E candidate
+# ISBN metadata providers — M2-A foundation and integrated M2-E/M2-F
 
-M2-A introduced explicit manual ISBN lookup and source-aware preview. The local M2-E candidate
-extends that preview with opt-in series-name and genre suggestions. This document does not declare
-M2-E integrated or close M2; see the roadmap for other slices.
+M2-A introduced explicit manual ISBN lookup and source-aware preview. M2-E integrated opt-in source-attributed series-name and conservative genre suggestions via [PR #17](https://github.com/fatihemres/MyLibrary/pull/17), and M2-F integrated user-selected scan-to-metadata via [PR #19](https://github.com/fatihemres/MyLibrary/pull/19). Earlier candidate subsections below preserve implementation/testing provenance, not current integration state. **Overall M2 remains OPEN** until a separate PO milestone decision; see [roadmap](../v2/ROADMAP.md).
 No schema, migration, edition/copy identity, backup format or updater configuration changes are required.
 
 ## Request and trust boundaries

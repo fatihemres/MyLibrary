@@ -1,6 +1,16 @@
 # MyLibrary — Project Status
 
-> **Current checkpoint: 2026-10-27** (see below). Dated checkpoint, not a live Git/CI feed.
+## Verified integration checkpoint — 2026-10-28 (no milestone closure)
+
+- **Canonical `v2` SHA `42f963e450186d81da3922a209eaffae11e843c6`.** [PR #44](https://github.com/fatihemres/MyLibrary/pull/44) switched Apple Silicon from `macos-14` to `macos-15`, merged by separate PO-authorized exact-SHA FF. [PR #43 governance](https://github.com/fatihemres/MyLibrary/pull/43) previously integrated; superseded [#39](https://github.com/fatihemres/MyLibrary/pull/39) CLOSED **UNMERGED**. No open PRs at this checkpoint.
+- **Final `push`-triggered CI on exact #44 SHA:** [Foundation #40651855231](https://github.com/fatihemres/MyLibrary/actions/runs/40651855231) **4/4 SUCCESS** (Windows, Linux, macOS Intel and Apple Silicon on `macos-15`) and [CodeQL #40651857486](https://github.com/fatihemres/MyLibrary/actions/runs/40651857486) **3/3 SUCCESS** (JS/TS, Rust, Actions). Distinct from candidate PR CI. [Issue #40](https://github.com/fatihemres/MyLibrary/issues/40) **CLOSED** after verification. Independent Antigravity #44 review PASS, **not** formal GitHub Approve.
+- **M2:** A/B/C closed and D/E/F integrated, but **overall milestone remains OPEN**. [Issue #31](https://github.com/fatihemres/MyLibrary/issues/31) has an evidence audit and awaits separate PO closure/acceptance of outstanding Google Books [#29](https://github.com/fatihemres/MyLibrary/issues/29), ambiguous multi-volume ISBN [#30](https://github.com/fatihemres/MyLibrary/issues/30), and native platform/hardware limitations. No new hardware tests inferred.
+- **M3:** [#41 search](https://github.com/fatihemres/MyLibrary/pull/41) and [#42 independent Wishlist](https://github.com/fatihemres/MyLibrary/pull/42) integrated. Historical PO-reported Windows Wishlist 38/38 functional and narrow gallery 6/6 PASS; appearance 4/6 with two deferred cosmetics in [#27](https://github.com/fatihemres/MyLibrary/issues/27). [Acceptance Issue #26](https://github.com/fatihemres/MyLibrary/issues/26) **OPEN**, separate PO signoff pending. M3-C/Collections/Visual Shelves remain planned/discovery.
+- **Rights/release:** [Issue #21](https://github.com/fatihemres/MyLibrary/issues/21) OPEN. Root `LICENSE` with proprietary notice exists on protected `main` but **not on `v2`**; no license was imported or assigned to third-party material. No V2 release, signing/updater, tag, `main` promotion, branch/worktree cleanup or personal library testing.
+- This is a new dated summary. Prior 2026-10-27 blocks below remain historical snapshots; their older “pending”/“draft” statements are **not current**.
+
+
+> **Previous dated checkpoint: 2026-10-27** (see below). Dated checkpoint, not a live Git/CI feed.
 > The PO controls scope, milestone closure, integration and release.
 > The **2026-10-20 evidence review** is preserved further below as a historical checkpoint.
 

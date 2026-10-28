@@ -1,3 +1,20 @@
+# Issue #40 — macOS runner exact-SHA integration verification (2026-10-28)
+
+**Kanonik `v2` SHA:** `42f963e450186d81da3922a209eaffae11e843c6`. Separately PO-authorized [PR #44](https://github.com/fatihemres/MyLibrary/pull/44) merged via exact-SHA fast-forward from previous `3d63d441eefcf6d332ea72182a6a23c2233a6daa` with `force=false`; no merge commit, squash or rebase. Other protected V1 refs unchanged. Single changed workflow line: Apple Silicon `macos-14` → ARM64 `macos-15`; other matrices and app/release unchanged. [Issue #40](https://github.com/fatihemres/MyLibrary/issues/40) **CLOSED** only after final push checks.
+
+**PR-triggered candidate CI on exact head:** [Foundation #40645844495](https://github.com/fatihemres/MyLibrary/actions/runs/40645844495) 4/4 SUCCESS and [CodeQL #40645844491](https://github.com/fatihemres/MyLibrary/actions/runs/40645844491) 3/3 SUCCESS. **Independent attributed Antigravity report:** PASS, no findings; **not** a submitted GitHub Approve. Artifact SHA `4cfea291...` is GitHub's temporary PR testing merge commit, with parents `3d63...` and `42f963...`; not a canonical merge.
+
+**Separate final `push` event after integration, exact `v2` SHA:**
+
+| Run | Verified jobs | Conclusion |
+| --- | --- | --- |
+| [V2 Foundation #40651855231](https://github.com/fatihemres/MyLibrary/actions/runs/40651855231) | Windows x64, Linux x64, macOS Apple Silicon, macOS Intel | **4/4 SUCCESS** |
+| [CodeQL #40651857486](https://github.com/fatihemres/MyLibrary/actions/runs/40651857486) | JS/TS, Rust, Actions | **3/3 SUCCESS** |
+
+**Evidence limits:** CI package builds are not macOS/Linux native GUI/hardware acceptance. No new local Windows PO acceptance, personal-library test, signing or release was performed for this runner-only change. [M2 closeout Issue #31](https://github.com/fatihemres/MyLibrary/issues/31) and [M3-B acceptance Issue #26](https://github.com/fatihemres/MyLibrary/issues/26) have separate evidence audits and remain OPEN pending PO decisions. Earlier sections below are historical records.
+
+---
+
 # M3-B final canonical push validation — 2026-10-27 (COMPLETED)
 
 **Live GitHub ref check:** `v2` HEAD `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`; [PR #42](https://github.com/fatihemres/MyLibrary/pull/42) reports MERGED/CLOSED and identical `merge_commit_sha`. No merge commit/squash/rebase/force. **Push-triggered** (not PR-triggered) [V2 Foundation #40498417989](https://github.com/fatihemres/MyLibrary/actions/runs/40498417989) **COMPLETED / SUCCESS 4/4** for Windows x64, Linux x64, macOS Intel, macOS Apple Silicon, and [CodeQL #40498418115](https://github.com/fatihemres/MyLibrary/actions/runs/40498418115) **COMPLETED / SUCCESS 3/3** for JS/TS, Rust, Actions. All seven individual jobs were verified successful. Prior #42 candidate PR CI was separately 7/7 PASS at the same SHA. Only after this final push verification was old stacked [PR #22](https://github.com/fatihemres/MyLibrary/pull/22) explicitly closed as **UNMERGED / SUPERSEDED**; that original PR was not the feature integration. The review attribution, historical PO 38/38 and 6/6, visual 4/6 and other limitations are in the dated section below. Packaging is not real native acceptance on those platforms. M2 milestone is still OPEN; no release or cleanup of unrelated worktrees.

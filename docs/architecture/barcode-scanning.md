@@ -2,7 +2,7 @@
 
 M2-C is CLOSED at `1edf3014d252067b7ee435478cba3f6aaf9350c9`; final integration CI
 `38365564445` passed all four platforms. See [verification](../../VERIFICATION.md) for
-separate local desktop and CI evidence. M2 remains OPEN; M2-D webcam scanning is pending.
+separate local desktop and CI evidence. M2 remains OPEN; M2-D webcam scanning was integrated through [PR #7](https://github.com/fatihemres/MyLibrary/pull/7) and opt-in M2-F scan-to-metadata through [PR #19](https://github.com/fatihemres/MyLibrary/pull/19). Earlier candidate details below are historical.
 
 The M2-C/M2-D sections below describe their original behavior. The local M2-F extension
 is described at the end; its opt-in workflow changes when metadata lookup may begin.

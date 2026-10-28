@@ -8,11 +8,11 @@ An edition contains shared bibliographic information. A copy references an editi
 
 Core fields have typed SQL columns and constraints. Less frequently queried descriptive attributes use documented JSON objects on their owning entities. This is not a single flattened books table: relationships and repeated records are normalized. A materialized FTS5 index provides global text matching; indexed relational queries and frontend combination provide filtering. User deletion is reversible through a trash flag; related data and managed files remain until an explicit future purge feature.
 
-The M3-B local candidate adds an independent Wishlist domain with optional deliberate Edition
+The integrated M3-B implementation adds an independent Wishlist domain with optional deliberate Edition
 links, retailer rows and status history. It does not create Physical Copies or affect inventory
 counts. Separate Wishlist FTS, precise target budgets, explicit metadata drafts and privacy-aware
 catalogue export are described in [Wishlist architecture](docs/architecture/wishlist.md).
-Schema 4 and its restore protections remain a local candidate, not an integrated release.
+Schema 4 and its restore protections were integrated into unreleased V2 through [PR #42](https://github.com/fatihemres/MyLibrary/pull/42) on 2026-10-27. This is not a published V2 release or a completed native macOS/Linux GUI acceptance.
 
 ## Data safety
 

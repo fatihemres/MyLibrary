@@ -8,6 +8,12 @@ Future milestone scopes may be refined by the owner. Agents must not infer or mo
 milestones, or start future work, without approval. A roadmap entry is not evidence of implementation
 or verification.
 
+## Dated evidence checkpoint — 2026-10-28 (no milestone closure)
+
+- Canonical `v2` `42f963e450186d81da3922a209eaffae11e843c6`; separate PO-approved one-line Apple Silicon runner maintenance [PR #44](https://github.com/fatihemres/MyLibrary/pull/44) integrated, with post-push [Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/40651855231) and [CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/40651857486) SUCCESS. Does not expand product scope.
+- [M2 evidence/closure audit #31](https://github.com/fatihemres/MyLibrary/issues/31) and [M3-B bounded Wishlist acceptance audit #26](https://github.com/fatihemres/MyLibrary/issues/26) were recorded. **M2 overall OPEN and M3-B administrative acceptance OPEN**, awaiting separate PO decision; M3-C/Collections/Visual Shelves remain planned. Google Books [#29](https://github.com/fatihemres/MyLibrary/issues/29), multi-volume ISBN [#30](https://github.com/fatihemres/MyLibrary/issues/30), visual [#27](https://github.com/fatihemres/MyLibrary/issues/27), performance [#28](https://github.com/fatihemres/MyLibrary/issues/28) not silently resolved.
+- No release, signing, updater, tag, `main` promotion or extra implementation approved. Earlier dated notes are historical.
+
 ## Dated implementation checkpoint — 2026-10-27 (no milestone closure)
 
 - **M2-F Optional Scan-to-Lookup — INTEGRATED:** [PR #19](https://github.com/fatihemres/MyLibrary/pull/19), exact commit `6b62eb8c9dbc87df351e4d1a4b87f3ca3b7e6eaf`; user-selected lookup after USB/camera scanning only, preserving offline scan and separate Apply/Save. Earlier candidate-only M2-F wording below is historical, not current status.

@@ -1,10 +1,17 @@
 # MyLibrary
 
+## V2 status — 2026-10-28
+
+Canonical `v2` is `42f963e450186d81da3922a209eaffae11e843c6` and **unreleased**. M1 is closed; M2-A/B/C closed and M2-D/E/F integrated, but overall M2 remains OPEN pending [#31](https://github.com/fatihemres/MyLibrary/issues/31). M3-A Turkish search/advanced filters [#41](https://github.com/fatihemres/MyLibrary/pull/41) and M3-B independent Wishlist [#42](https://github.com/fatihemres/MyLibrary/pull/42) integrated, with [Wishlist acceptance #26](https://github.com/fatihemres/MyLibrary/issues/26) still OPEN. M3-C, Collections and Visual Shelves are not authorized implementation. Apple Silicon runner CI maintenance [#44](https://github.com/fatihemres/MyLibrary/pull/44) merged with [final Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/40651855231) and [CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/40651857486) SUCCESS, closing [#40](https://github.com/fatihemres/MyLibrary/issues/40).
+
+No V2 release, beta, signing/updater or native macOS/Linux GUI acceptance is claimed. Never test using a real library. [Rights Issue #21](https://github.com/fatihemres/MyLibrary/issues/21) remains OPEN: protected `main` has a proprietary root `LICENSE`, `v2` does not. Use [Project Status](PROJECT_STATUS.md), [Roadmap](docs/v2/ROADMAP.md), [Verification](VERIFICATION.md) and live GitHub for current evidence.
+
+
 This branch contains **unreleased V2 development** (`2.0.0-alpha.1` remains the prerelease version identifier, not a published V2 release). The stable V1 source and installer remain at immutable tag/release [v1.0.0](https://github.com/fatihemres/MyLibrary/releases/tag/v1.0.0). Do not use prerelease builds on your only library copy.
 
 A private Windows desktop catalogue for physical books, built with Tauri 2, React 19, TypeScript, Vite and embedded SQLite. No server, account, Docker, telemetry or cloud database. Production starts with an empty library.
 
-## Current development checkpoint
+## Historical development checkpoint — 2026-10-19
 
 For the dated exact-SHA checkpoint, accepted PO decisions and verification boundaries, start with
 [Project Status](PROJECT_STATUS.md), [Decision Register](docs/DECISIONS.md) and

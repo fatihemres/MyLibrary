@@ -1,7 +1,6 @@
-# M3-B Real Wishlist — local implementation
+# M3-B Real Wishlist — integrated V2 architecture
 
-This is a local schema-4 candidate stacked on M3-A, not an integrated release or PO acceptance.
-The PO authorized implementation, synthetic verification and scoped documentation only.
+**28 October 2026 status:** Schema-4 Wishlist code integrated through [PR #42](https://github.com/fatihemres/MyLibrary/pull/42), exact `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`; original stacked #22 closed unmerged. This document originated as a local candidate specification and later architectural description; its historical test/acceptance limitations remain attributed. [Issue #26](https://github.com/fatihemres/MyLibrary/issues/26) stays OPEN pending separate PO administrative acceptance; two cosmetic points tracked at #27. No overall M3 milestone closure or V2 release.
 
 ## Identity and persistence
 

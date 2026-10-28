@@ -1,5 +1,7 @@
 # Forward-only migrations and V1 compatibility
 
+**Integrated V2 status — 28 October 2026:** Canonical `v2` includes schema 4 and integrated M3-A search / M3-B independent Wishlist migrations and restore protection ([PR #41](https://github.com/fatihemres/MyLibrary/pull/41), [PR #42](https://github.com/fatihemres/MyLibrary/pull/42)). Historical candidate headings/verification below describe earlier development checkpoints. V2 is still unreleased; never run migrations against a real personal library for development or treat CI packages as native user acceptance.
+
 ## Historical M1 foundation (schema 2)
 
 V1 `PRAGMA user_version` is 1. V2 foundation is 2. `src-tauri/src/migrations.rs` owns ordered forward execution: empty database → frozen existing bootstrap schema 1 → foundation schema 2. Schema 2 adds only the `schema_migrations` ledger; no domain table, edition/copy relationship, reading model or identifier changes. The ledger records applied versions and timestamps. A future migration must be added in order, not by editing historical SQL.

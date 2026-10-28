@@ -1,4 +1,6 @@
-# M3-A search foundation (local candidate)
+# M3-A search foundation (integrated V2)
+
+**28 October 2026 status:** Integrated in [PR #41](https://github.com/fatihemres/MyLibrary/pull/41) at exact `ec742660f9c2e2bb33df9f4434b8dcf9efd0fab8`. Candidate-era implementation and review notes below preserve historical provenance; remaining M3 work requires independent PO authorization. This document-only update does not change search behavior.
 
 ## Migration assessment before implementation
 
