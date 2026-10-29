@@ -36,12 +36,13 @@ All files in [`snapshots/2026-10-29/`](snapshots/2026-10-29/) are date-stamped *
 | Artifact | Purpose | SHA-256 of original source |
 | --- | --- | --- |
 | [Original stars export](snapshots/2026-10-29/MyLibrary_GitHub_Stars_2026-10-29.json) | Unmodified public-stars source supplied by PO | `444484353A4B628E1F1B42C1368A11E6B0538AF6457AAF3A817FAAD18D126E0A` |
-| [Normalized stars inventory](snapshots/2026-10-29/MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29.json) | 33 distinct repositories, category/research tier metadata | `1FE976614F248A69AA3CD9995DE747DF2915974CCCC6627531433FF28B6E3A3B` |
+| [Corrected usable inventory v0.2](snapshots/2026-10-29/MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29_v0.2.json) | All 33; ALL licenses marked unverified pending independent lookup | Derived file; Git blob integrity in candidate commit |
+| [Legacy normalized inventory v0.1](snapshots/2026-10-29/MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29.json) | Original first attempt; **license associations may be wrong** | `1FE976614F248A69AA3CD9995DE747DF2915974CCCC6627531433FF28B6E3A3B` |
 | [All-33 first-pass report](snapshots/2026-10-29/MyLibrary_DevEx_Stars_FirstPass_2026-10-29.md) | Eight classifications, first risks and research order | `A85A94236BAF1E315FF210B46BC3132894A7F808CF3A7732DC90A57450C319CC` |
 | [D1 first seven workflow candidates](snapshots/2026-10-29/MyLibrary_DevEx_D1_Agent_Workflows_2026-10-29.md) | Pinned official README evidence, feature overlap, risks and pilot designs | `8681A901D5D9C3E46BC45C793F59A349891EB77C83AE587159C4DEDD5DA8FBD6` |
 | [Conversation handoff v0.1](snapshots/2026-10-29/MYLIBRARY_DEVEX_HANDOFF_2026-10-29_v0.1.md) | Historical checkpoint, source order, PO boundaries, suggested continuation | `734FA651B72619A964890F2F0902A1AA56E563A69F96EF3DA5EF555A502B182B` |
 
-**Source caveats:** the original export is one array-of-columns object, not an array of repository objects. Seven fields have 33 entries but the `License` array contains **32**. The normalized 33rd license is therefore **unknown**, not inferred. `Updated` originates from `pushed_at`. GitHub stars/README claims do not establish performance or safety.
+**Source caveats:** the original export is one array-of-columns object, not an array of repository objects. Seven fields have 33 entries but the `License` array contains **32**. The missing license **position is not identifiable** from the exported column array; consequently **none of the 33 positional license associations is reliable** until per-repository validation. Use the [corrected v0.2 catalog](snapshots/2026-10-29/MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29_v0.2.json), not the original normalized v0.1 file, for future research. Details: [data-quality erratum](snapshots/2026-10-29/DATA_QUALITY_ERRATUM_2026-10-29.md). `Updated` originates from `pushed_at`. GitHub stars/README claims do not establish performance or safety.
 
 ## How to maintain this library
 

@@ -6,7 +6,7 @@
 
 **Repo context:** Live MyLibrary `v2` verified at `83bdc097256171e1f1b629685f28ad8312249374`; no open PR at original research time. This is a historical verification, not a live HEAD assertion for later sessions.
 
-**PO-supplied evidence:** public GitHub stars JSON. 33 distinct repositories, 8 categories. Raw JSON uses column-aligned arrays, with only 32 license values; preserve unknown final license, never silently discard the last record. Files and source hashes are indexed in [README.md](README.md).
+**PO-supplied evidence:** public GitHub stars JSON. 33 distinct repositories, 8 categories. Raw JSON uses column-aligned arrays, with only 32 license values; missing license position cannot be established; **all 33 positional license mappings are unverified**, not merely the final record. See [the erratum](snapshots/2026-10-29/DATA_QUALITY_ERRATUM_2026-10-29.md) and [corrected v0.2 catalog](snapshots/2026-10-29/MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29_v0.2.json). Original v0.1 remains as a dated historical artifact. Files and source hashes are indexed in [README.md](README.md).
 
 **Read-only D1 study:** seven methodology/skill repositories were studied via official README and adjacent documentation; no installation, executable source/security assessment or pilot. External repo commit snapshots:
 
