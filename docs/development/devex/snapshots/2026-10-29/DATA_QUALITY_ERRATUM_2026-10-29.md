@@ -11,7 +11,7 @@
 ## Correction / authoritative use
 
 1. Preserve the PO's raw export and the original normalized **v0.1** unchanged as historical evidence.
-2. Use [normalized **v0.2**](MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29_v0.2.json) for research. It maintains all 33 identities and other 33-length fields, but explicitly sets **every** `License` to `null` with `LicenseStatus=UNVERIFIED_POSITIONAL_ALIGNMENT`.
+2. Use [normalized **v0.2**](MyLibrary_DevEx_Stars_Inventory_Normalized_2026-10-29_v0.2.json) for research. It maintains all 33 identities and other 33-length fields, but explicitly sets **every** `License` to `null`; every `LicenseStatus` value **starts with** `UNVERIFIED_POSITIONAL_ALIGNMENT:` and includes explanatory text after the prefix.
 3. During D2, verify each shortlisted repository's exact ref, LICENSE file, any third-party license notices and relevant distribution restrictions separately. Store that evidence with a dated source ref; do not retroactively rewrite the raw export.
 4. Other metadata fields (including counts and `pushed_at`) remain **user-provided snapshots**, not an independent live verification of all 33 repositories.
 

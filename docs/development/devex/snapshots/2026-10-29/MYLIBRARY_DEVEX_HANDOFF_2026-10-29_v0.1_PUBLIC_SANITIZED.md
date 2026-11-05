@@ -91,7 +91,7 @@ Her checkpoint için: **kapsam ve tarih; canlı GitHub HEAD; incelenen exact rep
 
 ## Yeni sohbeti başlatmak için kısa mesaj (aynen yapıştırılabilir)
 
-> MyLibrary DevEx çalışmasına kaldığımız yerden devam ediyoruz. Önce GitHub Issue #47 ve yorumlarını, ardından `MYLIBRARY_DEVEX_HANDOFF_2026-10-29_v0.1.md` ve `MyLibrary_DevEx_D1_Agent_Workflows_2026-10-29.md` dosyalarını incele. Canlı MyLibrary `v2` HEAD/PR/CI durumunu doğrula. D0 stars envanteri 33 repo, D1 ilk 7 karşılaştırma kaynak bazında yapıldı; hiçbir tool henüz kurulmadı veya pilot test edilmedi. Mevcut repo PO güvenlik/onay sözleşmesini koruyarak kurulu skill/MCP/model envanteri ve sonraki karşılaştırma ile ilerle. Araştırma veya issue yorumunu ürün uygulama onayı sayma.
+> MyLibrary DevEx çalışmasına kaldığımız yerden devam ediyoruz. Önce canlı `v2` HEAD/PR/CI durumunu ve GitHub Issue #47'nin en güncel yorumlarını doğrula; ardından `docs/development/devex/README.md`, `docs/development/devex/snapshots/2026-10-29/MYLIBRARY_DEVEX_HANDOFF_2026-10-29_v0.1_PUBLIC_SANITIZED.md` ve `docs/development/devex/snapshots/2026-10-29/MyLibrary_DevEx_D1_Agent_Workflows_2026-10-29.md` dosyalarını incele. 2026-10-29 tarihli 33 yıldız / ilk 7 aday kayıtları tarihsel snapshot'tır; sonraki ayrı PO izinli sentetik R4/R5 ve Ponytail/Impeccable pilotlarının kanıt düzeylerini Issue #47 üzerinden ayrı değerlendir. EV-039 (2026-10-31), yalnızca ilk Wishlist A/B/C/D/E araştırma turunu kapatır; araç benimseme, ürün/gerçek Windows kabulü veya milestone kapanışı değildir. D2 alternatif/lisans doğrulaması, kapsamlı D3 ve D5–D7 hâlâ açıktır. Mevcut PO güvenlik/onay sözleşmesini koru; yeni uygulama, Git işlemi veya entegrasyon için ayrıca açık PO izni al.
 
 ## Doğruluk / kaynak hiyerarşisi
 
