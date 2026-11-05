@@ -120,6 +120,13 @@ Collections and Visual Shelves are not started. Wishlist Studio remains future M
 - Packaging and release-candidate work.
 - *(Planned addition)* Small outstanding TR/EN book-detail timestamp localization fixes, if not already addressed.
 
+### Pre-demo UX Design Council — PO-approved planning placement (2026-11-05; no feature or tool installation approval)
+
+- **When:** after the V2 core-functionality slices needed for the demonstration, and **before** the V2 demo/test cycle and any M6 private-beta/release readiness signoff. This is a distinct design-discovery and quality gate linked to [Design Council #52](https://github.com/fatihemres/MyLibrary/issues/52), existing cross-screen [UX #27](https://github.com/fatihemres/MyLibrary/issues/27) and [M6 #38](https://github.com/fatihemres/MyLibrary/issues/38). It does **not** move Collections, Visual Shelves or other product features between milestones; earlier focused design pilots may be separately authorized without starting the full polish phase.
+- **Council method:** compare **independent**, same-brief design directions from UI UX Pro Max (design system/accessibility), Taste Skill (visual voice), and Impeccable (critique/audit/adapt and separately explored directions); use Figma for editable comparison/synthesis if connected with separate PO permission. Do not indiscriminately stack skills, assume installed tools, or treat the unequal historical Wishlist A/B/C/D/E pilots as a fair tool winner. The council documents tradeoffs; **PO alone chooses** a design direction.
+- **Ponytail exclusion:** no Ponytail auto-activation in UI/UX discovery, design critique, prototypes or UI implementation/review absent a fresh PO exception. Verify actual fresh-session isolation first via [DevEx pilot #51](https://github.com/fatihemres/MyLibrary/issues/51); a prompt claiming a tool is off is not proof that global hooks are off.
+- **Gates:** first obtain tool/account/network permissions, use synthetic screens and reproducible desktop/narrow-width baselines, then deliver comparable proposals and a PO-selected design specification. Any later visual-code work requires its own bounded authorization, independent review, platform/CodeQL CI and **real Windows** visual, accessibility and responsive acceptance. No automatic design overhaul, unrelated product feature, milestone closure, release or updater/signing approval.
+
 ## After V2 — deferred discovery ideas (not roadmap scope)
 
 App-free phone-to-MyLibrary scanning, full Simple/Advanced UI, local reader profile, Reading Garden, achievements, advanced sharing cards and premium themes remain deferred discovery ideas; see [post-V2 discovery](../product/post-v2-discovery.md).
@@ -137,6 +144,12 @@ App-free phone-to-MyLibrary scanning, full Simple/Advanced UI, local reader prof
 - Keep signing credentials external and updates disabled until authorized, valid signed distribution
   is configured.
 - No `v2.0.0` tag until explicit owner approval. Published tags and historical V1 releases are immutable.
+
+### Cross-cutting DevEx tooling — PO-approved staged pilot direction (2026-11-05; not a product feature)
+
+- [DevEx #47](https://github.com/fatihemres/MyLibrary/issues/47) remains the research and evidence inventory. Independently actionable [pilot #51](https://github.com/fatihemres/MyLibrary/issues/51) prioritizes **Graphify** for isolated, local code-only navigation (compare with baseline source search; no automatic `AGENTS.md` rewriting or cloud extraction), **Context7** for explicit, current-version documentation lookups (external network only with scoped permission; no private code/data), and the already PO-reported **Ponytail** installation for explicitly enabled non-UI engineering tasks.
+- **UI/UX exclusion:** Ponytail is **off** for UX/design/prototype/UI-review work, including UI implementation, unless a new PO exception is given. Safely audit existing auto-`full` hooks and verify effective fresh-session `off` before relying on the boundary; do not silently edit user-wide Codex settings. Pilot results, permission requests, and any adopt/pilot/watch/reject decision are separate from this roadmap entry.
+- Other candidates (Playwright/DevTools testing, modular engineering skills, UX tools, Graphiti/memory, security audit tools) stay under DevEx evaluation; do **not** blanket-install. Full cross-platform/security/privacy/release assessment belongs to M6, while **every** current PR still requires its relevant security, data-integrity, regression and CI gates. Research or a green benchmark does not grant repo/code, account, cloud, product or release authorization.
 
 Existing V1 capabilities may provide a starting point for planned milestones; their presence does
 not authorize expansion or imply the future milestone is complete. Each milestone needs scoped

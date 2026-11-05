@@ -4,7 +4,7 @@
 > **Owner:** MyLibrary Product Owner (PO). **Tracking:** [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47).
 > **Initialized:** 2026-10-29. This living index is updated only through reviewed, separately PO-authorized documentation PRs.
 
-This proposed directory is the **durable repository-side research library** for AI coding agents, agent skills, prompts, MCP integrations, security tools, UI/UX/test automation, model comparisons and developer workflow improvements. It complements the live [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47), rather than replacing the canonical project contracts.
+This directory is the **durable repository-side research library** for AI coding agents, agent skills, prompts, MCP integrations, security tools, UI/UX/test automation, model comparisons and developer workflow improvements. It complements the live [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47), rather than replacing the canonical project contracts.
 
 ## Read first / authority
 
@@ -14,6 +14,13 @@ This proposed directory is the **durable repository-side research library** for 
 4. Separate **source claims**, assistant interpretation, independent review, observed pilot/test results, GitHub CI and real Windows PO acceptance. Never treat a research snapshot or an agent `APPROVED` as a PO implementation/integration decision.
 
 **Canonical v2 checkpoint when this library was authored:** `83bdc097256171e1f1b629685f28ad8312249374`. Do **not** treat it as a current HEAD without checking GitHub again.
+
+## PO directions — 2026-11-05 (planning only; current adoption requires later evidence)
+
+- **Controlled tool pilot:** [Issue #51](https://github.com/fatihemres/MyLibrary/issues/51) tracks Graphify local/code-only source navigation, Context7 explicit versioned documentation queries and existing PO-reported Ponytail configuration/activation checks. Graphify and Context7 are **not proven installed and adopted**; do not auto-install packages, reconfigure `AGENTS.md` or enable background network use.
+- **Ponytail UI/UX exclusion:** the PO wants Ponytail disabled for design and UI/UX tasks. The prior Codex user-level auto-`full` hook must be examined and a genuine fresh-session OFF result demonstrated **before claiming isolation**; default-off and per-engineering-task opt-in are controlled proposals, not a config operation already performed.
+- **Design Council:** [Issue #52](https://github.com/fatihemres/MyLibrary/issues/52) and [existing V2 UX #27](https://github.com/fatihemres/MyLibrary/issues/27) cover independent UI UX Pro Max/Taste/Impeccable perspectives and editable Figma synthesis, intended after core V2 features and before demo/beta; the PO selects the eventual direction. Previous Wishlist A/B/C/D/E tests are limited non-equivalent research, not a winning design.
+- **Security/testing:** comprehensive M6 pre-release evaluation remains planned, while current PR-specific security/privacy and data-integrity checks continue. DevEx #47 remains open. These are **PO planning directions**, not permission to install external tools, enable plugins/accounts, rewrite local/global configs, implement a redesign or integrate a new PR.
 
 ## Latest attributed checkpoint — 2026-11-04 (historical at publication)
 

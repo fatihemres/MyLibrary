@@ -2,6 +2,14 @@
 
 > Append dated, source-attributed checkpoints here. **Research facts ≠ tool approval.** Actual adoption, repo policy edits and integration require separate PO authorization. [Index](README.md) · [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47).
 
+## 2026-11-05 — PO DevEx tooling and pre-demo Design Council planning checkpoint
+
+**Current authority:** User approved recording new roadmap/decision direction and separately actionable tracking issues. This entry does not represent installed Graphify/Context7, switched Ponytail defaults, modified Codex hooks, linked Figma, adopted an external tool, changed application code or closed a milestone.
+
+- [Tool pilot #51](https://github.com/fatihemres/MyLibrary/issues/51): Graphify local code-only vs baseline source search; Context7 just-in-time external documentation queries with explicit network/data gates; already reported Ponytail user-level auto-`full` must be verified **OFF for UI/UX**, with deliberate non-UI engineering opt-in only after a scoped setup/permission decision. Source-pinned installer and privacy review still pending.
+- [Design Council #52](https://github.com/fatihemres/MyLibrary/issues/52): separate independent UI UX Pro Max / Taste / Impeccable design perspectives; Figma synthesis if separately connected; fixed synthetic task, no uncontrolled skill stacking, PO final visual decision, pre-demo/limited V2 polish with UX #27 and M6 #38. Earlier unequal A/B/C/D/E trials have no causally justified winner.
+- D2/D3/D5–D7 DevEx evidence/PO adoption gates remain OPEN under #47. Existing per-PR security and review rules stay in force; M6 retains full release-stage testing/security/rights review.
+
 ## 2026-11-04 — public-safe replacement candidate (local staging only)
 
 **Authority / provenance:** PO approved **local preparation** of a new sanitized docs-only candidate from exact `v2`; NOT commit, push, PR creation/closure, review submission, merge or cleanup. Live `v2` at plan time `83bdc097256171e1f1b629685f28ad8312249374`; old [PR #48](https://github.com/fatihemres/MyLibrary/pull/48) remains OPEN/DRAFT/UNMERGED at `85d7ac6989c5e8cea4986681c62913f30303e3e5`. This entry does not claim a new GitHub branch or candidate CI.
