@@ -105,6 +105,17 @@ are **PROPOSED candidate implementation semantics**, described in
 [M3-C architecture](architecture/wishlist-acquisition.md), awaiting PO review rather than recorded
 as accepted product decisions.
 
+### D-026 PO acceptance supplement — 2026-11-07
+
+**ACCEPTED — these three M3-C behaviors only**, per the PO's PR #56 security-remediation
+instruction: Purchased/Fulfilled retains Wishlist history and excludes active wish/budget
+calculations; new Edition acquisition initially uses basic bibliographic fields with later
+editing available; Unlink/Reopen restores Wishing, retains history and never deletes the
+existing Physical Copy. The PO also reports Windows visual **4/4 PASS** and functional
+**3/3 PASS** for the preceding candidate. These are historical PO observations, not tests
+newly executed on the security-corrected SHA. This supersedes D-026's pending status for
+these three semantics only; it grants no integration, milestone closure, release or expansion.
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |

@@ -1,5 +1,17 @@
 # MyLibrary — Project Status
 
+## PR #56 native-harness origin security correction — 2026-11-07 (NOT INTEGRATED)
+
+The separate GitHub Advanced Security check failed at `e517832` with High alert #2,
+`js/incomplete-url-substring-sanitization`, despite Foundation 4/4 and CodeQL analysis
+3/3 passing. The correction replaces two native page selectors and two equivalent
+request-report exclusions with exact parsed-origin checks. Product/UI, schema, network
+policy, dependencies and workflows are unchanged. New exact-SHA review and **all eight**
+checks, including Advanced Security, are required; prior seven-job success is insufficient.
+The PO now reports Windows visual 4/4 and functional 3/3 PASS for the previous candidate
+and accepts only the three semantics recorded in the D-026 supplement. These observations
+are historical, not new tests on the security SHA. Integration remains separately gated.
+
 ## PR #56 scoped UI polish — 2026-11-07 (NOT INTEGRATED; PO VISUAL ACCEPTANCE PENDING)
 
 The PO reported native Windows confirmation padding, long Wishlist card/action alignment

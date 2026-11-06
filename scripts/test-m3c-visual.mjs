@@ -8,6 +8,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright-core';
+import { isLocalTauriResource, isTrustedTauriPage } from './native-tauri-origin.mjs';
 
 assert.equal(process.platform, 'win32', 'Native Windows only');
 const root = resolve(import.meta.dirname, '..');
@@ -35,6 +36,7 @@ const report = {
         'src/pages/Wishlist.css',
         'src/styles.css',
         'scripts/test-m3c-visual.mjs',
+        'scripts/native-tauri-origin.mjs',
       ].map(async (path) => [
         path,
         createHash('sha256')
@@ -118,16 +120,16 @@ try {
     page = browser
       .contexts()[0]
       .pages()
-      .find((p) => p.url().startsWith('http://tauri.localhost'));
+      .find((p) => isTrustedTauriPage(p.url()));
     if (page) break;
     await sleep(100);
   }
   assert(page);
+  report.applicationOrigin = new URL(page.url()).origin;
   page.setDefaultTimeout(12000);
   page.on('pageerror', (e) => report.errors.push(e.message));
   page.context().on('request', (r) => {
-    if (/^https?:/.test(r.url()) && !/^http:\/\/(tauri|ipc|asset)\.localhost/.test(r.url()))
-      report.network.push(r.url());
+    if (/^https?:/.test(r.url()) && !isLocalTauriResource(r.url())) report.network.push(r.url());
   });
   await page.locator('.sidebar').waitFor();
   report.initialViewport = await page.evaluate(() => ({

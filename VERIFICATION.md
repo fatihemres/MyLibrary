@@ -1,3 +1,39 @@
+# Native-harness origin security correction — 2026-11-07 (NOT INTEGRATED)
+
+At previous candidate `e517832e90c0ba1e79c6e0868a1d67debbbc3d30`, the separate
+[Advanced Security check](https://github.com/fatihemres/MyLibrary/runs/128170306592)
+FAILED with High [alert #2](https://github.com/fatihemres/MyLibrary/security/code-scanning/2),
+`js/incomplete-url-substring-sanitization`. The seven successful workflow jobs did not
+establish that eighth gate. A local reproduction accepted both a hostname suffix and
+userinfo attack under the old page selector and request-report regex.
+
+The shared script helper parses URLs, compares exact origins, rejects credentials,
+raw controls/whitespace/backslashes and non-HTTP absolute forms (including blob URLs
+whose parsed origin inherits the app origin). Only `http://tauri.localhost` can select
+the release Windows application page. IPC/asset origins remain separate request-accounting
+exceptions; no page origins or production network permissions are expanded. Same-origin
+paths, canonical host casing/encoding and default port 80 retain their standard URL origin.
+The slash-delimited local-asset assertion and Vite fixture URL prefixes are unrelated and unchanged.
+
+Local focused URL tests: **48/48 PASS**; complete Vitest/frontend: **385/385 PASS / 17 files**;
+syntax, typecheck and lint PASS. New native visual run
+`.cache/m3c-visual-1794004041866/report.json`: **64 card + 32 dialog states PASS**, observed
+origin `http://tauri.localhost`, zero runtime errors/unexpected network requests.
+The complete affected desktop harness **47/47 PASS** is recorded in
+`.cache/desktop-check-1794004094243/report.json`: observed app origin `http://tauri.localhost`,
+zero runtime errors/unexpected network and exactly two deliberate native rejection-proxy probes.
+Exact commit review and all eight actual GitHub check-runs are recorded in PR #56,
+not inherited from e517832.
+No alert dismissal, suppression, check override or coverage relaxation is authorized.
+
+No app/native/Rust rebuild or local Rust-suite rerun is needed for these script-only runtime
+changes: app, Rust, schema/config, dependency and workflow blobs remain unchanged from e517832.
+The existing native executable hash `6b11ef31e519777a49e33dddb07503fe7eb33abb89d7bce30c58e25b8530ae84`
+is reused and recorded in the new synthetic-only reports. This is new harness verification,
+not a new PO execution. The PO's reported visual 4/4, functional 3/3 and three accepted
+semantics are historical evidence; see the D-026 supplement. The Intel DMG intermittent
+root cause remains unverified. The prior PO sessions, profiles and evidence are preserved.
+
 # M3-C scoped UI polish — 2026-11-07 (NOT INTEGRATED)
 
 PO-reported real native observations and bounded changes: [UI polish evidence](docs/testing/m3c-ui-polish.md).

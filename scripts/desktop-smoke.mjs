@@ -1,5 +1,6 @@
 import { verifyWishlistUx } from './m3b-ux-checks.mjs';
 import { verifyWishlistAcquisition } from './m3c-acquisition-checks.mjs';
+import { isLocalTauriResource, isTrustedTauriPage } from './native-tauri-origin.mjs';
 /* global window, document */
 // End-to-end checks against the real Windows executable and Rust/SQLite backend.
 // OS file pickers use isolated paths; metadata lookup uses deterministic provider fixtures.
@@ -140,15 +141,16 @@ async function launch(language = 'en') {
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
   const context = browser.contexts()[0];
   for (let i = 0; i < 40; i++) {
-    page = context.pages().find((p) => p.url().startsWith('http://tauri.localhost'));
+    page = context.pages().find((p) => isTrustedTauriPage(p.url()));
     if (page) break;
     await sleep(250);
   }
   assert(page, 'The real Tauri application page was not found');
+  report.applicationOrigin = new URL(page.url()).origin;
   page.setDefaultTimeout(12000);
   page.on('pageerror', (e) => report.errors.push(e.message));
   context.on('request', (r) => {
-    if (/^https?:/.test(r.url()) && !/^http:\/\/(tauri|ipc|asset)\.localhost/.test(r.url()))
+    if (/^https?:/.test(r.url()) && !isLocalTauriResource(r.url()))
       report.network.push(r.url());
   });
   page.on('dialog', async (d) => {
