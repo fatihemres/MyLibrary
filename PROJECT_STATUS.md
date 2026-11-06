@@ -1,5 +1,16 @@
 # MyLibrary — Project Status
 
+## PR #56 Intel DMG diagnostics — 2026-11-06 (NOT FIXED / NOT INTEGRATED)
+
+The PO authorized scoped packaging investigation on the existing M3-C branch. Both Intel
+attempts at candidate `7da6c5ec96480d7028b8ec03cc5b63b7d570213f` fail inside
+`bundle_dmg.sh`; the last successful base build uses the same recorded runner image and
+tool versions. Child stderr is missing, so root cause remains unverified. The diagnostic
+candidate enables Intel-only verbose packaging with path redaction and failure propagation;
+all four platforms, app/dmg requirements and security checks remain required. Product code
+is unchanged. See [comparison/evidence](docs/testing/pr56-intel-dmg.md). No speculative
+runner/dependency/signing change, integration, cleanup or additional rerun loop is authorized.
+
 ## M3-C explicit Wishlist acquisition candidate — 2026-11-06 (NOT INTEGRATED)
 
 - Live `origin/v2` independently fetched and matched **`f54472b962505ded0c27f4e2d837aaf10e93d56a`**.

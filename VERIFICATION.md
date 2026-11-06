@@ -1,5 +1,12 @@
 # M3-C explicit Wishlist acquisition — 2026-11-06 candidate (NOT INTEGRATED)
 
+**Subsequent Intel packaging investigation:** both attempts of Foundation #42269531474
+failed Intel DMG packaging after successful tests/release compilation; the other platforms
+passed and CodeQL passed. Root cause is not yet verified: neither failed log contains child
+stderr or its exit status. The PO authorized a narrow Intel-only verbose diagnostic change;
+this does not establish a packaging repair or inherit the old exact-SHA review/CI. Detailed
+comparison, job links and limitations: [Intel DMG evidence](docs/testing/pr56-intel-dmg.md).
+
 Base **`f54472b962505ded0c27f4e2d837aaf10e93d56a`** was independently fetched and matched live
 GitHub `v2`. PR #55 is integrated at that exact single-parent head/merge SHA. Its final push
 [Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/42254408922) and
