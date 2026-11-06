@@ -1,3 +1,37 @@
+# M3-C scoped UI polish — 2026-11-07 (NOT INTEGRATED)
+
+PO-reported real native observations and bounded changes: [UI polish evidence](docs/testing/m3c-ui-polish.md).
+The existing M3-C branch/worktree and `v2` base `f54472b962505ded0c27f4e2d837aaf10e93d56a`
+are preserved; parent candidate `c8417662594dc26d8ab7ff5e7dbb25722574f46f` remains in history.
+This is UI verification, not PO acceptance of the changed candidate or history semantics.
+
+| Actual local command / evidence | Observed result |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` | PASS |
+| `npm run test` | **337 PASS / 16 files** |
+| `CARGO_NET_OFFLINE=true npm run desktop:build -- --no-bundle --ci` | PASS; includes `npm run build`; no installer |
+| `node scripts/test-m3c-visual.mjs` | **64 card + 32 confirmation states PASS**, native Windows/WebView2; 8 viewports, EN/TR, light/dark |
+| `npm run test:desktop` | **47/47 PASS**, including shared delete/discard/restore, new/existing acquisition, Cancel/no duplicate Copy, unlink, persistence and backup/restore |
+| Scoped formatting, source/diff inspection, `git diff --check` | PASS |
+
+Final local EXE SHA-256: `6b11ef31e519777a49e33dddb07503fe7eb33abb89d7bce30c58e25b8530ae84`.
+Reports: `.cache/m3c-visual-1794000826475/report.json` and
+`.cache/desktop-check-1794000872123/report.json`; final build log
+`.cache/m3c-ui-polish/native-release-build.log`. Both reports fingerprint that EXE;
+the visual report also records dirty status and scoped source hashes. Exact-commit
+recheck, separate read-only source review and new CI attribution are recorded in Draft PR #56.
+Failed intermediate fixture/grid/cover-ratio runs remain preserved and are not counted as PASS.
+The first frontend-test attempt was blocked by sandbox child-process `EPERM`; authorized
+scoped execution then passed. Existing large-chunk/linker advisories remain unchanged.
+No new antivirus detection was observed or bypassed.
+
+Viewport emulation is not physical Windows DPI acceptance. Initial native WebView2 DPR was 1;
+no claim is made for real 100/125/150% display scaling. No Rust/schema/dependency/workflow change
+was made; the full Rust suite was not independently repeated locally for this UI-only patch.
+Intel DMG root cause remains unverified; old or passing checks cannot establish it was repaired.
+Original PO session and new hash-checked launcher provenance are preserved in ignored acceptance
+manifests. The PO performs final interactive visual acceptance; no integration is authorized.
+
 # M3-C explicit Wishlist acquisition — 2026-11-06 candidate (NOT INTEGRATED)
 
 **Subsequent Intel packaging investigation:** both attempts of Foundation #42269531474

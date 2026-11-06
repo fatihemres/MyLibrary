@@ -908,17 +908,35 @@ tr:last-child td {
 .modal > header h2 {
   margin: 0;
   font-size: 19px;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.modal > header .icon {
+  flex-shrink: 0;
+  min-inline-size: 44px;
+  min-block-size: 44px;
 }
 .modal form {
   margin: 0;
 }
 .modal footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   border-top: 1px solid var(--line);
   padding: 16px 25px;
   background: var(--panel);
+}
+.modal footer button {
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  white-space: normal;
+}
+.confirmation-body p {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 .dialog-body {
   padding: 25px;

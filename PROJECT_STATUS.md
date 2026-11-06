@@ -1,5 +1,19 @@
 # MyLibrary — Project Status
 
+## PR #56 scoped UI polish — 2026-11-07 (NOT INTEGRATED; PO VISUAL ACCEPTANCE PENDING)
+
+The PO reported native Windows confirmation padding, long Wishlist card/action alignment
+and black-cover observations. Scoped shared dialog/Wishlist fixes and native visual
+regressions are documented in [UI polish evidence](docs/testing/m3c-ui-polish.md).
+The black cover is the existing 1x1 opaque-black synthetic fixture, not a demonstrated
+media/rendering defect. The PO's observation of history events does not accept the whole
+history model. Local frontend **337 PASS**, native visual **64 card / 32 dialog cases PASS**
+and the complete synthetic native suite **47/47 PASS** apply to the new EXE recorded in
+verification. Exact committed source review and newly triggered CI belong to Draft PR #56;
+old checks do not certify a new SHA. Intel DMG intermittency remains unverified even if
+a later run passes. Original PO data/profile, old artifacts and unrelated worktrees remain
+preserved. No integration, cleanup, release or history-model acceptance is implied.
+
 ## PR #56 Intel DMG diagnostics — 2026-11-06 (NOT FIXED / NOT INTEGRATED)
 
 The PO authorized scoped packaging investigation on the existing M3-C branch. Both Intel

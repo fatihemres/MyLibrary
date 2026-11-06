@@ -27,6 +27,14 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: 1.2rem;
 }
+.wish-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+.wish-gallery .wish-card {
+  margin-bottom: 0;
+}
 .wish-open {
   display: flex;
   flex-direction: column;
@@ -39,18 +47,85 @@
   color: inherit;
 }
 .wish-open .cover {
-  margin: auto;
+  margin: 0 auto;
   max-width: 100%;
 }
 .wish-open h3 {
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.45;
-  margin-block: 0.5rem;
+  margin: 0;
   overflow-wrap: anywhere;
 }
 .wish-open p {
+  margin: 0;
+  line-height: 1.5;
   overflow-wrap: anywhere;
+}
+.wish-copy {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.wish-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.wish-state {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--soft);
+  color: var(--accent);
+}
+.wish-author,
+.wish-isbn {
+  color: var(--muted);
+}
+.wish-isbn,
+.wish-price {
+  min-block-size: 1.5em;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.wish-gallery h3,
+.wish-gallery .wish-author {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wish-gallery h3 {
+  -webkit-line-clamp: 3;
+  min-block-size: 4.35em;
+}
+.wish-gallery .wish-author {
+  -webkit-line-clamp: 2;
+  min-block-size: 3em;
+}
+.wish-card-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 0;
+  gap: 12px;
+  margin-block-start: auto;
+  padding-block-start: 16px;
+}
+.wish-card-actions button {
+  min-block-size: 44px;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.wish-acquisition-actions {
+  gap: 8px;
+}
+.wish-gallery .wish-acquisition-actions {
+  flex-direction: column;
+  align-items: stretch;
 }
 .wish-list .wish-card {
   margin-bottom: 1rem;
@@ -69,7 +144,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin: 0;
 }
 .wish-amount {
   display: flex;
@@ -97,7 +172,8 @@
     flex-direction: column;
   }
   .wish-list .wish-open {
-    align-items: start;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -193,4 +269,10 @@
 .wish-acquire {
   max-inline-size: 100%;
   white-space: normal;
+}
+@media (max-width: 600px) {
+  .wish-list .wish-open > .cover {
+    flex: none;
+    align-self: flex-start;
+  }
 }
