@@ -30,6 +30,14 @@ pub struct Store {
 impl Store {
     pub fn open(root: PathBuf) -> Result<Self> {
         fs::create_dir_all(&root)?;
+        let lock = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(root.join(".library.lock"))?;
+        lock.try_lock().map_err(|_|"This library is already open in another MyLibrary window. Close that window before opening it again.")?;
+        crate::backup::ensure_no_pending_restore(&root)?;
         for d in [
             "covers",
             "attachments",
@@ -40,19 +48,13 @@ impl Store {
         ] {
             fs::create_dir_all(root.join(d))?;
         }
-        let lock = fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(root.join(".library.lock"))?;
-        lock.try_lock().map_err(|_|"This library is already open in another MyLibrary window. Close that window before opening it again.")?;
         let store = Self { root, _lock: lock };
         let mut c = store.conn()?;
         crate::migrations::migrate(&mut c, &store.root)?;
         Ok(store)
     }
     pub fn conn(&self) -> Result<Connection> {
+        crate::backup::ensure_no_pending_restore(&self.root)?;
         let c = Connection::open(self.root.join("library.sqlite3"))?;
         c.busy_timeout(Duration::from_secs(10))?;
         c.execute_batch(

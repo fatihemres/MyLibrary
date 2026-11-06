@@ -79,6 +79,19 @@ Status terms: **ACCEPTED — planning direction** = the PO requested or approved
 | **D-023** | **DevEx staged tool direction:** evaluate Graphify local `--code-only` navigation and Context7 on-demand documentation under controlled, separately permitted pilots. Ponytail is already PO-reported installed at user-Codex level, but must be **off in UI/UX design, critique, prototypes, UI implementation and review** unless a new PO exception is granted; deliberate opt-in may be evaluated for non-UI engineering. Do not allow automatic hooks or external skills to override MyLibrary authority. | **ACCEPTED — PO workflow/priority direction, 2026-11-05; NOT tool installation, global config change, permanent adoption, remote-data transfer or production integration authorization.** Require version/permission/egress checks, synthetic baselines, measured evidence and PO adopt/pilot/watch/reject decisions. | PO instruction to continue DevEx with the three named tools while excluding Ponytail from UI/UX; exact configuration and rollout stages are bounded technical proposals awaiting execution approval. | [Pilot #51](https://github.com/fatihemres/MyLibrary/issues/51), [DevEx #47](https://github.com/fatihemres/MyLibrary/issues/47), [ROADMAP](v2/ROADMAP.md) |
 | **D-024** | **V2 pre-demo Design Council:** compare independent design directions from UI UX Pro Max, Taste Skill and Impeccable, with Figma as an editable synthesis option, before the V2 demo/test and private-beta readiness phase. Never stack all automatic skill instructions blindly. Preserve distinct critique/prototype evidence and let the PO select the visual direction; Ponytail stays off for UI/UX. | **ACCEPTED — PO design process and planning placement, 2026-11-05; NOT UI implementation, tool install, Figma connection, automatic design adoption or milestone/release closure.** Core functionality and separate scoped PO implementation/Windows acceptance gates still apply. | PO explicitly endorsed the design council for the planned later V2 UI/UX review; council mechanics and exact comparison tests are implementation-neutral proposals. | [Council #52](https://github.com/fatihemres/MyLibrary/issues/52), [UX #27](https://github.com/fatihemres/MyLibrary/issues/27), [M6 #38](https://github.com/fatihemres/MyLibrary/issues/38), [ROADMAP](v2/ROADMAP.md) |
 
+## Scoped data-integrity execution authorization — 2026-11-06
+
+**D-025 — ACCEPTED, scoped execution only.** The PO explicitly authorized an independent
+feature branch/worktree, narrow existing backup/restore and startup hardening, synthetic
+fault-injection tests, relevant local checks, commit/push, independent engineering review
+(including Ponytail for this non-UI task) and a Draft PR targeting `v2` for
+[Issue #54](https://github.com/fatihemres/MyLibrary/issues/54). This records the direct
+PO task instruction and Issue acceptance criteria; it does not pre-approve the candidate's
+implementation or product acceptance. No merge, milestone closure, release/tag, protected
+ref change, unrelated configuration or destructive cleanup is authorized. Incomplete-source
+recovery/export UX and wider filesystem fallback policy remain outside this safety subset;
+no automatic record repair, orphan deletion or generation cleanup is permitted.
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |

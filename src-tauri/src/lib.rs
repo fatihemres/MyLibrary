@@ -73,6 +73,7 @@ async fn database(
                 .as_deref()
                 .unwrap_or("The library could not be opened. Restart the application.")
         })?;
+        crate::backup::ensure_no_pending_restore(&store.root)?;
         match action.as_str() {
             "wishlist_active_count" => store.wishlist_active_count(),
             "wishlist_list" => store.wishlist_list(db::s(&payload, "query")),

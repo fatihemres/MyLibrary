@@ -1,3 +1,99 @@
+# Issue #54 — backup/restore failure injection (2026-11-06 candidate, NOT INTEGRATED)
+
+Source base: `6528653a00a96d2e671ce1a75683499e33228f1e`; branch
+`codex/issue54-restore-recovery-hardening`; independent managed worktree
+`C:\Users\emre-\.codex\worktrees\issue54-restore-hardening\MyLibrary`.
+Exact committed candidate SHA and candidate CI/review links are recorded in the Draft PR
+linked from [Issue #54](https://github.com/fatihemres/MyLibrary/issues/54).
+Live base and fetched SHA matched; merged PR #53 and final-push Foundation/CodeQL success
+were checked separately. No candidate or integration success is inferred from base checks.
+
+## Environment and commands
+
+Agent-run native Windows 10 `10.0.19045`, Rust/Cargo `1.98.1`. Every Store root is an
+isolated `tempfile` synthetic library; no production DB or app-data root is accessed.
+No GUI was launched, so no default WebView profile was opened. Cargo reused the existing
+`C:\Dev\MyLibrary\.cache\cargo` dependency cache; outputs stay in the new ignored target/cache.
+`npm ci --offline --cache C:\Dev\MyLibrary\.cache\npm --no-audit --no-fund` installed the
+locked frontend dependencies without package/lock changes.
+
+| Actual command                                                                                                                                    | Result                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cargo test --manifest-path src-tauri/Cargo.toml --locked --offline --jobs 2 --lib backup::recovery_tests -- --nocapture` before behavioral fixes | **Expected RED:** 1 child harness PASS, 4 regressions FAIL; base behavior plus cfg(test) seams and unchanged publisher extraction                                                                          |
+| `cargo test --manifest-path src-tauri/Cargo.toml --locked --offline --jobs 2`                                                                     | **124 PASS, 1 existing performance benchmark ignored**: 46 unit (including 17 new test entries / child harness), 20 duplicate, 24 integrity, 6 migration, 5 restore-limit, 6 schema, 4 search, 13 Wishlist |
+| `cargo fmt --manifest-path src-tauri/Cargo.toml --check`                                                                                          | PASS                                                                                                                                                                                                       |
+| `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked --offline --jobs 2`                                                      | PASS                                                                                                                                                                                                       |
+| `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked --offline --jobs 2`                                                     | PASS with existing advisory warnings; no unrelated warning cleanup                                                                                                                                         |
+| `npm run typecheck`; `npm run lint`                                                                                                               | PASS                                                                                                                                                                                                       |
+| `npm run test`                                                                                                                                    | **336 PASS / 16 files**                                                                                                                                                                                    |
+| `npm run build`                                                                                                                                   | PASS; existing >500 kB Vite chunk advisory                                                                                                                                                                 |
+| Scoped Markdown formatting/link checks and `git diff --check`                                                                                     | PASS; existing unrelated Markdown formatting preserved                                                                                                                                                                 |
+
+MSVC emits its existing library/export linker informational warning. Existing Clippy
+warnings concern dropdown matching, metadata empty-slice/chunk/noop-waker idioms,
+migration range syntax, and mutable-reference/clone idioms in older tests. A new
+production-only closure warning from the first iteration was removed without suppression.
+Early test-only compile/fixture errors (shadowing, invalid FK deletion and locked lock-file
+fingerprinting) were corrected, not reported as passing runs. Windows can enumerate an
+already-deleted `LIBRARY.SQLITE3-SHM.tmp` transient after child exit; the test snapshot helper
+excludes only that transient plus operational lock contents. It still compares actual
+DB, WAL/SHM, journal, stage/previous, media and safety ZIP payloads byte for byte.
+The final full suite passed again after the harness fix; the nine-point process-interruption
+case then passed **three consecutive additional runs** (27 child-process interruptions).
+Raw logs and baseline seam/test snapshots remain ignored under `.cache/`; no runtime
+library, archive, log or build artifact is a source commit.
+
+## Regression matrix and evidence distinction
+
+| Scenario                                                 | Actual evidence                                                                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Before first live move                                   | Real synthetic child exits after synced pending creation; repeated startup blocks                                                                             |
+| After DB, covers, attachments move                       | Real child exits at each boundary; original implementation reopened **0 Copies** at all three; candidate blocks                                               |
+| During DB, covers, attachments installation              | Real child exits at each boundary; candidate blocks                                                                                                           |
+| During rollback                                          | Child exits before undo-installed DB and before undo-original covers; candidate blocks on repeated startup                                                    |
+| Primary and multiple secondary rollback errors           | Deterministic per-action errors; remaining independent media/DB operations continue; occupied destinations preserved; all errors retained                     |
+| Original DB cannot be evacuated/restored                 | Previous generation preserved; synthetic WAL/SHM companion bytes stay beside it; repeated startup changes no recovery payload                                 |
+| Journal sync / marker-removal failure                    | Injected errors preserve marker and artifacts; initial journal failure leaves live DB/media unchanged                                                         |
+| Interruption after completion marker removal             | New generation reopens with incoming IDs, relations and media; old safety/previous retained                                                                   |
+| Missing cover and attachment                             | Writer publishes nothing and changes no records; restore refuses before pending/live move                                                                     |
+| Unsupported safety DB                                    | Actual safety ZIP fails shared staged schema validation before live move                                                                                      |
+| Copy-less Edition / nonflat managed paths                | Missing orphan-Edition cover and repeated/nested path syntax rejected                                                                                         |
+| Partial copy, destination Write, sync and publish errors | Read/Write faults and explicit sync/publish seam; no final name or owned temporary left                                                                       |
+| Existing filename / concurrent publication               | Two real threads race for final name: exactly one succeeds; later attempt cannot change its bytes                                                             |
+| WAL busy / committed WAL                                 | Live read transaction prevents TRUNCATE checkpoint; restore stops before pending; safety restore retains latest committed WAL sentinel                        |
+| Windows sharing lock                                     | Real handle allows reads/writes but denies FILE_SHARE_DELETE; swap fails with original bytes and pending artifacts preserved                                  |
+| 20 GiB writer/restore boundary                           | Small reader with counter at exact boundary; overflow bounded to one detection byte in unpublished staging; existing hostile size/CRC/manifest tests retained |
+| Referenceless media symlink                              | `cfg(unix)` regression rejects external bytes; not executed by local Windows suite, requires Unix CI                                                          |
+
+Sentinels contain two independent Editions, three Physical Copies (including deliberate
+shared-Edition copies), an explicitly linked independent Wishlist item/history, managed
+cover and attachment bytes. Each crash scenario restores the mandatory safety ZIP into a
+separate synthetic Store and compares original IDs/relationships and media. Existing V1
+migration/ZIP, retailer/status-history/Wishlist and hostile schema/path/CRC tests also pass.
+Synthetic companion files test file preservation and sidecar pairing, **not** SQLite WAL
+replay validity; the real committed-WAL snapshot and busy-abort checks are separate evidence.
+
+## Review and remaining gates
+
+Two distinct agents performed read-only source review using the actual diff and callers:
+recovery/data preservation/Windows, and archive security/Ponytail simplicity. Neither
+claimed test execution or submitted a GitHub Approve. A verified direct cover/attachment
+write bypass in `lib.rs` was fixed by guarding the shared dispatch before its match.
+Final exact-SHA reports are attached to the Draft PR/Issue after commit.
+
+[Recovery contract](docs/architecture/restore-recovery.md): this is idempotent **detection
+and preservation**, not automatic recovery. Pending errors require inspection and separate
+safe recovery action; no generation/orphan cleanup or reference repair. Hard-link-unsupported
+filesystems fail closed; any alternative removable/network filesystem publishing policy
+requires separate design/PO review. No sudden power-loss, controller-cache, antivirus/network
+share durability or full desktop/native acceptance claim. No local `desktop:build` or
+`test:desktop` run; frontend build + Rust checks/tests are separate from four-platform CI
+package builds and real Windows PO desktop acceptance. The 100,000-member writer rule is
+source checked; no fixture creates 100,001 real files. Keep PR draft and Issue open; no merge,
+release/tag, milestone closure or worktree cleanup is authorized.
+
+---
+
 # DevEx PR #49 public-safe research library — integration and final CI (2026-11-05)
 
 **Scope and live refs:** [PR #49](https://github.com/fatihemres/MyLibrary/pull/49), PO-authorized, added **nine documents** under [`docs/development/devex/`](docs/development/devex/README.md), comprising six Markdown and three JSON files. Previous `v2` `83bdc097256171e1f1b629685f28ad8312249374` → integrated exact `4c2e599cf8e076a048ee9e28e9a45f881f4cb1b1`. GitHub independently confirms PR #49 CLOSED/MERGED, `merge_commit_sha` equal to canonical `v2` HEAD, and linear fast-forward ancestry (3 commits ahead, 0 behind), with no merge commit/squash/rebase. Separately, the recorded PO-authorized integration tool operation used `force=false` and matching `expected_sha`; those invocation arguments are supported by the operation record, not independently derivable from Git commit history.

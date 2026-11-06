@@ -551,7 +551,20 @@ fn malformed_manifest_and_missing_assets_leave_current_library_untouched() {
     b["cover"] = json!("covers/missing.png");
     other.save(&b).unwrap();
     let archive = dir.path().join("missing-asset.zip");
-    other.backup(&archive).unwrap();
+    // The writer now rejects incomplete sources. Build a valid ZIP, then remove
+    // its cover to continue exercising the untrusted restore boundary.
+    std::fs::write(other.root.join("covers/missing.png"), b"synthetic cover").unwrap();
+    let complete = dir.path().join("complete-asset.zip");
+    other.backup(&complete).unwrap();
+    let mut input = zip::ZipArchive::new(std::fs::File::open(complete).unwrap()).unwrap();
+    let mut output = zip::ZipWriter::new(std::fs::File::create(&archive).unwrap());
+    for index in 0..input.len() {
+        let file = input.by_index(index).unwrap();
+        if file.name() != "covers/missing.png" {
+            output.raw_copy_file(file).unwrap();
+        }
+    }
+    output.finish().unwrap();
     assert!(s.restore(&archive).is_err());
     assert_eq!(s.snapshot("", false).unwrap(), before);
 }
