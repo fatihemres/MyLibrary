@@ -52,6 +52,28 @@ fn seed(root: &Path, label: &str) -> Store {
     if r["saved"] == false {
         s.wishlist_save(&d, r["review_token"].as_str()).unwrap();
     }
+    for cycle in 0..2 {
+        let d: crate::wishlist::Draft =
+            serde_json::from_value(s.wishlist_list("").unwrap()["items"][0]["draft"].clone())
+                .unwrap();
+        let request: crate::wishlist_acquisition::Request = serde_json::from_value(json!({"item":d.id,"updated_at":d.updated_at,"edition_id":d.edition_id,"title":d.title,"author":d.author,"isbn10":"","isbn13":"","physical":{"barcode":"","inventory_code":"","location_id":"","source":"","acquisition_date":"","condition":"Good"}})).unwrap();
+        let review = s.wishlist_acquisition(&request, None).unwrap();
+        let acquired = s
+            .wishlist_acquisition(&request, review["review_token"].as_str())
+            .unwrap();
+        if cycle == 0 {
+            let updated = s.wishlist_list("").unwrap()["items"][0]["draft"]["updated_at"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            s.wishlist_reopen_acquisition(
+                &request.item,
+                &updated,
+                acquired["acquisition"].as_str().unwrap(),
+            )
+            .unwrap();
+        }
+    }
     s
 }
 
@@ -59,6 +81,11 @@ fn records(s: &Store) -> Value {
     let mut v = s.snapshot("", false).unwrap();
     v.as_object_mut().unwrap().remove("dataDir");
     v["wishlist"] = s.wishlist_list("").unwrap();
+    v["acquisition_rows"] = json!(crate::wishlist_acquisition::history(
+        &s.conn().unwrap(),
+        v["wishlist"]["items"][0]["draft"]["id"].as_str().unwrap()
+    )
+    .unwrap());
     v
 }
 

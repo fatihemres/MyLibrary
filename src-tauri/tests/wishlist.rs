@@ -298,7 +298,7 @@ fn v3_upgrade_preserves_copy_index_wal_and_snapshot() {
             |r| r.get::<_, String>(0)
         )
         .unwrap(),
-        "1,2,3,4"
+        "1,2,3,4,5"
     );
     let snapshots: Vec<_> = std::fs::read_dir(dir.path().join("backups"))
         .unwrap()
@@ -333,7 +333,7 @@ fn v3_upgrade_preserves_copy_index_wal_and_snapshot() {
         c.query_row("SELECT count(*) FROM schema_migrations", [], |r| r
             .get::<_, i64>(0))
             .unwrap(),
-        4
+        migrations::CURRENT_SCHEMA
     );
 }
 #[test]

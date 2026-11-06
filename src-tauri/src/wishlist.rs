@@ -70,7 +70,7 @@ fn text(s: &str, max: usize) -> Result<()> {
     }
     Ok(())
 }
-fn uuid(s: &str) -> Result<()> {
+pub(crate) fn uuid(s: &str) -> Result<()> {
     uuid::Uuid::parse_str(s)
         .map(|_| ())
         .map_err(|_| "wishlist.invalidId".into())
@@ -164,7 +164,7 @@ fn canonical(d: &Draft) -> String {
     .map(|v| v.isbn13)
     .unwrap_or_default()
 }
-fn rows(c: &Connection) -> Result<Vec<Draft>> {
+pub(crate) fn rows(c: &Connection) -> Result<Vec<Draft>> {
     let mut st=c.prepare("SELECT id,edition_id,title,author,isbn10,isbn13,preference,edition_description,priority,status,target_minor,currency,notes,archived_at,updated_at FROM wishlist_items ORDER BY created_at DESC,id")?;
     let mut items = st
         .query_map([], |r| {
@@ -205,7 +205,7 @@ fn rows(c: &Connection) -> Result<Vec<Draft>> {
     }
     Ok(items)
 }
-fn edition_check(c: &Connection, d: &Draft) -> Result<()> {
+pub(crate) fn edition_check(c: &Connection, d: &Draft) -> Result<()> {
     if let Some(e) = &d.edition_id {
         let (ten, thirteen): (String, String) = c
             .query_row("SELECT isbn10,isbn13 FROM editions WHERE id=?", [e], |r| {
@@ -268,6 +268,10 @@ fn duplicate_report(c: &Connection, d: &Draft) -> Result<Value> {
     Ok(json!(found))
 }
 pub fn validate_database(c: &Connection) -> Result<()> {
+    let version: i64 = c.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+    if version >= 5 {
+        crate::wishlist_acquisition::validate_database(c)?;
+    }
     for d in rows(c)? {
         validate(&d)?;
         let latest: Option<String> = c.query_row("SELECT status FROM wishlist_status_history WHERE wishlist_id=? ORDER BY rowid DESC LIMIT 1", [&d.id], |r| r.get(0)).optional()?;
@@ -327,7 +331,7 @@ pub fn validate_database(c: &Connection) -> Result<()> {
     Ok(())
 }
 pub const ACTIVE_COUNT_SQL: &str =
-    "SELECT count(*) FROM wishlist_items WHERE archived_at IS NULL AND status != 'Cancelled'";
+    "SELECT count(*) FROM wishlist_items i WHERE archived_at IS NULL AND status != 'Cancelled' AND NOT EXISTS(SELECT 1 FROM wishlist_acquisitions a WHERE a.wishlist_id=i.id AND a.reopened_at IS NULL)";
 
 impl Store {
     pub fn wishlist_active_count(&self) -> Result<Value> {
@@ -344,7 +348,10 @@ impl Store {
         let mut totals: BTreeMap<String, i128> = BTreeMap::new();
         let mut missing = 0;
         for d in &all {
-            if !d.archived && d.status != "Cancelled" {
+            if !d.archived
+                && d.status != "Cancelled"
+                && crate::wishlist_acquisition::active(&c, &d.id)?.is_none()
+            {
                 if let Some(amount) = minor(&d.target_minor, &d.currency)? {
                     *totals.entry(d.currency.clone()).or_default() += i128::from(amount);
                 } else {
@@ -373,12 +380,26 @@ impl Store {
                 String::new()
             };
             let mut history=c.prepare("SELECT status,created_at FROM wishlist_status_history WHERE wishlist_id=? ORDER BY rowid")?;
-            let history = history
+            let mut history = history
                 .query_map([&d.id], |r| {
                     Ok(json!({"status":r.get::<_,String>(0)?,"created_at":r.get::<_,String>(1)?}))
                 })?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
-            items.push(json!({"draft":d,"cover":cover,"history":history}));
+            let acquisitions = crate::wishlist_acquisition::history(&c, &d.id)?;
+            for a in &acquisitions {
+                history.push(json!({"status":"Purchased","created_at":a["acquired_at"],"copy_id":a["copy_id"]}));
+                if !a["reopened_at"].is_null() {
+                    history.push(json!({"status":"Reopened","created_at":a["reopened_at"],"copy_id":a["copy_id"]}));
+                }
+            }
+            history.sort_by_key(|h| {
+                h["created_at"]
+                    .as_str()
+                    .and_then(|t| chrono::DateTime::parse_from_rfc3339(t).ok())
+            });
+            let acquisition = acquisitions.iter().find(|a| a["reopened_at"].is_null());
+            items
+                .push(json!({"draft":d,"cover":cover,"history":history,"acquisition":acquisition}));
         }
         Ok(
             json!({"items":items,"budget":totals.into_iter().map(|(currency,minor)| json!({"currency":currency,"minor":minor.to_string()})).collect::<Vec<_>>(),"missing_prices":missing}),
@@ -404,6 +425,11 @@ impl Store {
         };
         if previous.as_ref().is_some_and(|p| p.1 != draft.updated_at) {
             return Err("wishlist.changed".into());
+        }
+        if previous.as_ref().is_some_and(|p| p.0 != draft.status)
+            && crate::wishlist_acquisition::active(&tx, &draft.id)?.is_some()
+        {
+            return Err("acquisition.reopenFirst".into());
         }
         let report = duplicate_report(&tx, draft)?;
         // Bind acknowledgement to the exact draft and fresh database warnings.

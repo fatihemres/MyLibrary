@@ -1,5 +1,10 @@
 # M3-B Real Wishlist — integrated V2 architecture
 
+**M3-C candidate, 6 November 2026:** the PO separately authorized explicit acquisition for
+Issue #32. The additive schema-5 candidate adds reviewed creation of one owned Copy, a persisted
+Purchased/Fulfilled overlay and non-destructive unlink/reopen. This does not alter the historical
+M3-B scope below or assert integration/acceptance. See [candidate architecture](wishlist-acquisition.md).
+
 **28 October 2026 status:** Schema-4 Wishlist code integrated through [PR #42](https://github.com/fatihemres/MyLibrary/pull/42), exact `889ae3eb6299a1aa9dd85d9fd4211dc11e5fdefa`; original stacked #22 closed unmerged. This document originated as a local candidate specification and later architectural description; its historical test/acceptance limitations remain attributed. [Issue #26](https://github.com/fatihemres/MyLibrary/issues/26) stays OPEN pending separate PO administrative acceptance; two cosmetic points tracked at #27. No overall M3 milestone closure or V2 release.
 
 ## Identity and persistence

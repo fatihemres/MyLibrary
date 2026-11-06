@@ -367,7 +367,16 @@ export default function App() {
                   onReload={reload}
                 />
               ) : route === 'Wishlist' ? (
-                <Wishlist />
+                <Wishlist
+                  onOpenCopy={(id) => {
+                    void snapshot('', true)
+                      .then((trash) => {
+                        setRoute(trash.books.some((b) => b.id === id) ? 'Trash' : 'Library');
+                        setDetail(id);
+                      })
+                      .catch((e) => setError(String(e)));
+                  }}
+                />
               ) : route === 'Dashboard' ? (
                 <Dashboard
                   data={data}

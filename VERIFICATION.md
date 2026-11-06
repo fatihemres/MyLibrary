@@ -1,3 +1,124 @@
+# M3-C explicit Wishlist acquisition — 2026-11-06 candidate (NOT INTEGRATED)
+
+Base **`f54472b962505ded0c27f4e2d837aaf10e93d56a`** was independently fetched and matched live
+GitHub `v2`. PR #55 is integrated at that exact single-parent head/merge SHA. Its final push
+[Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/42254408922) and
+[CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/42254408881) passed; these are
+base evidence, not M3-C candidate checks. The Issue #54 candidate-only section below is historical.
+
+Candidate branch `codex/m3c-explicit-wishlist-acquisition`, managed worktree
+`C:\Users\emre-\.codex\worktrees\m3c-explicit-wishlist-acquisition\MyLibrary`.
+The PO explicitly authorized exactly one new worktree after the assumed Desktop-created one
+was found absent. Original local `v2`, Issue #54, edec and all unrelated worktrees were preserved.
+The fresh-checkout research JSON EOL anomaly has unchanged SHA-256
+`444484353a4b628e1f1b42c1368a11e6b0538af6457aaf3a817faad18d126e0a`; excluded from staging.
+Exact committed SHA, Draft PR and candidate CI evidence are recorded in the PR/Issue #32.
+
+## Local environment and actual commands
+
+Agent-run Windows `10.0.19045.0`, Node `v24.21.0`, Cargo/Rust `1.98.1`.
+Existing locked `node_modules` and Cargo cache were copied into this worktree without changing
+dependency manifests/locks or installing tools/plugins. Cargo used this worktree's `.cache/cargo`
+with `CARGO_NET_OFFLINE=true`; all Rust Store roots are isolated synthetic temp directories.
+The final Rust command environment also explicitly sets synthetic `MYLIBRARY_DATA_DIR` and a
+separate `WEBVIEW2_USER_DATA_FOLDER`; direct Store tests do not open the default profile.
+
+| Actual command | Observed result |
+| --- | --- |
+| `npm run typecheck` | PASS |
+| `npm run lint` | PASS |
+| `npm run test` | **337 PASS / 16 files** |
+| `npm run build` | PASS; existing >500 kB chunk advisory |
+| `cargo fmt --manifest-path src-tauri/Cargo.toml --check` | PASS |
+| `cargo check --manifest-path src-tauri/Cargo.toml --all-targets --locked --offline --jobs 2` | PASS |
+| `cargo test --manifest-path src-tauri/Cargo.toml --locked --offline --jobs 2 --test wishlist_acquisition` | **15 PASS** |
+| `npm run test:rust` with offline environment | **140 PASS / 1 existing benchmark ignored** |
+| `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked --offline --jobs 2` | PASS with existing advisory warnings in unchanged code/tests |
+| `node scripts/test-m3b-components.mjs` | **8/8 PASS**, synthetic Edge browser; not native Windows acceptance |
+| New acquisition Markdown and scoped source formatting, 89 local Markdown links, `git diff --check` | PASS |
+
+Final raw logs remain ignored under `.cache/m3c-*`; browser evidence is
+`.cache/m3b-browser-1793987295750/report.json`. The browser harness independently attributed and
+blocked three environmental Kaspersky script injections using its script-free control page;
+no application external request or runtime error passed the harness. This is not an executable
+detection/quarantine report or permission to alter antivirus. No antivirus exceptions/settings
+were changed. The first Rust compile exposed a query-lifetime error and an intermediate run
+failed the timeline ordering assertion while sources were evolving. The corrected, stable
+locked check and focused/full test runs above passed. MSVC retains its library/export linker
+informational warning. No failed/unexecuted command is counted as PASS.
+The first native attempt retained **27 passed checks then FAIL** at the harness's obsolete
+`platform.schema == 4` expectation; the application correctly reported schema 5. That assertion
+was updated to 5; `.cache/desktop-check-1793987913603/report.json` retains the failed run, with no
+frontend errors or unexpected network requests. It is not a full-suite PASS.
+The next native run passed all **46 existing checks** and then failed the new M3-C initial-focus
+assertion. The acquisition dialog now explicitly focuses the Edition selector after the house
+Modal opens; the failed evidence remains in `.cache/desktop-check-1793988079858/report.json`.
+The existing per-process desktop focus selector also supports `acquisition` for targeted diagnosis;
+it does not alter app settings, profile isolation or the default complete suite.
+
+## Integrity matrix and independent review
+
+The 15 acquisition tests cover read-only previews/Cancel boundaries, reviewed new Edition/Copy,
+explicit existing Edition with unchanged metadata/preexisting Copies, repeated and real concurrent
+requests, stale/tampered/missing consent, missing/conflicting/edited/deleted Editions, invalid Copy
+fields, acquisition-write failure rollback of all new records, Purchased history/count/search/budget,
+safe unlink/reacquisition without Copy deletion, active/reopened ZIP round-trips, reopen persistence,
+populated V1–V4 migrations preserving original rows, migration rollback and pre-upgrade snapshot,
+malformed lifecycle rejection, clock rollback and mixed-offset timeline ordering. A deterministic
+unchanged-Wishing/equal-timestamp replay isolates acquisition-history consent binding. SQLite
+integrity and FK checks run against the synthetic results.
+
+The existing Issue #54 crash/safety-rescue fixture now includes both a reopened and active
+acquisition. Its oracle compares exact lifecycle IDs/relationships as well as Wishlist,
+Edition/Copy records and media. Nine process-interruption points, repeated fail-closed startup,
+multi-error rollback, real Windows sharing locks and committed-WAL safety rescue remain green.
+Unix symlink coverage requires Unix CI; local Windows does not execute it.
+
+A separate GPT-6.1 Sol / Extra High context (`/root/m3c_integrity_review`) performed read-only
+source/caller review without tests or writes. Confirmed clock-rollback and archived-Copy navigation
+defects were corrected; scoped action/footer wrapping, parsed timeline ordering and two meaningful
+safety-test gaps were also addressed and source-reassessed. Final exact-commit review attribution
+belongs to the Draft PR. This is independent source review, not a submitted GitHub Approve,
+native PO acceptance, full accessibility certification or comprehensive security certification.
+
+## Native and acceptance gates
+
+Native build and isolated desktop results are recorded below when observed. Real PO Windows
+acceptance, physical OS DPI, native macOS/Linux GUI acceptance and candidate CI are separate gates.
+The additive fulfillment overlay, narrow new-Edition field subset and unlink-to-Wishing behavior
+remain **PROPOSED candidate semantics** for PO review; see
+[acquisition architecture](docs/architecture/wishlist-acquisition.md). No integration, issue closure,
+milestone closure, release, signing/updater change, cleanup or real-library testing is authorized.
+
+- `npm run desktop:build -- --no-bundle`, offline environment: PASS, optimized Windows executable;
+  no installer, signing, updater activation or default-profile launch. Final source includes the
+  explicit opening-focus correction.
+- Final unfiltered `npm run test:desktop`: **47/47 PASS**, zero frontend errors/unexpected network
+  requests; exactly two deliberate native provider probes blocked by the child-only rejection
+  proxy. Fresh synthetic data and separate WebView2 profile under
+  `.cache/desktop-check-1793988717310/`; report `report.json`, including executable SHA-256
+  `ce4e4c0515a4c5d92f2db6f063a8efeda8477e850dac59073c9d8cca5a65b996`.
+  The focused run below used the same executable hash. Native EN/TR 390-pixel confirmation
+  captures were also visually inspected for readable content and contained actions.
+- `MYLIBRARY_DESKTOP_FOCUS=acquisition` (process-only) + `npm run test:desktop`: **1 focused M3-C
+  check PASS**, including EN/TR new/existing Edition choices, no-write Cancel boundaries, duplicate
+  click protection, long-content 390/1280 logical viewport checks, keyboard and focus restoration,
+  safe unlink/reacquisition, navigation to archived Copies and restart preservation of both active
+  and archived Copies plus Wishlist lifecycle. Report:
+  `.cache/desktop-check-1793988617776/report.json`. This is real Windows/WebView2/Rust/SQLite
+  automation with emulated logical viewport sizes; no physical OS DPI or PO observation claim.
+- Two intermediate focused runs stopped on harness assumptions: ambiguous header/footer Close
+  locator (`.cache/desktop-check-1793988506330/report.json`) and English restart heading despite
+  correctly persisted Turkish (`.cache/desktop-check-1793988548337/report.json`). Footer-scoped
+  selection and the persisted-language restart fixed the harness; all failed evidence is retained.
+- Ambient Ponytail instructions were already injected in this session and could not be removed
+  in-session. No automatic Git hooks were present; no hooks, global settings or third-party UI/UX
+  skills were installed or activated. Existing house UI patterns and the explicit task requirements
+  governed the implementation; this is a reported tooling limitation, not proof of fresh-session
+  Ponytail isolation.
+
+---
+
 # Issue #54 — backup/restore failure injection (2026-11-06 candidate, NOT INTEGRATED)
 
 Source base: `6528653a00a96d2e671ce1a75683499e33228f1e`; branch

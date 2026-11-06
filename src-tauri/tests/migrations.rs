@@ -128,6 +128,10 @@ fn v2_archive_rebuilds_search_in_staging() {
 fn v3_archive_keeps_copy_search_and_upgrades_only_staging() {
     restore_archive(false, 3);
 }
+#[test]
+fn v4_archive_keeps_original_wishlist_schema_and_upgrades_only_staging() {
+    restore_archive(false, 4);
+}
 fn restore_archive(analyzed: bool, version: i64) {
     let dir = temp();
     let root = dir.path().join("v1");
@@ -135,13 +139,19 @@ fn restore_archive(analyzed: bool, version: i64) {
     if version >= 2 {
         Connection::open(root.join("library.sqlite3")).unwrap().execute_batch("CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); INSERT INTO schema_migrations VALUES(1,'original'),(2,'original'); PRAGMA user_version=2;").unwrap();
     }
-    if version == 3 {
+    if version >= 3 {
         let c = Connection::open(root.join("library.sqlite3")).unwrap();
         mylibrary_lib::db::reindex(&c).unwrap();
         c.execute_batch(
             "INSERT INTO schema_migrations VALUES(3,'original'); PRAGMA user_version=3;",
         )
         .unwrap();
+    }
+    if version >= 4 {
+        Connection::open(root.join("library.sqlite3"))
+            .unwrap()
+            .execute_batch(include_str!("../src/wishlist-schema.sql"))
+            .unwrap();
     }
     if analyzed {
         Connection::open(root.join("library.sqlite3"))
@@ -309,7 +319,7 @@ fn synthetic_schema2_migration_benchmark() {
                 .unwrap(),
             CURRENT_SCHEMA
         );
-        assert_eq!(after.query_row("SELECT group_concat(version) FROM (SELECT version FROM schema_migrations ORDER BY version)", [], |r| r.get::<_, String>(0)).unwrap(), "1,2,3,4");
+        assert_eq!(after.query_row("SELECT group_concat(version) FROM (SELECT version FROM schema_migrations ORDER BY version)", [], |r| r.get::<_, String>(0)).unwrap(), "1,2,3,4,5");
         assert_eq!(
             after
                 .query_row("PRAGMA integrity_check", [], |r| r.get::<_, String>(0))

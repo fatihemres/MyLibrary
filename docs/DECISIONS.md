@@ -92,6 +92,19 @@ ref change, unrelated configuration or destructive cleanup is authorized. Incomp
 recovery/export UX and wider filesystem fallback policy remain outside this safety subset;
 no automatic record repair, orphan deletion or generation cleanup is permitted.
 
+**D-026 — ACCEPTED, scoped M3-C execution authorization (2026-11-06).** The PO's direct
+Issue #32 task instruction authorizes one isolated feature branch/worktree from verified
+`f54472b962505ded0c27f4e2d837aaf10e93d56a`, explicit Wishlist acquisition implementation,
+synthetic local/native verification, scoped documentation, independent read-only source review,
+commit/push and a Draft PR targeting `v2`. The follow-up explicitly authorized creating exactly
+one worktree after the presumed Desktop-created worktree was found absent. The canonical local
+checkout and all unrelated worktrees remain protected. No integration, product acceptance,
+issue/milestone closure, release/signing/updater, force/rebase or cleanup permission follows.
+The additive fulfillment overlay, new-Edition field subset and safe unlink-to-Wishing semantics
+are **PROPOSED candidate implementation semantics**, described in
+[M3-C architecture](architecture/wishlist-acquisition.md), awaiting PO review rather than recorded
+as accepted product decisions.
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |

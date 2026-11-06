@@ -4,6 +4,7 @@ import {
   amountText,
   emptyWish,
   exportWishlist,
+  wishlistStatus,
   type WishlistItem,
   currencies,
 } from './wishlist';
@@ -71,4 +72,18 @@ describe('Wishlist independent contracts', () => {
   });
   it('keeps EN/TR keys symmetric', () =>
     expect(Object.keys(en).sort()).toEqual(Object.keys(tr).sort()));
+  it('exports fulfillment without inventory identities or private acquisition history', () => {
+    const item: WishlistItem = {
+      draft: { ...emptyWish(), title: 'Fulfilled' },
+      cover: '',
+      history: [],
+      acquisition: { id: 'private-event', copy_id: 'private-copy', acquired_at: 'time' },
+    };
+    expect(wishlistStatus(item)).toBe('Purchased');
+    const exported = exportWishlist([item]);
+    expect(JSON.parse(exported).items[0].status).toBe('Purchased');
+    expect(exported).not.toContain('private-');
+    item.acquisition = null;
+    expect(wishlistStatus(item)).toBe('Wishing');
+  });
 });

@@ -9,6 +9,7 @@ pub mod migrations;
 mod platform;
 mod search;
 pub mod wishlist;
+pub mod wishlist_acquisition;
 use db::{Result, Store};
 use serde_json::{json, Value};
 use std::{path::PathBuf, sync::Mutex};
@@ -75,6 +76,24 @@ async fn database(
         })?;
         crate::backup::ensure_no_pending_restore(&store.root)?;
         match action.as_str() {
+            "wishlist_acquisition_review" | "wishlist_acquire" => {
+                let request = serde_json::from_value::<wishlist_acquisition::Request>(
+                    payload["request"].clone(),
+                )?;
+                store.wishlist_acquisition(
+                    &request,
+                    if action == "wishlist_acquire" {
+                        Some(db::s(&payload, "review_token"))
+                    } else {
+                        None
+                    },
+                )
+            }
+            "wishlist_reopen_acquisition" => store.wishlist_reopen_acquisition(
+                db::s(&payload, "item"),
+                db::s(&payload, "updated_at"),
+                db::s(&payload, "acquisition"),
+            ),
             "wishlist_active_count" => store.wishlist_active_count(),
             "wishlist_list" => store.wishlist_list(db::s(&payload, "query")),
             "wishlist_editions" => store.wishlist_editions(db::s(&payload, "query")),

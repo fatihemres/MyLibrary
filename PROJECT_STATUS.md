@@ -1,5 +1,32 @@
 # MyLibrary — Project Status
 
+## M3-C explicit Wishlist acquisition candidate — 2026-11-06 (NOT INTEGRATED)
+
+- Live `origin/v2` independently fetched and matched **`f54472b962505ded0c27f4e2d837aaf10e93d56a`**.
+  [PR #55](https://github.com/fatihemres/MyLibrary/pull/55) is CLOSED/MERGED with head and merge SHA equal
+  to that exact single-parent commit. Final push [Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/42254408922)
+  and [CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/42254408881) SUCCESS.
+  The older Issue #54 candidate-only statements below are historical. Old Draft #48 remains untouched.
+- The PO explicitly authorized this bounded [Issue #32](https://github.com/fatihemres/MyLibrary/issues/32)
+  candidate, synthetic verification, commit/push and a Draft PR targeting `v2`. After confirming no
+  task worktree existed, the PO authorized exactly one; managed worktree
+  `C:\Users\emre-\.codex\worktrees\m3c-explicit-wishlist-acquisition\MyLibrary`, branch
+  `codex/m3c-explicit-wishlist-acquisition`. The historical `C:\Dev\MyLibrary` checkout and other
+  worktrees are preserved. The known fresh-checkout research-JSON EOL anomaly remains untouched,
+  byte-identical to the base and excluded from staging.
+- Candidate: explicit read-only acquisition review, deliberate existing/new Edition choice,
+  one transactional owned Copy and persisted fulfillment link, preserved Wishlist/retailers/history,
+  active budget/count exclusion and safe unlink/reopen without inventory deletion. Schema 5 is
+  additive; no historical schema rewrite. Candidate semantics and exclusions are documented in
+  [acquisition architecture](docs/architecture/wishlist-acquisition.md), not asserted as accepted product decisions.
+- Actual checks, remaining native/PO gates and independent source-review attribution are in
+  [VERIFICATION](VERIFICATION.md) and the Draft PR. No integration, issue/milestone closure,
+  release, signing/updater change, real personal-library access or cleanup is authorized.
+- Local candidate evidence: frontend **337 PASS**, Rust **140 PASS / 1 existing benchmark ignored**,
+  typecheck/lint/web and native build/format/locked offline check PASS; final isolated Windows
+  desktop **47/47 PASS**, including EN/TR acquisition, Cancel, focus, narrow windows, safe unlink,
+  archived-Copy navigation and restart. This is agent-run native automation, not PO acceptance.
+
 ## Issue #54 backup/restore safety candidate — 2026-11-06 (NOT INTEGRATED)
 
 - Live GitHub `v2` and a fresh safe fetch both verified base **`6528653a00a96d2e671ce1a75683499e33228f1e`**; PR #53 is MERGED at that SHA. Base final-push [Foundation #42106732949](https://github.com/fatihemres/MyLibrary/actions/runs/42106732949) and [CodeQL #42106732955](https://github.com/fatihemres/MyLibrary/actions/runs/42106732955) SUCCESS. These are base checks, not candidate CI. Old Draft PR #48 remains untouched.

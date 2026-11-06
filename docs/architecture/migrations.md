@@ -1,5 +1,15 @@
 # Forward-only migrations and V1 compatibility
 
+## M3-C candidate: schema 5 (not integrated)
+
+The separately PO-authorized Issue #32 candidate adds only `wishlist_acquisitions` and its
+unique active-wish index, with ledger entry 5. Existing schema-1 and schema-4 SQL remain frozen;
+no original table is rebuilt or rewritten. Populated V1–V4 upgrades retain the existing
+pre-migration committed-WAL snapshot and single transaction. Trusted restore reference schemas
+support V1–V5; older archives upgrade only in staging. New lifecycle data is validated before
+live replacement. The Issue #54 preservation/recovery contract is unchanged. See
+[candidate behavior and safety](wishlist-acquisition.md) and [verification](../../VERIFICATION.md).
+
 **Integrated V2 status — 28 October 2026:** Canonical `v2` includes schema 4 and integrated M3-A search / M3-B independent Wishlist migrations and restore protection ([PR #41](https://github.com/fatihemres/MyLibrary/pull/41), [PR #42](https://github.com/fatihemres/MyLibrary/pull/42)). Historical candidate headings/verification below describe earlier development checkpoints. V2 is still unreleased; never run migrations against a real personal library for development or treat CI packages as native user acceptance.
 
 ## Historical M1 foundation (schema 2)

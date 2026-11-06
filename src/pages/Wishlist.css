@@ -178,3 +178,19 @@
     outline: none;
   }
 }
+.wishlist-acquisition footer {
+  flex-wrap: wrap;
+}
+.wishlist-acquisition fieldset {
+  min-inline-size: 0;
+}
+.wishlist-acquisition,
+.wish-acquisition-actions {
+  overflow-wrap: anywhere;
+}
+.wishlist-acquisition button,
+.wish-acquisition-actions button,
+.wish-acquire {
+  max-inline-size: 100%;
+  white-space: normal;
+}
