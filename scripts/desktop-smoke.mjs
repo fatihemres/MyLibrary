@@ -1,4 +1,6 @@
 import { verifyWishlistUx } from './m3b-ux-checks.mjs';
+import { verifyWishlistAcquisition } from './m3c-acquisition-checks.mjs';
+import { isLocalTauriResource, isTrustedTauriPage } from './native-tauri-origin.mjs';
 /* global window, document */
 // End-to-end checks against the real Windows executable and Rust/SQLite backend.
 // OS file pickers use isolated paths; metadata lookup uses deterministic provider fixtures.
@@ -49,6 +51,7 @@ const acceptDialogs = true;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function check(name, fn) {
   if (process.env.MYLIBRARY_DESKTOP_FOCUS === 'camera' && !name.startsWith('M2-D')) return;
+  if (process.env.MYLIBRARY_DESKTOP_FOCUS === 'acquisition' && !name.startsWith('M3-C')) return;
   const blockedBefore = report.blockedNativeRequests;
   await fn();
   if (
@@ -138,15 +141,16 @@ async function launch(language = 'en') {
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
   const context = browser.contexts()[0];
   for (let i = 0; i < 40; i++) {
-    page = context.pages().find((p) => p.url().startsWith('http://tauri.localhost'));
+    page = context.pages().find((p) => isTrustedTauriPage(p.url()));
     if (page) break;
     await sleep(250);
   }
   assert(page, 'The real Tauri application page was not found');
+  report.applicationOrigin = new URL(page.url()).origin;
   page.setDefaultTimeout(12000);
   page.on('pageerror', (e) => report.errors.push(e.message));
   context.on('request', (r) => {
-    if (/^https?:/.test(r.url()) && !/^http:\/\/(tauri|ipc|asset)\.localhost/.test(r.url()))
+    if (/^https?:/.test(r.url()) && !isLocalTauriResource(r.url()))
       report.network.push(r.url());
   });
   page.on('dialog', async (d) => {
@@ -1469,7 +1473,7 @@ try {
       const platform = await page.evaluate(() =>
         window.__TAURI_INTERNALS__.invoke('database', { action: 'platform', payload: {} }),
       );
-      assert.equal(platform.schema, 4);
+      assert.equal(platform.schema, 5);
       assert.equal(resolve(platform.paths.data), resolve(dataDir));
       await nav('Settings');
       await button('Open data folder').click();
@@ -3128,6 +3132,28 @@ try {
     'M3-B corrective UX: viewport matrix, localized import and active Dashboard count',
     async () => {
       await verifyWishlistUx({ page, nav, snapshot, fileChoice, runDir });
+    },
+  );
+  await check(
+    'M3-C native EN/TR review, Cancel, keyboard, narrow layout, atomic acquisition and safe unlink',
+    async () => {
+      const wishes = await verifyWishlistAcquisition({ page, nav, snapshot, runDir });
+      const books = (await snapshot()).books;
+      const archived = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', { action: 'snapshot', payload: { trash: true } }),
+      );
+      const language = await page.locator('html').getAttribute('lang');
+      await close();
+      await launch(language);
+      assert.deepEqual((await snapshot()).books, books);
+      const archivedReopened = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', { action: 'snapshot', payload: { trash: true } }),
+      );
+      assert.deepEqual(archivedReopened.books, archived.books);
+      const reopened = await page.evaluate(() =>
+        window.__TAURI_INTERNALS__.invoke('database', { action: 'wishlist_list', payload: {} }),
+      );
+      assert.deepEqual(reopened, wishes);
     },
   );
   assert.deepEqual(report.errors, [], 'No frontend runtime errors');

@@ -31,8 +31,11 @@ export interface WishlistDraft {
 export interface WishlistItem {
   draft: WishlistDraft;
   cover: string;
-  history: { status: string; created_at: string }[];
+  history: { status: string; created_at: string; copy_id?: string }[];
+  acquisition?: { id: string; copy_id: string; acquired_at: string } | null;
 }
+export const wishlistStatus = (item: WishlistItem) =>
+  item.acquisition ? 'Purchased' : item.draft.status;
 export interface WishlistSnapshot {
   items: WishlistItem[];
   budget: { currency: string; minor: string }[];
@@ -91,7 +94,7 @@ export function exportWishlist(items: WishlistItem[], notes = false, retailers =
     {
       format: 'MyLibrary Wishlist catalogue',
       version: 1,
-      items: items.map(({ draft: d }) => ({
+      items: items.map(({ draft: d, acquisition }) => ({
         title: d.title,
         author: d.author,
         isbn10: d.isbn10,
@@ -99,7 +102,7 @@ export function exportWishlist(items: WishlistItem[], notes = false, retailers =
         preference: d.preference,
         edition_description: d.edition_description,
         priority: d.priority,
-        status: d.status,
+        status: acquisition ? 'Purchased' : d.status,
         target_minor: d.target_minor,
         currency: d.currency,
         archived: d.archived,

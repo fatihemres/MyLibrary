@@ -1,5 +1,69 @@
 # MyLibrary — Project Status
 
+## PR #56 native-harness origin security correction — 2026-11-07 (NOT INTEGRATED)
+
+The separate GitHub Advanced Security check failed at `e517832` with High alert #2,
+`js/incomplete-url-substring-sanitization`, despite Foundation 4/4 and CodeQL analysis
+3/3 passing. The correction replaces two native page selectors and two equivalent
+request-report exclusions with exact parsed-origin checks. Product/UI, schema, network
+policy, dependencies and workflows are unchanged. New exact-SHA review and **all eight**
+checks, including Advanced Security, are required; prior seven-job success is insufficient.
+The PO now reports Windows visual 4/4 and functional 3/3 PASS for the previous candidate
+and accepts only the three semantics recorded in the D-026 supplement. These observations
+are historical, not new tests on the security SHA. Integration remains separately gated.
+
+## PR #56 scoped UI polish — 2026-11-07 (NOT INTEGRATED; PO VISUAL ACCEPTANCE PENDING)
+
+The PO reported native Windows confirmation padding, long Wishlist card/action alignment
+and black-cover observations. Scoped shared dialog/Wishlist fixes and native visual
+regressions are documented in [UI polish evidence](docs/testing/m3c-ui-polish.md).
+The black cover is the existing 1x1 opaque-black synthetic fixture, not a demonstrated
+media/rendering defect. The PO's observation of history events does not accept the whole
+history model. Local frontend **337 PASS**, native visual **64 card / 32 dialog cases PASS**
+and the complete synthetic native suite **47/47 PASS** apply to the new EXE recorded in
+verification. Exact committed source review and newly triggered CI belong to Draft PR #56;
+old checks do not certify a new SHA. Intel DMG intermittency remains unverified even if
+a later run passes. Original PO data/profile, old artifacts and unrelated worktrees remain
+preserved. No integration, cleanup, release or history-model acceptance is implied.
+
+## PR #56 Intel DMG diagnostics — 2026-11-06 (NOT FIXED / NOT INTEGRATED)
+
+The PO authorized scoped packaging investigation on the existing M3-C branch. Both Intel
+attempts at candidate `7da6c5ec96480d7028b8ec03cc5b63b7d570213f` fail inside
+`bundle_dmg.sh`; the last successful base build uses the same recorded runner image and
+tool versions. Child stderr is missing, so root cause remains unverified. The diagnostic
+candidate enables Intel-only verbose packaging with path redaction and failure propagation;
+all four platforms, app/dmg requirements and security checks remain required. Product code
+is unchanged. See [comparison/evidence](docs/testing/pr56-intel-dmg.md). No speculative
+runner/dependency/signing change, integration, cleanup or additional rerun loop is authorized.
+
+## M3-C explicit Wishlist acquisition candidate — 2026-11-06 (NOT INTEGRATED)
+
+- Live `origin/v2` independently fetched and matched **`f54472b962505ded0c27f4e2d837aaf10e93d56a`**.
+  [PR #55](https://github.com/fatihemres/MyLibrary/pull/55) is CLOSED/MERGED with head and merge SHA equal
+  to that exact single-parent commit. Final push [Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/42254408922)
+  and [CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/42254408881) SUCCESS.
+  The older Issue #54 candidate-only statements below are historical. Old Draft #48 remains untouched.
+- The PO explicitly authorized this bounded [Issue #32](https://github.com/fatihemres/MyLibrary/issues/32)
+  candidate, synthetic verification, commit/push and a Draft PR targeting `v2`. After confirming no
+  task worktree existed, the PO authorized exactly one; managed worktree
+  `C:\Users\emre-\.codex\worktrees\m3c-explicit-wishlist-acquisition\MyLibrary`, branch
+  `codex/m3c-explicit-wishlist-acquisition`. The historical `C:\Dev\MyLibrary` checkout and other
+  worktrees are preserved. The known fresh-checkout research-JSON EOL anomaly remains untouched,
+  byte-identical to the base and excluded from staging.
+- Candidate: explicit read-only acquisition review, deliberate existing/new Edition choice,
+  one transactional owned Copy and persisted fulfillment link, preserved Wishlist/retailers/history,
+  active budget/count exclusion and safe unlink/reopen without inventory deletion. Schema 5 is
+  additive; no historical schema rewrite. Candidate semantics and exclusions are documented in
+  [acquisition architecture](docs/architecture/wishlist-acquisition.md), not asserted as accepted product decisions.
+- Actual checks, remaining native/PO gates and independent source-review attribution are in
+  [VERIFICATION](VERIFICATION.md) and the Draft PR. No integration, issue/milestone closure,
+  release, signing/updater change, real personal-library access or cleanup is authorized.
+- Local candidate evidence: frontend **337 PASS**, Rust **140 PASS / 1 existing benchmark ignored**,
+  typecheck/lint/web and native build/format/locked offline check PASS; final isolated Windows
+  desktop **47/47 PASS**, including EN/TR acquisition, Cancel, focus, narrow windows, safe unlink,
+  archived-Copy navigation and restart. This is agent-run native automation, not PO acceptance.
+
 ## Issue #54 backup/restore safety candidate — 2026-11-06 (NOT INTEGRATED)
 
 - Live GitHub `v2` and a fresh safe fetch both verified base **`6528653a00a96d2e671ce1a75683499e33228f1e`**; PR #53 is MERGED at that SHA. Base final-push [Foundation #42106732949](https://github.com/fatihemres/MyLibrary/actions/runs/42106732949) and [CodeQL #42106732955](https://github.com/fatihemres/MyLibrary/actions/runs/42106732955) SUCCESS. These are base checks, not candidate CI. Old Draft PR #48 remains untouched.

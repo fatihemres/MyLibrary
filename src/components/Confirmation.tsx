@@ -1,5 +1,5 @@
 import { t, label as trLabel } from '../i18n';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Modal } from './common';
 
 type Request = { message: string; resolve: (approved: boolean) => void };
@@ -16,6 +16,7 @@ export function confirmAction(message: string): Promise<boolean> {
 export function ConfirmationHost() {
   const [requests, setRequests] = useState<Request[]>([]);
   const cancel = useRef<HTMLButtonElement>(null);
+  const descriptionId = useId();
   const request = requests[0];
   useEffect(() => {
     cancel.current?.focus();
@@ -32,8 +33,14 @@ export function ConfirmationHost() {
     setRequests((current) => current.slice(1));
   };
   return (
-    <Modal title={t('ui.pleaseConfirm')} onClose={() => answer(false)}>
-      <p>{trLabel(request.message)}</p>
+    <Modal
+      title={t('ui.pleaseConfirm')}
+      descriptionId={descriptionId}
+      onClose={() => answer(false)}
+    >
+      <div className="dialog-body confirmation-body">
+        <p id={descriptionId}>{trLabel(request.message)}</p>
+      </div>
       <footer className="modal-footer">
         <button ref={cancel} autoFocus onClick={() => answer(false)}>
           {t('ui.cancel')}{' '}

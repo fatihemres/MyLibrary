@@ -10,6 +10,7 @@ import {
   exportWishlist,
   wishPriorities,
   wishStatuses,
+  wishlistStatus,
   type WishlistDraft,
   type WishlistItem,
   type WishlistSnapshot,
@@ -19,6 +20,7 @@ import { Cover, Empty, Field, Modal } from '../components/common';
 import { confirmAction } from '../components/Confirmation';
 import { useUnsaved } from '../components/useUnsaved';
 import { WishlistMetadata } from '../components/WishlistMetadata';
+import { WishlistAcquisition } from '../components/WishlistAcquisition';
 import './Wishlist.css';
 
 function Amount({
@@ -124,7 +126,7 @@ export function WishlistExport() {
     </div>
   );
 }
-export function Wishlist() {
+export function Wishlist({ onOpenCopy }: { onOpenCopy?: (id: string) => void } = {}) {
   const [data, setData] = useState<WishlistSnapshot | null>(null),
     [query, setQuery] = useState(''),
     [priority, setPriority] = useState(''),
@@ -135,6 +137,24 @@ export function Wishlist() {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false),
     [revision, setRevision] = useState(0);
+  const [acquiring, setAcquiring] = useState<WishlistItem | null>(null);
+  const [reopening, setReopening] = useState('');
+  const [focusReturn, setFocusReturn] = useState<{ id: string; fulfilled: boolean } | null>(null);
+  useEffect(() => {
+    if (!focusReturn || acquiring || !data) return;
+    const item = data.items.find((i) => i.draft.id === focusReturn.id);
+    if (item && !!item.acquisition !== focusReturn.fulfilled) return;
+    const frame = requestAnimationFrame(() => {
+      const card = document.getElementById(`wish-${focusReturn.id}`);
+      (
+        card?.querySelector<HTMLElement>('.wish-acquire, .wish-acquisition-actions button') ||
+        card ||
+        document.getElementById('wishlist-heading')
+      )?.focus();
+      setFocusReturn(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusReturn, acquiring, data]);
   useEffect(() => {
     let live = true;
     setLoading(true);
@@ -160,17 +180,19 @@ export function Wishlist() {
   }, [query, revision]);
   const items =
     data?.items.filter(
-      ({ draft: d }) =>
-        d.archived === archived &&
-        (!priority || d.priority === priority) &&
-        (!status || d.status === status),
+      (item) =>
+        item.draft.archived === archived &&
+        (!priority || item.draft.priority === priority) &&
+        (!status || wishlistStatus(item) === status),
     ) || [];
   return (
     <section className="wishlist">
       <div className="wish-intro">
         <div>
           <p className="eyebrow">{t('wishlist.intent')}</p>
-          <h2>{t('wishlist.heading')}</h2>
+          <h2 id="wishlist-heading" tabIndex={-1}>
+            {t('wishlist.heading')}
+          </h2>
           <p>{t('wishlist.description')}</p>
         </div>
         <button
@@ -217,7 +239,7 @@ export function Wishlist() {
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="">{t('wishlist.all')}</option>
-            {wishStatuses.map((v) => (
+            {[...wishStatuses, 'Purchased'].map((v) => (
               <option key={v} value={v}>
                 {t(`wishlist.${v}`)}
               </option>
@@ -250,43 +272,99 @@ export function Wishlist() {
       )}
       <div className={gallery ? 'wish-gallery' : 'wish-list'}>
         {items.map((item) => (
-          <article className="panel wish-card" key={item.draft.id}>
+          <article
+            id={`wish-${item.draft.id}`}
+            tabIndex={-1}
+            className="panel wish-card"
+            key={item.draft.id}
+          >
             <button
               className="wish-open"
               onClick={() => setEditor(item)}
               aria-label={t('wishlist.editTitle', { title: item.draft.title })}
+              aria-describedby={`wish-author-${item.draft.id}`}
             >
               <Cover book={{ title: item.draft.title, cover: item.cover }} large={gallery} />
-              <div>
-                <span className="eyebrow">
-                  {t(`wishlist.${item.draft.priority}`)} · {t(`wishlist.${item.draft.status}`)}
-                </span>
-                <h3>{item.draft.title}</h3>
-                <p>{item.draft.author}</p>
-                <p>{item.draft.isbn13 || item.draft.isbn10}</p>
-                <strong>
+              <div className="wish-copy">
+                <div className="wish-meta">
+                  <span className="wish-state">{t(`wishlist.${wishlistStatus(item)}`)}</span>
+                  <span className="muted">{t(`wishlist.${item.draft.priority}`)}</span>
+                </div>
+                <h3 title={item.draft.title}>{item.draft.title}</h3>
+                <p
+                  className="wish-author"
+                  id={`wish-author-${item.draft.id}`}
+                  title={item.draft.author}
+                >
+                  {item.draft.author}
+                </p>
+                <p className="wish-isbn">{item.draft.isbn13 || item.draft.isbn10}</p>
+                <strong className="wish-price">
                   {item.draft.target_minor === null
                     ? t('wishlist.noPrice')
                     : `${amountText(item.draft.target_minor, item.draft.currency)} ${item.draft.currency}`}
                 </strong>
               </div>
             </button>
-            <div className="wish-retailers">
-              {item.draft.retailers.map((r) => (
-                <button
-                  key={r.id}
-                  title={r.name}
-                  aria-label={r.name}
-                  onClick={() =>
-                    void api('wishlist_open_retailer', {
-                      item: item.draft.id,
-                      retailer: r.id,
-                    }).catch((e) => setError(String(e)))
-                  }
-                >
-                  {r.name} ↗
-                </button>
-              ))}
+            <div className="wish-card-actions">
+              {item.acquisition ? (
+                <div className="inline wrap wish-acquisition-actions">
+                  {onOpenCopy && (
+                    <button onClick={() => onOpenCopy(item.acquisition!.copy_id)}>
+                      {t('acquisition.viewCopy')}
+                    </button>
+                  )}
+                  <button
+                    disabled={!!reopening}
+                    onClick={() =>
+                      void (async () => {
+                        if (!(await confirmAction(t('acquisition.reopenHelp')))) return;
+                        setReopening(item.draft.id);
+                        setError('');
+                        try {
+                          await api('wishlist_reopen_acquisition', {
+                            item: item.draft.id,
+                            updated_at: item.draft.updated_at,
+                            acquisition: item.acquisition!.id,
+                          });
+                          setFocusReturn({ id: item.draft.id, fulfilled: false });
+                          setRevision((v) => v + 1);
+                        } catch (e) {
+                          setError(String(e));
+                        } finally {
+                          setReopening('');
+                        }
+                      })()
+                    }
+                  >
+                    {t('acquisition.reopen')}
+                  </button>
+                </div>
+              ) : (
+                !item.draft.archived &&
+                item.draft.status !== 'Cancelled' && (
+                  <button className="primary wish-acquire" onClick={() => setAcquiring(item)}>
+                    {t('acquisition.add')}
+                  </button>
+                )
+              )}
+              <div className="wish-retailers">
+                {item.draft.retailers.map((r) => (
+                  <button
+                    key={r.id}
+                    title={r.name}
+                    aria-label={r.name}
+                    onClick={() =>
+                      void api('wishlist_open_retailer', {
+                        item: item.draft.id,
+                        retailer: r.id,
+                      }).catch((e) => setError(String(e)))
+                    }
+                  >
+                    {r.name} ↗
+                  </button>
+                ))}
+              </div>
             </div>
           </article>
         ))}
@@ -300,6 +378,24 @@ export function Wishlist() {
             setEditor(null);
             setRevision((v) => v + 1);
           }}
+        />
+      )}
+      {acquiring && (
+        <WishlistAcquisition
+          item={acquiring}
+          onClose={() => {
+            setFocusReturn(
+              (previous) =>
+                previous || { id: acquiring.draft.id, fulfilled: !!acquiring.acquisition },
+            );
+            setAcquiring(null);
+            setRevision((v) => v + 1);
+          }}
+          onSaved={() => {
+            setFocusReturn({ id: acquiring.draft.id, fulfilled: true });
+            setRevision((v) => v + 1);
+          }}
+          onOpenCopy={onOpenCopy}
         />
       )}
     </section>
@@ -438,15 +534,17 @@ function WishlistEditor({
             <Field label={t('wishlist.status')}>
               <select
                 aria-label={t('wishlist.status')}
-                value={draft.status}
+                disabled={!!item.acquisition}
+                value={item.acquisition ? 'Purchased' : draft.status}
                 onChange={(e) => set('status', e.target.value as WishlistDraft['status'])}
               >
-                {wishStatuses.map((v) => (
+                {(item.acquisition ? ['Purchased'] : wishStatuses).map((v) => (
                   <option key={v} value={v}>
                     {t(`wishlist.${v}`)}
                   </option>
                 ))}
               </select>
+              {item.acquisition && <span>{t('acquisition.reopenFirst')}</span>}
             </Field>
             <Field label={t('wishlist.target')}>
               <Amount

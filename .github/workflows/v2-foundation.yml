@@ -55,7 +55,21 @@ jobs:
         # Existing warnings remain advisory; strict Clippy needs a separate cleanup.
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked
       - name: Production bundle (also builds frontend)
+        if: matrix.name != 'macOS Intel'
         run: npm run desktop:build -- --bundles ${{ matrix.bundles }} -- --locked
+      - name: Intel DMG packaging diagnostics
+        if: matrix.name == 'macOS Intel'
+        shell: bash
+        run: |
+          set -o pipefail
+          sw_vers
+          uname -m
+          node --version
+          rustc --version
+          node node_modules/@tauri-apps/cli/tauri.js --version
+          # No environment dump or shell tracing; preserve the bundler's failing exit status.
+          npm run desktop:build -- --verbose --bundles app,dmg -- --locked 2>&1 |
+            sed -e "s|$GITHUB_WORKSPACE|<workspace>|g" -e 's|/Users/runner|<runner-home>|g'
       - uses: actions/upload-artifact@v7
         with:
           name: MyLibrary-${{ matrix.name }}-${{ github.sha }}
