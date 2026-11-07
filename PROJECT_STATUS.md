@@ -1,3 +1,14 @@
+## Live DevEx / initial Design Council field pilot — 2026-11-08 (NOT INTEGRATED)
+
+Verified live `v2` `10510ab0c5a5d413717cf736b1d74d3590b39e2b`; existing pilot branch
+`codex/devex-live-field-pilot-council-20261107` began at `ef821469abf5230bcd03fc819db3abfca787063b`.
+D-028 trials actually used existing Graphify/Context7/Ponytail and three independently isolated,
+Ponytail-off Council skill contexts. Graphify missed reverse caller impact; Context7 partially
+missed the close API; Council delivered text proposals only. No adoption, UI implementation,
+native acceptance or integration is claimed. See [OBS-001–007](docs/development/devex/LIVE_OBSERVATIONS.md#live-windows-field-pilot--2026-11-08-d-028-not-adopted-or-integrated).
+Source/config/workflows are unchanged; exact candidate review/publication evidence belongs to the
+Draft PR. CI remains PENDING without polling. Earlier dated candidate checkpoints below are historical.
+
 # MyLibrary — Project Status
 
 ## DevEx Foundation trigger / cleanup policy candidate — 2026-11-07 (NOT INTEGRATED)

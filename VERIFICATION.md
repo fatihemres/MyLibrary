@@ -1,3 +1,15 @@
+# Live DevEx field-pilot evidence — 2026-11-08 (NOT INTEGRATED)
+
+Base `10510ab0c5a5d413717cf736b1d74d3590b39e2b`; pilot starting SHA `ef821469abf5230bcd03fc819db3abfca787063b`.
+Actual `gpt-6.1-sol` / high Windows trials are in [OBS-001–007](docs/development/devex/LIVE_OBSERVATIONS.md#live-windows-field-pilot--2026-11-08-d-028-not-adopted-or-integrated):
+Graphify extraction/query and `rg` comparison; two Context7 docs queries; 20 Node boundary/comparison
+assertions during non-UI Ponytail review; isolated CLI activation probe; three independent Council
+text proposals and a later separate synthesis, with runtime/token metrics and explicit limitations.
+Product source/workflows/dependencies unchanged. Local checks cover append-only provenance,
+frozen shared input, Markdown links/anchors, inventory and whitespace; no app/native/visual rebuild.
+Exact committed-SHA independent evidence review and publication verification are recorded in the
+Draft PR; new Foundation/CodeQL/Advanced Security results are PENDING, not polled or inherited.
+
 # DevEx Foundation trigger / cleanup policy — 2026-11-07 (NOT INTEGRATED)
 
 Base `05580f51cb9dcc11f53aa63ffbf6afc522f87945` independently matched live GitHub and

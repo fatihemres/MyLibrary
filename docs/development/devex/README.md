@@ -6,6 +6,8 @@
 
 This directory is the **durable repository-side research library** for AI coding agents, agent skills, prompts, MCP integrations, security tools, UI/UX/test automation, model comparisons and developer workflow improvements. It complements the live [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47), rather than replacing the canonical project contracts.
 
+Live field trials (D-028): [append-only observations](LIVE_OBSERVATIONS.md), including the first independent Council proposals. Historical snapshots below remain preserved.
+
 ## Read first / authority
 
 1. Revalidate the **live** `v2` HEAD, open PRs/Issues, exact candidate CI and any explicit PO decisions. The snapshot below is historical.
