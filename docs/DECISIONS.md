@@ -135,6 +135,34 @@ rewriting historical CI records. Scope: one isolated candidate, local validation
 exact-SHA review, normal commit/push and one Draft PR against `v2`; no integration,
 existing-ref/worktree deletion, repository-setting change, release or milestone closure.
 
+## Rapid live DevEx and early Design Council observation — 2026-11-07
+
+**D-028 — ACCEPTED, bounded field-pilot direction.** The PO requested to stop
+prolonged preliminary tool audits and instead integrate/try Graphify, Context7 and
+Ponytail in real MyLibrary engineering work, establish an independent UI/UX Design
+Council (UI UX Pro Max, Taste and Impeccable) now, and continuously record what
+actually happens in one [append-only live observation log](development/devex/LIVE_OBSERVATIONS.md).
+The first Council observation may occur before the originally planned core-complete
+pre-demo phase; this does **not** move or close that final design/UX acceptance gate,
+approve a chosen design, start M3/M4/M5 delivery, or amend the V2 feature roadmap.
+
+**Execution boundary:** use isolated scoped workspaces, synthetic app data, minimal
+source/version/side-effect checks at the time of installation/use, reversible
+project-local configuration where possible, separate Council contexts and
+evidence-attributed observations. Avoid standalone audit loops; capture failures,
+hooks, egress, measured effect and rollback directly during actual use. No implicit
+global/user Codex configuration changes, autonomous hooks, account/OAuth grant,
+private-code submission to external services, production data access, product code
+redesign, `v2` integration, release or destructive cleanup. Such actions require
+specific additional authorization or direct PO sign-in when applicable.
+
+This direction **does not silently supersede D-023's Ponytail UI/UX exclusion**:
+Ponytail can be observed in scoped engineering work but must remain demonstrably
+inactive in independent UI/UX Council sessions unless the PO expressly permits
+a targeted exception. Existing global auto-`full` activation is a state to
+verify, not permission to inject it into every session. Tool installation and
+Council launch are not proof of adoption or product acceptance.
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |
