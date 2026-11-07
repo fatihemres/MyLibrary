@@ -1,5 +1,22 @@
 # MyLibrary — Project Status
 
+## DevEx Foundation trigger / cleanup policy candidate — 2026-11-07 (NOT INTEGRATED)
+
+Verified live `v2` base **`05580f51cb9dcc11f53aa63ffbf6afc522f87945`**; PR #56 is
+MERGED with head/merge SHA equal to that base. Its PR Foundation/CodeQL runs and duplicate
+push Foundation/CodeQL runs succeeded; the separate Advanced Security check is SUCCESS.
+Those are base evidence, not this candidate's checks. The PO authorizes only a new isolated
+`codex/devex-foundation-ci-lifecycle` candidate: remove Foundation's `push: v2` trigger,
+preserve PR platform/security coverage and document D-027's independent cleanup gates.
+All jobs/bundles/artifacts/Intel diagnostics and CodeQL workflow bytes remain unchanged.
+Live preflight found three active rulesets, with v2 deletion/non-fast-forward/linear-history
+protection; unconditional automatic head deletion is off. No setting or existing ref/worktree
+is changed. PR #48 and the PR #56 PO data/evidence remain preserved.
+Manual-dispatch execution is not verified: default `main` lacks this workflow, though its
+ID is registered active. It is not assumed to be an operational fallback.
+Local validation and exact-candidate review belong in VERIFICATION / the new Draft PR.
+Publish once and stop; new CI remains PENDING for PO/ChatGPT verification, without polling.
+
 ## PR #56 native-harness origin security correction — 2026-11-07 (NOT INTEGRATED)
 
 The separate GitHub Advanced Security check failed at `e517832` with High alert #2,

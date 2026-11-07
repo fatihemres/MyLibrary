@@ -45,6 +45,11 @@ and separate PO approval.
   is not GitHub `Approve`; an author cannot independently review/approve their own PR.
 - Stacked PRs never inherit parent checks. Reconfirm reviewed SHA, CI, ancestry and explicit
   PO permission **before each** exact-SHA fast-forward integration; verify post-push checks.
+- Full Foundation is a pre-integration PR gate. After integration verify canonical `v2`
+  HEAD, push CodeQL and the separate security evaluation where reported; no second Foundation
+  push run is required. Cleanup needs its own safety checks and explicit scoped permission;
+  remote/local branch deletion and worktree removal are separate operations. See
+  [the lifecycle procedure](docs/development/repository-hardening.md#safe-feature-branch-lifecycle).
 - On important developments update Issue links and `PROJECT_STATUS.md`/`VERIFICATION.md`;
   record accepted PO governance/product decisions in `docs/DECISIONS.md`. Ideas and roadmap
   placement do not authorize implementation. Cleanup and release retain independent owner gates.

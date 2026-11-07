@@ -32,11 +32,22 @@ AI review reports are **attributed reports**, not GitHub-submitted reviews. The 
 3. **Candidate:** Review *all* tracked/untracked changes, prevent committing runtime data/secrets/caches, record actual commands and exact SHA. Commit, push and Draft PR preparation require appropriate PO authorization and do not authorize integration.
 4. **Independent review:** Reviewer reads actual diff/source/tests and records exact SHA, independence, findings/severity, security/data risks and limits; outcome `PASS`, `PASS WITH FINDINGS` or `BLOCKED`. Stop on blockers. Attach agent reports to PR/Issue as reports, not fictitious GitHub Approvals.
 5. **GitHub Review when eligible:** In PR → `Files changed`, create inline comments and submit `Comment`, `Approve` or `Request changes` via `Review changes`. Resolve substantive threads after verification; inspect approvals after each candidate update. A PR author cannot approve themselves.
-6. **Exact candidate CI:** V2 Foundation Windows x64, Linux x64, macOS Apple Silicon/Intel and CodeQL JS/TS, Rust, Actions. Distinguish PR-triggered vs post-push CI. Stacked Draft PRs targeting feature branches may have **zero GitHub checks**, even if parent checks passed; do not claim inherited CI or silently retarget/rebase to trigger it. Resolve CI coverage via a separately PO-authorized, reviewed strategy that preserves SHA/ancestry.
+6. **Exact candidate PR CI:** Require full V2 Foundation Windows x64, Linux x64, macOS Apple Silicon/Intel, CodeQL JS/TS, Rust and Actions, plus the separate Advanced Security / Code Scanning evaluation where reported. Seven workflow successes do not replace that security gate; pending/neutral/failing is not PASS. Bind results to the exact candidate and checkout tree. Stacked Draft PRs targeting feature branches may have **zero GitHub checks**; do not inherit parent results or silently retarget/rebase. Resolve coverage only through a separately authorized strategy preserving SHA/ancestry.
 7. **Real PO acceptance:** Windows app/hardware/visual checks where applicable are separate from CI, browser emulation and macOS/Linux native acceptance. Capture limitations without exaggerating.
 8. **Separate integration PO approval:** Before every change to `v2`, verify reviewed HEAD, exact base ancestry, independent findings, correct SHA CI and PO acceptance. Only authorized `git merge --ff-only` is allowed (no squash, merge commit, rebase or force). If ancestry changed, stop.
-9. **Final push check:** Verify the integrated `v2` exact SHA and completed push-triggered platform + CodeQL CI. Only then consider authorized documentation synchronization and safe cleanup of the successfully integrated own branch/worktree.
+9. **Post-integration check:** Verify live canonical `v2` HEAD equals the approved candidate and the required push CodeQL/security checks succeeded for the correct SHA/ref. Under D-027, a second full Foundation push run is intentionally no longer required. Do not label PR CI as push evidence or treat an unavailable manual dispatch as guaranteed.
 10. **Later independent gates:** PO explicitly decides M2/M3 milestone closure, release candidate, signing, updater, tags, promotion to `main`, cleanup and public distribution.
+
+## Completed-branch cleanup gate — D-027 (2026-11-07)
+
+Follow the [safe feature-branch lifecycle](repository-hardening.md#safe-feature-branch-lifecycle).
+Only an integrated own PR, canonical containment, successful required post-integration
+checks, no open-PR/active-task dependencies and a non-protected/non-shared ref make a branch
+eligible. Inspect local commits and all linked worktrees, including ignored synthetic data
+and recovery/evidence files. Then obtain operation-specific approval: remote ref deletion,
+local branch deletion and worktree removal are independent actions. Preserve PR history;
+do not close unmerged PRs or discard data to satisfy eligibility. No automatic head deletion,
+write/delete workflow or existing-branch/worktree removal is authorized by this candidate.
 
 ## Latest integrated succession checkpoint — 2026-10-27
 

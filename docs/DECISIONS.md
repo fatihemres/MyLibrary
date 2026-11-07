@@ -116,6 +116,25 @@ existing Physical Copy. The PO also reports Windows visual **4/4 PASS** and func
 newly executed on the security-corrected SHA. This supersedes D-026's pending status for
 these three semantics only; it grants no integration, milestone closure, release or expansion.
 
+## CI and branch-lifecycle process — 2026-11-07
+
+**D-027 — ACCEPTED, scoped CI/process decision.** The PO's direct DevEx task for
+[Issue #23](https://github.com/fatihemres/MyLibrary/issues/23) /
+[DevEx #47](https://github.com/fatihemres/MyLibrary/issues/47) approves removing Foundation's
+automatic `push` trigger on `v2` to avoid rebuilding the identical reviewed SHA after
+fast-forward integration. Full exact-candidate PR Foundation, relevant independent review,
+PO acceptance and separate exact-SHA fast-forward integration authorization remain required.
+After integration verify canonical `v2` HEAD and required push CodeQL/security checks;
+CodeQL retains both PR and push triggers, and separate Advanced Security stays visible.
+The documented cleanup eligibility/ownership/dependency/evidence checks and separate
+remote-ref/local-branch/worktree approvals are required; unconditional automatic deletion
+and write/delete automation are not authorized. See the
+[lifecycle contract](development/repository-hardening.md#safe-feature-branch-lifecycle).
+This supersedes earlier process text requiring a duplicate Foundation push run, without
+rewriting historical CI records. Scope: one isolated candidate, local validation, independent
+exact-SHA review, normal commit/push and one Draft PR against `v2`; no integration,
+existing-ref/worktree deletion, repository-setting change, release or milestone closure.
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |

@@ -1,3 +1,40 @@
+# DevEx Foundation trigger / cleanup policy — 2026-11-07 (NOT INTEGRATED)
+
+Base `05580f51cb9dcc11f53aa63ffbf6afc522f87945` independently matched live GitHub and
+`git ls-remote origin`. PR #56 is merged at that exact head/merge SHA; its linear candidate
+remains unchanged. Open Draft #48 is unrelated. Preflight base evidence:
+[PR Foundation](https://github.com/fatihemres/MyLibrary/actions/runs/42305705501),
+[PR CodeQL](https://github.com/fatihemres/MyLibrary/actions/runs/42305705359),
+[push Foundation](https://github.com/fatihemres/MyLibrary/actions/runs/42405256944) and
+[push CodeQL](https://github.com/fatihemres/MyLibrary/actions/runs/42405257040) all SUCCESS;
+[separate Advanced Security](https://github.com/fatihemres/MyLibrary/runs/128194589452) SUCCESS.
+This demonstrates the duplicate full run; it does not certify the new candidate.
+
+New managed worktree: `devex-foundation-ci-lifecycle/MyLibrary`, initially clean and detached
+at the exact base, then branch `codex/devex-foundation-ci-lifecycle`. Other worktrees,
+the preexisting M3-C JSON/EOL anomaly and local acceptance/recovery data are preserved.
+No branch deletion, worktree removal, repo-setting change or application/native testing is
+authorized here. A live v2 ruleset enforces deletion/non-fast-forward/linear-history protection;
+the classic branch-protection endpoint's 404 does not mean v2 lacks ruleset protection.
+
+Validation uses installed Node/Git without dependency/tool installation: exact two-line
+Foundation event deletion; PR-to-v2 and dispatch declarations preserved; complete jobs,
+permissions, concurrency, matrix, bundling/artifacts/diagnostics preserved; CodeQL byte equality
+and PR/push events preserved; scoped diff and local Markdown file/anchor checks.
+Actual `node .cache/devex-ci-validation.mjs`: **PASS** (seven scoped tracked files,
+125 local file-link targets and the new lifecycle anchor); `git diff --check`: **PASS**.
+Dedicated actionlint/PyYAML parsing is NOT RUN (not installed); no claim of full actionlint
+validation is made. The already CI-validated base mapping is otherwise byte-identical.
+No Rust/Tauri/frontend build or native suite is run: this is workflow/documentation only.
+
+Default branch `main` has no Foundation file (contents API 404); workflow ID `378793026`
+is registered active. No live dispatch was sent, so API dispatch usability is NOT VERIFIED.
+GitHub's documented UI/default-branch constraint is recorded in the hardening contract.
+No default-branch/settings mutation or extra four-platform dispatch was used to test this.
+Exact committed review, actual local command results and Draft PR SHA/link are recorded in
+the new PR. After publication, Foundation 4, CodeQL 3 and separate Advanced Security where
+reported remain PENDING for independent PO/ChatGPT checking; this task does not wait/poll.
+
 # Native-harness origin security correction — 2026-11-07 (NOT INTEGRATED)
 
 At previous candidate `e517832e90c0ba1e79c6e0868a1d67debbbc3d30`, the separate
