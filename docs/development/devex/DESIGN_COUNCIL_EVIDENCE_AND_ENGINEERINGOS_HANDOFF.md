@@ -377,3 +377,33 @@ These names are provenance pointers, **not working public download links, archiv
 6. **GitHub governance:** this addendum belongs only to the docs-only Draft PR. No `v2` integration, design approval, Issue #52 closure, EngineeringOS modification, production UI implementation or permanent team policy is authorized.
 
 **Follow-up checkpoint (2026-11-10):** E1 experiment **reported complete**; next meaningful action is PO visual/motion review, **not** a blind new design, tool-installation or production implementation.
+---
+
+## 15. Independent uploaded E1 artefact review (2026-11-10)
+
+> **Evidence level:** Independently inspected PO-provided ZIP **source bytes, manifest SHA-256 hashes and selected historical/final screenshot/filmstrip files**, plus read supplied local check/report JSON. **Not** independent execution of browser interaction tests, Windows WebView2/DPI/FPS, model-call re-attestation or PO visual acceptance. Do not silently promote reported checks to independent PASS.
+
+### Verified source and process evidence
+
+- The uploaded ZIP contains **11,929 entries** (~713 MB uncompressed, ~153 MiB compressed). Large subtrees named `browser-runs/`, `po-browser-sessions/` and `profiles/` contain browser profile/cache/session artefacts. **They were excluded from inspection and must never be copied into this public GitHub record or EngineeringOS Public Core.** Even test profiles may retain cookies or browsing state; secrets were **not** inspected, so their safety cannot be certified.
+- A deliberately whitelisted **290-file** subset of static source, docs, screenshots and motion captures was examined without executing user-provided launcher/scripts.
+- Independently computed SHA-256 values of **all six** `FINAL_DESIGN` source files match `SOURCE_MANIFEST.json`. E1 `data.js` and basic `styles.css` are **byte-identical** to the included baseline-v3 versions; `index.html`, `app.js` and the two new `e1-* ` files provide the iteration.
+- Each of the three provided `research/E1_FINAL_REVIEW-A/B/C.json` files records **the same** final `sourceBundleHash` `a658f97f2cf60260c1ee166cf79c3f2fc191c51afef06d59e13fc2019608f677`, **13 described visual samples** and `readyForPO=true`. This verifies **consistency of recorded final review claims**, not human-equivalent independence, exact model attribution or complete frame exposure.
+- Code and supplied rAF measurement show a genuine native disclosure-height transition in the captured browser (`0 → 16.56 → 31.92 → 46.02 → … → 100 px`), grouped whole-book translation (`160 ms`, up to 12 visible Edition items), limited dialog entrance (`120 ms`/4 px), deliberate immediate close, and reduced-motion cancellation paths. **Compatibility with target WebView2 versions and native performance remains untested.**
+- Original `E1_CHECKS_e1-v3.json` retains failed pseudo-element animation measurement attempts; later `E1_CHECKS_e1-v3_RAF.json` provides a supported geometry trace. Retaining the failed method is correct; do not report all historical checks as passing or add partially overlapping test counts.
+- Filmstrips are **discrete timestamped JPEG samples**, not a continuously recorded, independent native video/FPS benchmark. They show clear movement compared with the previous abrupt baseline, but also **visible transient crossings between moving book units and neighboring text**.
+
+### Design-quality findings and unresolved tradeoffs
+
+- **Real improvement:** The old abrupt Description and Grid/List behavior received genuine intermediate movement; layout is less vertically wasteful, the toolbar was compacted, book covers retain more readable blocks, and the Manual/Smart editor retains a stable, scrollable outer frame.
+- **Still weak:** moving book paths collide/cross readable content; two visually similar red Editions depend on a small year/imprint; generic buttons/native selects have not acquired a distinctive shared interaction language; Smart modal remains dense and technical, especially in 900px TR dark.
+- **Prototyping caveat:** certain synthetic Edition IDs receive hand-curated short jacket titles. This is appropriate for a research fixture but **must not be promoted as a generic production-ready cover typography algorithm**.
+- All three reported a genuine revised proposal; nonetheless the impact of **equal creative authority** remains promising rather than independently established as superior to a controlled alternative. PO's visual acceptance of E1-v3 is still outstanding.
+
+### Portability and disclosure boundary
+
+- A new, explicitly **review-only** 45-file bundle was constructed outside GitHub containing just final offline design assets, screenshots, selected filmstrips and research summaries; **no browser profiles, request/event logs or credentials** were carried into that curated bundle. It was **not uploaded to GitHub or EngineeringOS**, and the absence of those directory names does not by itself grant external public publication rights.
+- Any EngineeringOS transfer must separately review user screenshots, transcript provenance, author rights, licenses, absolute paths and any latent secrets; a portable research observation is not a product implementation mandate.
+- Follow-up: PO reviews the actual motion comparison and final prototype; then the same A/B/C team can address path crossing and visual hierarchy. E2 external-library/fourth-specialist trials remain **unapproved until independently scoped**. No product work, GitHub integration or issue closure is implied.
+
+**This is a separate later observation** appended to the earlier agent-report summary (§14); it does not rewrite that historical section.
