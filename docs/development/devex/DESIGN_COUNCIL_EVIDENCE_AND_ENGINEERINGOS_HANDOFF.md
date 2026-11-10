@@ -432,3 +432,41 @@ These names are provenance pointers, **not working public download links, archiv
 - Preserve rejected concepts and PO comments in the evidence archive for later EngineeringOS adaptation. Do not assert that a particular transition metaphor has been chosen.
 
 **Current distinction:** E1 technical/prototype progress is verified within the limits of §15; **PO-perceived smoothness and overall motion quality are not accepted**. This section adds later user evidence without retroactively rewriting the earlier research records.
+---
+
+## 17. E1-R2 v4 finalization checkpoint (2026-11-10)
+
+> **Source:** Product Owner forwarded Codex's local E1-R2 completion message on 2026-11-10. **Evidence classification:** `AGENT-REPORTED FINALIZATION; PO VISUAL/MOTION ACCEPTANCE PENDING`. The final 51 MB delivery ZIP, source tree, manifest and original motion video were **not uploaded to this GitHub update**, so source hash, file safety and test success have **not been independently reproduced** here. Preserve original versions and provenance before a later EngineeringOS transfer.
+
+### Sequence and rationale
+
+- E1-R2 was a **continuation of E1-v3**, motivated by the PO's original screen-recording evidence: instant Grid/List selector state changes, crossed book/layout paths, abrupt modal entrance and page changes, while existing button press/hover behavior was positively received. This supersedes neither the design brief nor the PO's original observations in §16.
+- An initial attempt reached the Codex weekly usage quota before completion. The same local context was resumed; remote Council traffic was explicitly limited to the **remaining authenticated A/B/C review calls** (no generalized network/publishing permission).
+- Mid-run coordinator reports included **14 attempts / 10 completed / 4 failed** before continuation. This was an intermediate checkpoint, **not** the final total; do not sum it with the later 20/20 count without raw trace deduplication.
+- A/B/C reportedly compared multiple internal motion approaches. A proposed fade-first strategy was **rejected by the team after actual intermediate-frame reviews** because it exposed empty content regions and ghosting. The final design instead sought coherent whole-book presentation, a more stable modal shell, focus recovery and no visible text overlap during modal exit.
+- Later final review records reportedly show A/B/C reviewed the **same v4 source and motion frames**; one further modal-exit defect was caught at ~77 ms and corrected before their reported ready-for-PO decision.
+- **Council-call ceiling:** **20/20 reached**. Finalization used **zero additional Council calls**, made **no new visual design changes**, and did not reset the previously reported research budget.
+
+### Agent-reported final delivery inventory
+
+| Item | Reported result | Independent state |
+| --- | --- | --- |
+| Final candidate | `The Reading Table E1-R2 v4` — `FINAL_DESIGN/index.html` | Not yet opened in this review |
+| Motion comparison | `MOTION_COMPARISON.html` | Not yet replayed independently |
+| Clean delivery | `delivery/MyLibrary-E1-R2-v4.zip`, approximately **51 MB** | Not yet received/inspected in this update |
+| Source identity | Final v4 reportedly **byte-for-byte matches** the source inspected by A/B/C | Agent-verified; original hashes not transferred |
+| ZIP inventory | **641 files**, **486 motion frames**, integrity reportedly checked | Agent-reported; cannot infer that all are unique tests |
+| Written artifacts | `FINAL_REPORT_TR.md`, `COUNCIL_COLLABORATION_FINAL.md`, `DELIVERY_PACKAGE_VERIFICATION.json`, `FILE_INVENTORY.json`, `FINALIZATION_CONTINUATION.md` | Pointers only; original bytes not attached |
+| Prior versions/failures | Earlier baselines and failed evidence reportedly preserved | Agent-reported |
+| Disallowed data | Browser profiles, credentials, cookies, private runtime files reportedly excluded | Requires independent archive listing/security check before any sharing |
+| Production/source mutation | No MyLibrary production repo or GitHub changes reportedly made by E1-R2 runner | Local machine claim unverified independently |
+
+### Known limitations and honest quality gate
+
+- **Three agents' readiness is not PO acceptance.** It does not establish that the selector, Grid/List transformations, modal entrance/exit, page navigation or perceived smoothness are satisfactory to the PO.
+- Native WebView2, actual Windows DPI/FPS and screen-reader acceptance remain **not performed** according to the finalization message.
+- Quantitative motion comfort, frame pacing and interruptibility should be compared on the actual final v4 before claiming success; a new motion specialist or engine may be considered **only after** inspecting whether existing A/B/C work solved the original subjective defect.
+- Previously reported uncertainty about developer/host references and authentic skill isolation must not be silently reclassified as resolved.
+- The prior E1 archive had contained browser profiles; the new ZIP's **claimed exclusion** requires validation before distributing even within EngineeringOS Private Workspace. Do not put the ZIP into public GitHub or Public Core.
+- Next step: PO uploads selected safe `E1-R2 v4` final files or the sanitized ZIP to an inspection context; compare **actual animated transition states** against E1-v3 and the PO recording. Record a separate independent review and PO feedback. Only then design a controlled E2 trial if still justified.
+- This dated entry is **research documentation**, not feature implementation approval, Council-method permanent adoption, PR integration permission, milestone closure or release authority.
