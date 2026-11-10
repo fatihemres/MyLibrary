@@ -540,3 +540,29 @@ These names are provenance pointers, **not working public download links, archiv
 The user wants a **playful, reusable identity not tied to MyLibrary**. Historical discussion referenced the Three Musketeers and a possible fourth "D'Artagnan", but neither the final name nor permanent character/member mapping has been accepted. Until chosen, keep neutral labels **Design Council / E2 four-perspective pilot** in external source records. In EngineeringOS, transfer the **attributed methodology + counterexamples + evidence quality/cost**, not a fictional claim that distinct experts existed beyond the authenticated model/skill contexts.
 
 **Status at recording:** `PO-APPROVED RESEARCH DIRECTION AND NEXT SCOPED EXPERIMENT; EXECUTION/RESULT NOT YET OBSERVED; PRODUCT DESIGN AND PERMANENT TOOL ADOPTION UNAPPROVED`.
+---
+
+## 20. E2 four-perspective partial checkpoint and participant-transport blocker (2026-11-10)
+
+> **Attribution and evidence:** 2026-11-10 PO-forwarded **Codex participant-runner partial report**, not an independently reviewed local E2 source upload or completed Council. **Status:** `PARTIAL / TRANSPORT BLOCKED / NO FOUR-PERSON DESIGN RESULT`.
+
+### What is reported as actually completed
+
+- **Baseline:** unchanged frozen **The Reading Table E1-R2 v4**. No new final E2 prototype or clean ZIP exists at this checkpoint.
+- **Participant attempts:** two genuine attempted calls to **D** reportedly ended with a **server/participant-transport connection close**. **No completed D response** was returned.
+- **Attempt budget:** **2/20 attempts consumed; 18 remain** according to the runner. A transport attempt is not a completed, usable participant response.
+- **Council state:** no valid four-person contributions, debate, design convergence or collective approval was produced. Do **not** classify this as D rejecting the design, the team reaching a conclusion or the method failing.
+- **Preparation:** 30 UI states, 15 atlas views and additional motion recordings reportedly captured for the whole-experience review. Their files, timings, manifests and hashes have **not been uploaded here and not independently inspected**.
+- **Available private-local research pointers:** `PARTIAL_REPORT_TR.md`, `PARTIAL_CHECKPOINT.json`, `AUDIT_EVIDENCE_INDEX.md`, `DESIGN_CONTINUATION.md`, all within the separate E2 experiment directory. These filenames are research references, not GitHub-shared assets.
+- **Unfinished gates:** no E2 PO visual or motion review; no native WebView2, Windows DPI/FPS or screen-reader acceptance. No evidence of A/B/C/D reviewed final E2 source.
+
+### Root-cause uncertainty and safe continuation guidance
+
+- **Connection closure** by itself does not identify a cause. It cannot be confidently attributed to auth, rate limits, stale runtime/cache, proxy, sandbox restrictions, model selection or server outage without sanitized exact error evidence.
+- Before spending further attempts, inspect the last failed call metadata **without copying or revealing tokens, credentials or private profile contents**. Verify the intended existing authenticated transport, process exit status, time, URL class/allowlist (do not transmit arbitrary data), and whether the participant received a reply at all. No unauthorized authentication resets, new profile copies, global config edits or service installs.
+- If the existing bounded transport appears healthy, **one narrowly scoped D canary call** may be attempted under the prior E2 participant-transport authorization and **counted against the remaining 18**. It must use the same genuine, separately isolated D context. Do not manufacture D's contribution from a coordinator summary or consume repeated attempts in a blind loop.
+- If the canary fails again, **stop with a recoverable checkpoint** and request the minimal sanitized error details for diagnosis. Do not rotate accounts, alter auth credentials, use a different external model/service without explicit PO approval or relax the offline/security boundaries.
+- If the canary succeeds, resume **the existing** E2 experiment at its stored checkpoint; preserve v4, the 30-state evidence, partial reports, and independent-participant provenance; reserve calls for all four participants' inspection of one exact final visual candidate.
+- Participant outage is **not** a design-quality result. Any later EngineeringOS transfer must distinguish **infra failure modes** from product outcomes and include actual model calls, completion counts, retries, quotas and tool/env provenance where verified.
+
+**Scope:** This append-only public-safe entry updates the authorized docs-only Draft PR. No production code, GitHub protected-ref integration, Issue closure, EngineeringOS repo changes, final method adoption or product approval.
