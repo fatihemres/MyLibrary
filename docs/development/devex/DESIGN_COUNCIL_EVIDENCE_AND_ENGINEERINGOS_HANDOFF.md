@@ -310,3 +310,70 @@ The Council `v002` *candidate SHA-256* in its report (`7d026...`) and the *uploa
 ---
 
 **Document preparation disclosure:** This file was assembled from the current conversation's PO statements/screenshots, inspected uploaded evidence, live GitHub API reads and externally linked reference docs. Neither the E1 experiment nor a new GitHub commit, PR, EngineeringOS import, tool install or product change was executed by preparing this document.
+---
+
+## 14. Dated follow-up — E1 equal-authority collaborative motion pilot (2026-11-10)
+
+> **Status:** `AGENT-REPORTED EXPERIMENT COMPLETE / PO VISUAL REVIEW PENDING`.
+> **Provenance:** PO forwarded the Codex E1 completion report on 2026-11-10. The original local prototype, screenshots, motion files, raw conversations, local source tree and CLI trace were **not provided to this GitHub update**; no independent replay, byte-level hash, animation timing or visual acceptance is claimed here.
+> **Supersedes only the E1 pending status in §§11–13.** Earlier entries remain dated historical evidence, not false statements about this later checkpoint.
+
+### Experiment identity, authority and method
+
+- Experiment ID: `council-collections-e1-equal-authority`, shared resulting version **The Reading Table E1-v3**.
+- Goal: test the same three participants (UI UX Pro Max, Taste, Impeccable), with **equal authority to comment on any design dimension**, improving the earlier v3 experience. No fixed exclusive ownership of motion, aesthetics or accessibility.
+- Scope: local/synthetic research prototype with the existing isolated Council runner; no new animation libraries or fourth participant in this E1 baseline. Earlier product and data-safety contracts remain binding.
+- Desired method: independent starting positions; substantive reciprocal debate; shared implementation; review of *actual rendered motion* as well as screenshots; refinement; **one final team-designed prototype** for later PO visual feedback.
+- Result attribution: the PO-submitted agent report says **A/B/C each inspected actual images and motion frames of the same E1-v3 revision and deemed it ready for PO review**. This is a process/completion claim, **not** a source-verified visual-quality PASS or product approval.
+
+### Reported decisions and visual/interaction changes
+
+| Topic | Codex-reported team exchange or result | Validation state |
+| --- | --- | --- |
+| Description disclosure | A adopted a controlled reveal instead of abrupt expansion | Agent-reported; actual motion not independently inspected |
+| Book transitions | B withdrew its fragmented book-motion alternative; books now move together | Agent-reported; real frame/video review still pending |
+| Dialog close | C objected to an exit ghost; peers accepted removing it, with reported immediate close | Agent-reported, not directly verified |
+| Editor stability | Editor frame remains stable during interactions | Agent-reported |
+| Spatial density | Unnecessary empty space reduced | Agent-reported |
+| Accessibility | Focus and reduced-motion defects reportedly fixed | Reported local checks, not screen-reader/Windows acceptance |
+| Known design debt | Some motion paths intersect; year labels remain small on similar red covers | Explicitly retained limitations |
+
+**Product-design assessment:** E1 provides stronger evidence of the *collaborative review method* than the earlier semantic-consensus-only pilot, because feedback reportedly reached the visible, animated shared artifact and changed its content. The visual quality, actual animation smoothness and extent of improvement **remain unverified without the source/frames or PO observation**. Do not translate the three participants' “ready” statements into PO acceptance.
+
+### Reported quantitative evidence (not independently reproduced)
+
+| Metric | Reported result | Interpretation |
+| --- | --- | --- |
+| Real CLI model calls | **16 / 24** allowed | Count from Codex report, no local trace reviewed |
+| Requested model/effort | `gpt-6.1-sol / high` | Server model identity was not separately returned |
+| Input tokens | **530,933** | Reported model usage |
+| Output tokens | **39,228** | Reported model usage |
+| First-to-last model time | **25 min 39 sec** | Excludes unobserved interruptions and full human turnaround |
+| Monetary cost | **UNKNOWN** | Do not infer billing from token count |
+| Behavior checks | **48** reported pass | Counts partially overlap |
+| Motion/focus checks | **30** reported pass | Counts partially overlap |
+| Narrow-window checks | **7** reported pass | Counts partially overlap |
+| Additional checks | **12** reported pass | Counts partially overlap |
+| Package checks | **7** reported pass | Counts partially overlap |
+
+The check categories must **not** be summed and presented as a deduplicated test count; underlying assertions and execution logs are not available in this update.
+
+### Reported local artifact inventory (private experiment ID only)
+
+- `FINAL_DESIGN/index.html` — interactive revised prototype.
+- `MOTION_COMPARISON.html` — before/after motion comparison player.
+- `FINAL_REPORT_TR.md` — agent-written Turkish completion report.
+- `COUNCIL_COLLABORATION.md` — agent-written team discussion.
+
+These names are provenance pointers, **not working public download links, archived GitHub artifacts or independently verified exact files**. Do not publish private local absolute paths, complete raw logs, personal media or source snapshots without separate privacy/right-to-publish review.
+
+### Remaining gates and EngineeringOS transfer implications
+
+1. **PO review pending:** independently inspect the final prototype's rendered states and motion **as motion**, comparing it to earlier v3. Collect short clips/frame sequences and the necessary offline-safe prototype assets, if the PO elects to share them.
+2. **Motion acceptance not established:** focus return, interruption/race handling, layout continuity, button/selector refinement, TR/EN overflow, reduced-motion, and high-density use require actual verification. Reported local browser checks cannot substitute for native WebView2, 125/150% Windows DPI, real FPS measurements or screen-reader testing.
+3. **Residual safety unknown:** the known six host developer-reference provenance findings remain UNKNOWN; the report does not establish total isolation or an unauthorized-tool absence audit.
+4. **Controlled comparison next:** if PO finds E1 improvements promising, treat E1 as a named baseline for later **one-variable-at-a-time** E2 comparisons (e.g. an already-verified animation skill, motion engine, or a fourth specialist) with separate PO authorization for new dependencies/services/settings. No automatic adoption.
+5. **EngineeringOS transfer status:** this addendum is a reusable *attributed methodological observation*, **not** proof of generalizable superiority of the equal-authority method. A later public-safe synthesis should distinguish E1 reported outcomes from PO-verified quality and comparable controls.
+6. **GitHub governance:** this addendum belongs only to the docs-only Draft PR. No `v2` integration, design approval, Issue #52 closure, EngineeringOS modification, production UI implementation or permanent team policy is authorized.
+
+**Follow-up checkpoint (2026-11-10):** E1 experiment **reported complete**; next meaningful action is PO visual/motion review, **not** a blind new design, tool-installation or production implementation.
