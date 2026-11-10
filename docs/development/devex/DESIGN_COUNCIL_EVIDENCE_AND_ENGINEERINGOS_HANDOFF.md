@@ -407,3 +407,28 @@ These names are provenance pointers, **not working public download links, archiv
 - Follow-up: PO reviews the actual motion comparison and final prototype; then the same A/B/C team can address path crossing and visual hierarchy. E2 external-library/fourth-specialist trials remain **unapproved until independently scoped**. No product work, GitHub integration or issue closure is implied.
 
 **This is a separate later observation** appended to the earlier agent-report summary (§14); it does not rewrite that historical section.
+---
+
+## 16. PO first-hand E1 visual/motion feedback (2026-11-10)
+
+> **Source and authority:** Direct first-hand PO comments after briefly viewing the E1 prototype, 2026-11-10, 10:21 Europe/Istanbul. These are **early visual observations and design ideas, NOT approved visual specification, final acceptance, UI implementation authority or evidence that every screen was tested**. Distinguish these from the earlier uploaded-Codex reports and the assistant's independently reviewed motion samples (§§14–15).
+
+| Area | PO observation (paraphrased without silently converting it to a decision) | Research disposition |
+| --- | --- | --- |
+| Button press feedback | PO finds the click/press effect good. | **Preserve as positive evidence**; avoid unnecessary wholesale changes. |
+| Full-page navigation | Page transitions still feel abrupt, described as “çötenk”. | **Open visual-continuity defect hypothesis**. Need actual transition recording, context preservation and repeat-navigation tests. |
+| Modal opening | Modal enters abruptly despite source-level entrance timing. | **PO-perceived unsatisfactory**. A coded 120 ms animation does not establish perceived smoothness. Distinguish entrance from immediate close chosen for avoiding exit ghost. |
+| Grid → List content | Attempted movement visibly overlaps, splits or crosses during reflow; needs a more coherent and smooth transition. | **High-priority observable design defect**. Do not simply lengthen the animation or claim geometry tests prove polish. Compare coordinated layout movement against crossfade and other proposals. |
+| View selector itself | Hover feedback is pleasant, but the selected state changes instantaneously. | **Separate defect from the content transition**. Explore a moving active indicator, gentle sliding or a distinct switch-like metaphor; the light-switch analogy is an **example**, not a required final design. |
+| General evaluation | Brief initial PO look only. | Further full visual review remains pending; no product/theme/animation-engine adoption decision. |
+
+### Proposed next evidence loop (not an implementation mandate)
+
+- Preserve the already-liked button press and hover behavior as regression references.
+- Ask the **same equal-authority three-person Council** to separately inspect (a) active control indicator and (b) book content reflow; prototype genuinely different internal motion ideas and together choose one refined, single result for PO review.
+- Also test page navigation and dialog **entrance**, including high-frequency interruptions, focus, scroll locking, reduced-motion, TR/EN, light/dark, 900px and 1280px layouts. Modal **exit** may legitimately remain immediate if the team shows why, but this must not excuse abrupt entrance.
+- Capture actual timestamped intermediate frames and, where feasible, trustworthy continuous video; inspect overlapping book paths and text as visual defects rather than treating test-count PASS as acceptance.
+- Consider a controlled library/tool comparison **only after establishing a reproducible failure and a no-new-dependency baseline**, and only with separate dependency/install permission. Avoid prescribing Motion, GSAP, React View Transitions or a fourth member merely from a screenshot.
+- Preserve rejected concepts and PO comments in the evidence archive for later EngineeringOS adaptation. Do not assert that a particular transition metaphor has been chosen.
+
+**Current distinction:** E1 technical/prototype progress is verified within the limits of §15; **PO-perceived smoothness and overall motion quality are not accepted**. This section adds later user evidence without retroactively rewriting the earlier research records.
