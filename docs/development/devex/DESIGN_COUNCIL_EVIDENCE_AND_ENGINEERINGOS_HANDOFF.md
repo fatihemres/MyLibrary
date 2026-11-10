@@ -470,3 +470,41 @@ These names are provenance pointers, **not working public download links, archiv
 - The prior E1 archive had contained browser profiles; the new ZIP's **claimed exclusion** requires validation before distributing even within EngineeringOS Private Workspace. Do not put the ZIP into public GitHub or Public Core.
 - Next step: PO uploads selected safe `E1-R2 v4` final files or the sanitized ZIP to an inspection context; compare **actual animated transition states** against E1-v3 and the PO recording. Record a separate independent review and PO feedback. Only then design a controlled E2 trial if still justified.
 - This dated entry is **research documentation**, not feature implementation approval, Council-method permanent adoption, PR integration permission, milestone closure or release authority.
+---
+
+## 18. E1-R2 v4 independent ZIP and sampled-motion review (2026-11-10)
+
+> **Evidence:** Actual PO-uploaded `MyLibrary-E1-R2-v4.zip` independently inspected in an isolated container, using read-only source inspection and saved real browser-captured JPEG frame sequences. **No freshly replayed browser/native end-to-end execution:** local Chromium navigation was blocked by host policy (`net::ERR_BLOCKED_BY_ADMINISTRATOR` for file and localhost attempts); this limitation is preserved rather than bypassed. **PO full-speed motion acceptance remains OPEN.** Do not confuse these findings with the earlier agent's own pass reports.
+
+### Exact package integrity (independently reproduced)
+
+- Uploaded ZIP SHA-256: `6f5fe21b3d7f2e92599307db4082fa1bd9d387830c5a582bdb176072200c305b`.
+- **641** packaged files; approx. **50.97 MB compressed / 60.66 MB uncompressed**, with no ZIP traversal paths or symbolic links observed.
+- Recomputed **640/640** individual file size/SHA-256 entries in `FILE_INVENTORY.json` (inventory itself is the 641st file): **MATCH**; no missing or extra entries.
+- Independently matched all **six** final design source hashes in `SOURCE_MANIFEST.json`. E1-v3 bundled baseline's three main static assets were preserved byte-for-byte; changes are in application/motion/CSS logic.
+- Recomputed **486/486 JPEG frame hashes** across four actual captured-motion manifests: E1-v3 ordinary **130**, E1-v3 reduced **64**, R2-v4 ordinary **220**, R2-v4 reduced **72**. **16 scenarios per mode**, not a 486-test or continuous-FPS claim.
+- Independently found and SHA-verified all **21/21** image references in `REVIEW_IDENTITY_PROOF.json`; A/B/C final records share bundle hash `2405cc0bb88707516d2621664393a06ea78f699330117fdd95571e81369226e4`. This supports a consistent review trail, **not** provider-attested model identity, true actor isolation or human-level visual approval.
+- No browser profile/cache/session subtrees or obvious secret patterns were found in the delivered archive; static prototype source has offline CSP and no found explicit fetch/WebSocket/storage calls. This is a bounded static check; **not** a comprehensive supply-chain/security certification or public redistribution permission. No raw images, user paths or full private logs were published in this repo.
+
+### What the verified motion samples and source reveal
+
+| Interaction | What changed | Remaining design-quality issue |
+| --- | --- | --- |
+| Grid/List *book content* | Prior crossing book translations abandoned. Complete destination book groups are immediately rendered as coherent units; shared surface moves just **4px / 120ms**. Sampled v4 frames no longer show the original fractured/reflow collisions. | This is **collision-free replacement**, not a smooth morph of each book. The destination List can be fully present at ~**39ms**, and Grid at ~**26ms**. The original abrupt-layout impression can remain. |
+| Grid/List *selector* | Actual sliding active indicator uses **150ms** WAAPI horizontal animation, retained across DOM renders; recorded intermediate positions are visible. | Improved over instant active-state swap, but subtle; whether it feels sufficiently characteristic/pleasant needs normal-speed PO judgment. |
+| Collection navigation | New destination screen and full books appear together; only subtle surface arrival moves. At ~**24ms** navigation-in sample already shows the complete collection. | Removed wrong/old shelves, but **page changes still feel structurally instantaneous** rather than meaningfully spatial. |
+| Modal *entrance* | Opaque content appears promptly, eliminating old blank-shell/transparent layering. Backdrop uses fade and panel small position travel. | In samples the panel content is already fully visible by ~**26ms Smart / 63ms Manual** (cold onset sparse). Perceived snap may remain. |
+| Modal *exit* | A reviewed text-first opaque dismissal (**60ms** content clear + **40ms** shell fade) removes prior editor text superimposed over overview. | Concrete prior ghost appears resolved in reviewed samples; a brief pale empty panel is a separate possible aesthetic tradeoff. |
+| Disclosure / feedback | Description disclosure animation and button press/hover design survive; reduced-motion paths intentionally cancel visual movement. | Keep positive interactions; verify real WebView2 and human comfort separately. |
+
+**Interpretation:** The Council demonstrably corrected a hard visual-collision defect and provided useful shared critique. But **technical animation presence and passing geometry checks do not demonstrate excellent motion quality**. Smoothness is still an open user-experience judgment, especially for route transitions, modal opening and the instantaneous book reflow.
+
+### Honest remaining gates and transfer notes
+
+- The reported **46 + 42 + 6 + 13 checks = 107 overlapping check categories** and earlier player checks were **not rerun**. Native Windows WebView2, DPI 100/125/150%, continuous frame pacing/FPS, screen-reader, full WCAG audit and real production persistence are unverified.
+- Full-speed human assessment of the actual v4 prototype on the PO's Windows machine is the **next decision input**; use the existing motion comparison with real timestamps before committing to E2.
+- If motion still feels abrupt, E2 may separately test an **equal-authority A/B/C plus fourth motion specialist** from the same frozen v4/brief, then separately test a motion tool/library. Do **not** introduce a specialist and new runtime in one confounded trial, and do not automatically authorize any new tool, installation, cloud, repo or production change.
+- The `SOURCE_MANIFEST.json` preserves its historical `PENDING` description while later `TEAM_READINESS.json` denotes complete agent review; the delivery README explains the discrepancy. Future handoffs should make the chronology explicit.
+- This update is **public-safe summary only**, not a publication of the 51 MB ZIP, raw screenshots, local auth/session paths or model context. The EngineeringOS handoff remains a separate controlled candidate, not an adopted workflow.
+
+**Review status:** `INDEPENDENT SOURCE/FRAME INTEGRITY PASS; VERIFIED COLLISION IMPROVEMENT; PO PERCEPTUAL MOTION ACCEPTANCE PENDING`.
