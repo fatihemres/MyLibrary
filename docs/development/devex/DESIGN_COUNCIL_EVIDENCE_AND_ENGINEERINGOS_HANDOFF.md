@@ -603,3 +603,45 @@ The user wants a **playful, reusable identity not tied to MyLibrary**. Historica
 8. **Governance:** This docs-only Draft PR entry is historical research, not permission for MyLibrary production implementation, `v2` integration, issue closure, EngineeringOS mutations or releases.
 
 **Current status:** `AGENT-REPORTED E2 FINAL CANDIDATE READY FOR PO REVIEW / SOURCE AND MOTION INDEPENDENT REVIEW PENDING / PRODUCT ACCEPTANCE NOT GRANTED`. No four-member workflow quality superiority claimed.
+---
+
+## 22. E2 independently inspected offline ZIP and PO motion reaction (2026-11-11)
+
+> **Source and authority:** The PO uploaded the original E2 offline review archive on 2026-11-11 and independently expressed that transitions **still feel abrupt (“çötenk”)**. A separate read-only analyst recomputed archive, source, review-receipt and frame hashes, inspected v4/E2 source diffs and actual captured frames, and read four-participant collaboration logs. This is a **documented independent source/frame analysis**, not a fresh full-speed browser replay, native Windows/DPI/FPS/screen-reader test or production acceptance. The PO's initial perceptual impression is first-hand, but not a formal full-state signoff.
+
+### Package and source integrity — checked rather than agent asserted
+
+- Uploaded ZIP: **873 total entries**. `CLEAN_DELIVERY_INVENTORY.json` references **872/872** real payload files; every referenced size and SHA-256 matched. The inventory is the additional 873rd entry. No absolute/parent-traversal or symlink paths observed.
+- `DELIVERY_SOURCE_MANIFEST.json` **6/6 final-source hash matches**. Among these six, `index.html`, `styles.css` and `data.js` are byte-identical to the copied frozen v4 baseline; `app.js`, `e1.css`, `e1-motion.js` differ.
+- **537/537** JPEG samples independently matched their sequence SHA-256 entries across **72 raw frame sequences**. They are sparse actual browser-captured frames, **not** continuous native video or measured FPS. Five sequence records retain nonmonotonic frame delivery/timestamps (v4 list-grid/manual-exit/description-close; E2 description-open/close); evidence was not reordered or repaired in the source.
+- Independently matched **18/18** exact image hashes cited in `FINAL_REVIEW_RECEIPT.json`. A/B/C/D receipt records identify the same final source bundle `25adff427ff1f1c972a3919c5ef8b86294f46f97e579a344f013756e97441fce`; this supports internal attribution consistency, not external model identity or human-level evaluation of fluid motion.
+- Delivered archive contains no filenames suggesting browser profiles, cookies, auth tokens or private runtime caches. This is a bounded file listing/static inspection only; **not** authorization to publish the raw 98 MB source/media, complete proof of absence of secrets or a rights/licensing review.
+
+### Decisive motion-quality source finding
+
+The E2 module `prototype-versions/e2-candidate-v2/e1-motion.js` contains the exact effective guard:
+
+```js
+const canAnimate = () => false; // E2: commit structural changes immediately; safe disclosure expansion stays in CSS.
+```
+
+As a consequence, the same JS helper disables animated results/surface travel, the previous **150ms sliding Grid/List active-selection indicator**, and JavaScript dialog entrance/exit choreography. The `indicator()` function simply places the active plate at the new position. The modal animation branch exits early; CSS for `[data-e1-motion]` also has `animation:none!important;transition:none!important`. CSS disclosure expansion and existing button hover/press feedback are preserved; theme-commit CSS transition is explicitly suppressed. **This is a deliberate global structural-motion rollback**, not an engine that animates at low perceptual quality.
+
+The E2 captured Grid→List sample has old Grid at an offset near **2ms** and full List by the next sampled **195ms** frame; collection navigation and Manual dialog samples likewise jump between completed states with large capture gaps. The source confirms immediate structural commits; the **precise moment of visual change cannot be inferred from these sparse frame intervals**. The PO's perceived “snap” is consistent with the implementation.
+
+### Whole-experience improvement versus primary motion failure
+
+- **Positive:** More compact search/sort/view controls, inline secondary settings and better screen-density management; agent-reported 900px first-book-top moved from ~533.4px to ~372.6px (**~161px geometry**, not a usability or smoothness score). Additional fixes address manual invalid-name focus/outer scroll, stale Smart totals and naming eligibility, contextual Copy membership, and the previously occluding display popover. PO-liked hover/press and synthetic data identities preserved.
+- **Motion limitation:** Existing book crossing and blank-shell/ghost problems were avoided by making transitions instant, **not** by delivering a pleasant coherent motion language. E2 even regressed the formerly working moving view indicator from v4. Not all transitions are absent: CSS details and button micro-feedback remain.
+- **Tradeoffs:** Opening the secondary settings still pushes book content downward. Compacting controls and replacing transitions should not automatically count as quality superiority; normal-speed human validation remains the priority.
+- **Team evidence:** The four distinct model contexts reported real challenge/retraction: D suggested identity-preserving reflow and full-panel fading; peers rejected them after adverse/insufficient visual evidence, D withdrew them. B's inline settings and A's status summaries improved the candidate. **D was a separately prompted model context, not a newly verified/installable motion expert skill or human professional.** No distinct D-only capability or causal four-versus-three improvement was demonstrated.
+- **Review-method weakness:** All four examined 18 selected images, **not continuous full-speed animations**, and did not personally browse the candidate in native Windows. The original 133 local browser tests, 5 player checks and 8 delivery checks were reported by the runner, **not independently rerun** here. This explains why “ready for PO visual review” could coexist with continued subjective abruptness.
+
+### Recommended research disposition — no unilateral tool/adoption decision
+
+1. Preserve the actual v4 and E2 candidates, source hashes, failed approaches and PO first-hand “snap” feedback. Mark E2 as **partial whole-interface UX improvement, motion-design goal NOT MET / PO motion acceptance NOT GRANTED**.
+2. Do not immediately start another generic 4-person debate or add a fifth member. The limiting factor appears to be **motion-specific concept/prototyping and trustworthy continuous playback/review**, not merely number of AI opinions.
+3. If the PO approves a new scoped experiment, assess **verified motion-specific design skills/tools** and use genuine normal-speed continuous captures; explicitly benchmark transition coherence, active-selection slide, modal/page entrances, interruption, focus, reduced motion, collision avoidance and perceived quality. Preserve liked button effects and previous v4 indicator as nonregression references. A fallback is allowed but it cannot silently replace the primary motion goal.
+4. Attribute the independent technical findings distinctly from agent reports and subjective PO comments in any future EngineeringOS transfer. No new dependency/service, production implementation, Design Council method permanence, EngineeringOS mutation or `v2` integration is authorized by this record.
+
+**Status:** `INDEPENDENT ARCHIVE/SOURCE/FRAME HASH PASS; E2 MOTION QUALITY REGRESSED/PRIMARY GOAL UNMET; PO INITIAL PERCEPTUAL FEEDBACK NEGATIVE; FULL NATIVE REVIEW AND ADOPTION OPEN`.
