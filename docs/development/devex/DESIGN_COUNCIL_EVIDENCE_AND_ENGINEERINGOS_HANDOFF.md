@@ -566,3 +566,40 @@ The user wants a **playful, reusable identity not tied to MyLibrary**. Historica
 - Participant outage is **not** a design-quality result. Any later EngineeringOS transfer must distinguish **infra failure modes** from product outcomes and include actual model calls, completion counts, retries, quotas and tool/env provenance where verified.
 
 **Scope:** This append-only public-safe entry updates the authorized docs-only Draft PR. No production code, GitHub protected-ref integration, Issue closure, EngineeringOS repo changes, final method adoption or product approval.
+---
+
+## 21. E2 four-perspective candidate completed — agent-reported handoff (2026-11-11)
+
+> **Provenance and decision status:** The PO forwarded the Codex E2 completion report on **2026-11-11**. These are **agent-reported experiment, participant and local test outcomes**. No E2 ZIP, prototype source, motion videos, logs or manifests have been uploaded for this GitHub update, and no independent runtime or visual review is claimed. The four participants' `ready for PO review` is **NOT PO design acceptance, product approval, validated quality, or permanent team adoption**. This later checkpoint supersedes the earlier **partial transport blocker** as current status, while preserving §20's original history.
+
+### Reported execution, evidence, and final artifact
+
+| Subject | Latest PO-forwarded report | Independent verification status |
+| --- | --- | --- |
+| E2 status | **One shared candidate** delivered for PO visual review | Not yet replayed/seen by this reviewer |
+| Participation | **A/B/C/D** reportedly reviewed the **same source** and found it PO-review-ready | Original four source-linked responses / identity proof not yet examined |
+| Authenticated Council calls | **19/20 attempted: 17 completed responses, 2 earlier NETWORK errors** | Agent report, raw invocation/usage ledger not received |
+| Transport recovery | One authentic **D canary** reportedly succeeded; **no further connection closes** | Agent report only; earlier 2 failures remain valid history |
+| Prototype checks | **133** reportedly passed | Original exact assertions/logs not received; not equivalent to UX excellence |
+| Comparison player checks | **5** reportedly passed | Agent report only |
+| Delivery checks | **8** reportedly passed | Agent report only |
+| Baseline preservation | Frozen **E1-R2 v4** and **565 prior public files** reportedly unchanged | No uploaded baseline-to-E2 byte comparison |
+| Visual scope | Candidate E2, holistic UI audit and movement evidence reportedly available | Actual final screenshots/motion not yet independently evaluated |
+| Clean delivery | Offline `Design-Council-E2-offline-review.zip`, approximately **98 MB** | Not yet received or inspected; no safety/publication certification |
+| ZIP privacy | Report says no profiles, cookies, credentials or private runtime files | Must independently list/check archive before sharing or publication |
+| Native acceptance | Windows WebView2, DPI, FPS, screen-reader acceptance **not performed** | Explicitly open |
+
+**Reported local experiment ID:** `council-collections-e2-four-perspectives`. Portable relative artifact pointers (not working external links): `prototype-versions/e2-candidate-v2/index.html`, `review/MOTION_COMPARISON.html`, `FINAL_REPORT_TR.html`, `COUNCIL_COLLABORATION.md`, `FINALIZATION_STATUS.json`, `FINAL_PUBLIC_FILE_INVENTORY.json`, `CONTINUATION_E2_FINAL.md`, `delivery/Design-Council-E2-offline-review.zip`.
+
+### What this does and does not establish
+
+1. **Positive process milestone:** Unlike the 2026-11-10 partial report (§20), the runner now reports authentic D participation within a four-person shared-candidate workflow, with 17 responses instead of zero usable D output. Exact participant roles, source visibility and meaningful independent critique must be validated against actual research records.
+2. **No ungrounded D superiority claim:** Four-person readiness is not an experiment demonstrating that the added specialist improved perceived motion relative to the existing three people. A same-baseline, matched-cost three-member E2 control was not run. The team may have improved from additional iteration, larger context or practice.
+3. **Perceptual defects remain explicitly open:** The report itself still identifies an **abrupt transition feeling** and **timing/order limitations in five comparison recordings**. Passing controls must not close those quality observations.
+4. **Whole-experience obligation:** The PO's approved research goal in §19 remains active: inspect the whole interface and discover issues the PO did *not* point out, not merely patch named Grid/List, modal and page-transition defects. An original unprompted-findings audit and four-way critique are required to evaluate whether E2 met this requirement.
+5. **Next evidence gate:** Independently inspect the **actual clean 98 MB ZIP** in a safe, read-only environment, validate manifest/source hashes, check absence of browser credentials/runtime, read original A/B/C/D contributions, compare v4/E2 moving frames in their correct order and inspect the interactive UI where locally feasible. PO then evaluates at **normal speed**.
+6. **No automatic next phase:** Do not start a further design Council experiment, add Motion/GSAP, install another skill or adopt a permanent D member until this candidate's visual review and PO direction. Proposed tool comparisons remain distinct from the fourth-perspective variable.
+7. **EngineeringOS:** Preserve the reusable methodology, attribution, quota/transport failure recovery, visual-acceptance distinction and complete evidence chain; do **not** publish private local ZIP, browser profiles, source recordings, personal paths or model-session details without separate privacy and rights review. The general team name remains undecided.
+8. **Governance:** This docs-only Draft PR entry is historical research, not permission for MyLibrary production implementation, `v2` integration, issue closure, EngineeringOS mutations or releases.
+
+**Current status:** `AGENT-REPORTED E2 FINAL CANDIDATE READY FOR PO REVIEW / SOURCE AND MOTION INDEPENDENT REVIEW PENDING / PRODUCT ACCEPTANCE NOT GRANTED`. No four-member workflow quality superiority claimed.
