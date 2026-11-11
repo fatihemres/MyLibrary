@@ -689,3 +689,35 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 - Keep stable release/versioning, personal data and protected branches untouched. No EngineOS or MyLibrary repository adoption from this document alone.
 
 **State at this checkpoint:** `MOTION CAPABILITY CANDIDATES VERIFIED AS PUBLIC REFERENCES / NO DEPENDENCY OR SKILL INSTALLED / NEXT IS ISOLATED MOTION TRIAL AND PO VISUAL REVIEW`.
+---
+
+## 24. PO-proposed early design-direction calibration as future EngineeringOS default (2026-11-11)
+
+> **Source:** 2026-11-11 direct PO dialogue. **Status:** `OWNER-DIRECTED METHODOLOGY CANDIDATE / ENGINEERINGOS PUBLIC CORE NOT UPDATED / NOT IMPLEMENTED`. This is an **owner preference for future EngineeringOS design-workflow standards**, not approval of new repository mutation, orchestration runtime, skill installation, product design, roadmap milestone, automatic tool stack, or additional integrations.
+
+### What the owner wants
+
+- The multi-expert team should learn and reuse a stable **product-agnostic early visual-direction calibration** method on **appropriate new UX/design work**, not improvise a new process with every task.
+- Early in new products or large redesigns, experts should independently sketch **small, genuinely different mood/layout/interaction directions**, plus short actual motion demos where motion is material, **before spending large budgets on a fully polished implementation**.
+- The PO may express likes/dislikes across several examples, **not** be forced to pick one complete concept. Capture the underlying feeling and design intent rather than copying the first mockup literally.
+- After PO direction alignment, all specialists retain **equal creative authority across every dimension**; creative debate, alternative prototypes, self-criticism and whole-experience audit continue within the team. Provide **one coherent final design** for actual PO acceptance.
+- **Do not re-vote accepted decisions:** calibration is conditional. Existing accepted art direction and minor fixes continue without redundant PO checkpoint; genuinely new/changed visual direction, conflicting goals or explicit PO feedback may reopen it.
+- No permanent stylistic preference, named team or design approach is silently inferred from a hypothetical thumbnail. A PO's early example preference is **not** a product-feature, library, release or code-writing authorization.
+- Technical PASS, selected-frame review, true full-speed motion judgment, native UI acceptance and PO approval remain distinct. Do not repeat E2's disabled-motion outcome as a polished experience.
+
+### Concrete future EngineeringOS integration proposal (not yet authorized)
+
+1. Amend `workflows/ui-ux-craft.md` with a **four-way activation router**: `NEW_DIRECTION` (light calibration), `CONTINUE_ACCEPTED` (reuse prior brief), `LOCAL_MAINTENANCE` (skip calibration), `OPEN_EXPLORATION` (optional PO-delegated exploration).
+2. Link a dated **Design Direction Brief** handoff from `docs/ORCHESTRATION.md`, with accepted/liked/disliked/provisional/open categories and actual source refs, without promoting design preference to execution authority.
+3. Supply optional light mockup and motion demo templates, a whole-experience quality coverage ledger, and **normal-speed** motion evidence gates. Do not require multiple full alternatives on every ticket.
+4. Keep actor isolation and technical review rules in existing EngineeringOS `AGENTS.md`, plus capability discovery/adoption, private evidence and Public Core redaction gates. A role is a perspective, not a separately installed skill or genuine expert identity.
+5. Record exact version, provenance, disputed findings and evidence class; no new shipped registry schema, always-on hooks, auto-install, new third-party library, EngineeringOS PR, or production change implied.
+6. Prototype the workflow on a bounded synthetic case after the **currently running E3** finishes; do not change E3's scope or claim early calibration is already proven to reduce cost.
+
+### Independently reviewed EngineeringOS source context (2026-11-11)
+
+- EngineeringOS public repository `main` at `2f31e248bf82f64870bb9591aafdfc53261add19` (read-only verification). `AGENTS.md`, `docs/ORCHESTRATION.md`, `workflows/ui-ux-craft.md`, `docs/P0_CAPABILITY_CONTRACT_DISCOVERY.md` already contain portions of independent proposals, PO choice and UI review guidance, **but no validated always-on design-calibration runner**. Foundation describes advanced orchestration as **not implemented**.
+- Relevant accepted authority: **Public Core + Private Workspace**, independent PO-scoped authorization, project-level precedence and private-first experience capture. Public docs may ultimately contain a sanitized general workflow, not MyLibrary raw designs, full conversations, personal local paths or private runtime artefacts.
+- A stand-alone **proposed protocol** was drafted as `ENGINEERINGOS_DESIGN_DIRECTION_CALIBRATION_PROTOCOL_PROPOSAL_2026-11-11.md` for PO review and later separately authorized EngineeringOS contribution; this generated artifact is **not automatically a GitHub/EngineeringOS file**.
+
+**Follow-up owner gate:** Authorize a separate docs-only EngineeringOS branch/Draft PR once the workflow wording is reviewed. Do not merge this into the protected `main` or claim persistent runtime enforcement without independent review, CI and explicit PO integration approval.
