@@ -645,3 +645,47 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 4. Attribute the independent technical findings distinctly from agent reports and subjective PO comments in any future EngineeringOS transfer. No new dependency/service, production implementation, Design Council method permanence, EngineeringOS mutation or `v2` integration is authorized by this record.
 
 **Status:** `INDEPENDENT ARCHIVE/SOURCE/FRAME HASH PASS; E2 MOTION QUALITY REGRESSED/PRIMARY GOAL UNMET; PO INITIAL PERCEPTUAL FEEDBACK NEGATIVE; FULL NATIVE REVIEW AND ADOPTION OPEN`.
+---
+
+## 23. Motion capability research and E3 quality-gated experimental direction (2026-11-11)
+
+> **State:** The PO wants the team's motion and overall UI/UX quality improved substantially after E2's verified structural animation rollback. This is a **new research and scoped experiment proposal**, **not** acceptance of a tool/skill, automatic source modification, installation, user-interface adoption or EngineeringOS mutation. External references below were reviewed as public information on 2026-11-11; versions/rights must be checked again at any later adoption.
+
+### Diagnosed bottleneck (carry forward without hiding it)
+
+- Independently inspected E2 candidate code uses `const canAnimate = () => false`, disabling meaningful JavaScript structural transitions, including the earlier v4 active Grid/List indicator. Existing CSS button/hover/disclosure behavior remains; this distinction matters.
+- Four prompted design contexts and selection of 18 sampled images did **not** guarantee satisfactory *normal-speed user-perceived motion*. The team's fallback to instantaneous layout replacement prevented collisions but **did not meet the PO's original continuity goal**.
+- This is a **capability and evaluation-method gap**, not evidence that another participant headcount alone, more requests to “be smooth” or larger test counts will improve the experience. Positive non-motion E2 UX refinements should be preserved.
+
+### Research candidates (no installs/selection authorized)
+
+| Category | Source | Research rationale | Risk and guard |
+| --- | --- | --- | --- |
+| Motion design principles / agent reference | `LottieFiles/motion-design-skill`, https://github.com/LottieFiles/motion-design-skill | Timing, easing, spatial narrative, multi-element choreography, motion purpose, a11y; published MIT skill reference | Source contents and license to be reviewed as untrusted text; **no installer, hooks or global skill injection** without explicit PO approval |
+| Motion construction / independent audit | `emilkowalski/skills`, https://github.com/emilkowalski/skills | Distinct `animate`, `improve-animations`, `review-animations` and `find-animation-opportunities` guides make design/build/critique separate stages | Skill documents are external guidance, **not evidence of local installation or successful motion testing** |
+| Framework-free layout transition engine | `motion` vanilla JS `animateLayout`, https://motion.dev/docs/layout-animations | DOM layout and shared-element animation candidate for isolated **plain HTML/JS** prototype | Would be a **new dependency**; license/build, exact version, offline packaging, security and Tauri suitability require PO-scoped approval |
+| Complex DOM change transition | GSAP Flip, https://gsap.com/docs/v3/Plugins/Flip/ | FLIP captures before/after geometry and can choreograph Grid/List changes | Another runtime alternative, **not automatically stackable with Motion**; licensing/version and installation separate |
+| React integration option | Motion for React, https://motion.dev/docs/react-layout-animations and React 19.3 `<ViewTransition>`, https://react.dev/blog/2026/09/09/react-19-3 | Relevant to **later** React/Tauri product implementation, not automatically compatible with present vanilla-JS E2 mockup | Production React version lock/WebView2 browser support, architecture/performance and approval not yet validated |
+| UI reference components | `ibelick/motion-primitives`, https://github.com/ibelick/motion-primitives | Animated UI reference implementations | Beta; uses Motion/Tailwind; CLI can install packages automatically; **do not run auto-install or indiscriminately stack components** |
+
+### Next experiment design (scoped candidate, not a PO-approved release plan)
+
+1. Preserve frozen v4 and E2 **unaltered**. Establish one fresh, synthetic, local experimental prototype and compare source hashes before and after.
+2. Start with **whole-experience proactive visual and motion audit**: list major observed strengths/weaknesses and prioritize improvements independently of the PO's originally highlighted four areas. Keep data/product scope unchanged.
+3. Separate **creative motion direction** from **technical implementation** and **critical motion review**: all A/B/C/D remain equal-authority over all design dimensions, but use documented independent input/output evidence. Do not claim a prompted D became an installed motion specialist.
+4. For a small number of representative interactions, compare genuinely different *internal* strategies at **real playback speed** and capture time-ordered continuous clips whenever the available tooling supports them; include 60/120Hz and native WebView2 claims **only if measured**. For every strategy, verify a complete state change: initial, intermediate, final, quick reverse, focus, scroll, reduced-motion, 900px TR dark, keyboard.
+5. **No more “disable animation and call it polished”**: an instantaneous reduced-motion/error fallback may be safe, but if the main experience still visually snaps, record `MOTION GOAL NOT MET` and do not claim UI-quality approval.
+6. Preserve liked button/hover effects and v4's active indicator as non-regression examples. Reject collisions/ghosting, blank-shell panels, unexpected jumps, reflow underfoot, stale-frame sequences and broken modal/dialog focus.
+7. Only once a no-new-dependency motion test and actual evidence are understood, request explicit PO permission for **one** isolated motion-runtime/skill candidate, if needed. Do not change global skill/hooks, dependencies or any production repo implicitly.
+8. Let the whole team jointly produce **one** refined result, with recorded actual positions changed, D's incremental contribution, decisions rejected, defects found without PO prompting, quantitative environment/test limitations and PO full-speed acceptance **separate from Council PASS**.
+9. For overall MyLibrary quality, **Collections is a laboratory, not the entire product**. Later audited design-system transfer to other application screens requires separate scope/PO authorization; no blanket V2 UI redesign is authorized here.
+10. Keep a clean review package containing only the necessary design, relative assets, time-ordered playback and public-safe reports; exclude auth profiles/runtime/cache, personal paths and unreviewed external files.
+
+### Trial comparison logic and stop condition
+
+- Favor **measurable reduction in perceived abruptness without collisions** and coherent whole-product design, not number of generated animations or test assertions.
+- Document exact engine/skill provenance, whether it was read-only reference, installed package or merely prompted role; configured versus observed model identities and actual calls, financial cost if known and failure logs.
+- The future **PO's own normal-speed visual verdict** is decisive for subjective polish. Technical tests and four-model consensus are necessary evidence, **not** substitutes.
+- Keep stable release/versioning, personal data and protected branches untouched. No EngineOS or MyLibrary repository adoption from this document alone.
+
+**State at this checkpoint:** `MOTION CAPABILITY CANDIDATES VERIFIED AS PUBLIC REFERENCES / NO DEPENDENCY OR SKILL INSTALLED / NEXT IS ISOLATED MOTION TRIAL AND PO VISUAL REVIEW`.
