@@ -813,3 +813,29 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 5. Preserve D0 source/videos and PO acceptance boundaries: this preference is not native WebView2 proof, Windows DPI/FPS verification, accessibility validation or permission to merge.
 
 **Next gate:** discuss how to give the leading Reading Table direction a stronger *desktop* identity while preserving its feel and motion, with the future colour-specialist research deliberately kept open until the PO provides the material.
+---
+
+## 28. D1 Council blocked at preflight — Ponytail FULL subagent instruction leakage (2026-11-13)
+
+**State:** `AGENT-REPORTED PRE-FLIGHT STOP / NO D1 DESIGN / OPEN TOOL-ISOLATION DECISION`. **Evidence:** PO-supplied Codex D1 preflight response and independently read official Codex Hooks documentation and upstream Ponytail 5.3.3 hook source; the local machine checkpoint files were **not** independently uploaded or audited in this turn.
+
+### What actually happened
+
+- The PO had authorized a **D1-session-only Ponytail observer/reporting exception** conditioned on A/B/C/D remaining independently creative and on verifiable non-influence. Full mode was active in the **coordinator's context**; Codex reported D0 provenance as FULL-exposed for all four previous creative participants (historical D0 provenance, not proof of D1 participant execution).
+- Codex found that Ponytail's `SessionStart` and `SubagentStart` hooks can place the active ruleset into coordinator/subagent model context, and it had **no verified capability** in its current interface to enforce observation-only usage. Therefore **the session-scoped verbal exception did not satisfy the independent-participant gate**.
+- **Correct stop:** zero D1 Council calls, zero prototype revisions, recordings or final source reviews. Codex reported 11 reference/input hashes and two preflight-checkpoint artifacts prepared inside the isolated D1 experiment. These counts and workspace isolation are **agent reports pending artifact inspection**, not independently verified hashes or visual results.
+- No claimed product-source, GitHub, global Ponytail configuration or previous-experiment changes. The attached worktree or participant effective contexts **were not** independently measured by this GitHub docs-only update. Do not mark D1 as a failed design or compare its visual quality with D0: **there was no D1 design.**
+
+### Why a prompt-only observer exception is insufficient
+
+- Official Codex hook documentation says plain stdout from `SessionStart` is additional developer context to the coordinator, and `SubagentStart` stdout becomes additional developer context to the subagent. <https://learn.chatgpt.com/docs/hooks>
+- Ponytail **v5.3.3** upstream `hooks/ponytail-subagent.js` emits the active mode's instructions on `SubagentStart`; default unset `PONYTAIL_SUBAGENT_MATCHER` sends them to **all** subagents. A regex matcher exists, but missing/unparseable `agent_type`, invalid regex or timeout **fail open** and may still inject the instructions. It is not sufficient proof of creative isolation. <https://github.com/DietrichGebert/ponytail/blob/v5.3.3/hooks/ponytail-subagent.js>
+- Ponytail's upstream `hooks/ponytail-activate.js` documents `off` skipping context emission at startup, and `INSTALL.md` documents the `PONYTAIL_DEFAULT_MODE` per-process environment default. However **changing only a running conversation's mode cannot retract previously injected developer context**. Fresh-session effective-context verification is required before claiming isolation. No configuration change is approved or performed in this research record.
+- The plugin's `FULL` role is a general coding guidance persona, **not** a technical-only independent observation facility. Merely saying “do not creatively influence” in a lower-priority task prompt does not remove higher-priority inserted context.
+
+### Two potential next execution routes — both awaiting PO choice and scoped authorization
+
+1. **Preferred: separate the roles.** Run fresh isolated creative coordinator and A/B/C/D sessions **without effective Ponytail ruleset injection**, verified by actual hooks/context provenance under a supported, scoped and reversible setting; then optionally run a *separate*, read-only Ponytail technical audit on the resulting frozen D1 candidate. Do **not** silently uninstall/change global hooks or reset previous worktrees. Confirm available host capabilities before promising this can work.
+2. **Alternative: expressly accept influence.** If the PO prioritizes keeping `FULL` active for the design experiment, explicitly remove the prior independence/observer-only claim and label all results `PONYTAIL-FULL-EXPOSED`. This would be a **different experiment**, not evidence of unbiased independent A/B/C/D creative directions. It requires new owner permission, and must not silently reuse the stopped task's acceptance criteria.
+
+**Research conclusion:** This is a **tool/governance preflight blocker**, not a motion/design failure, and **not** a green light to modify Ponytail hooks, global defaults, security protections, or MyLibrary product code. Until owner direction, D1 remains **PAUSED**, D0's favourable Reading Table aesthetics/book-click motion stay the only positive PO art-direction baseline. D-023/#51 default UI/UX exclusion and #52's scoped permission gate remain unresolved with later PO experimental exceptions; any permanent policy change must be separately approved and synchronized to `docs/DECISIONS.md`.
