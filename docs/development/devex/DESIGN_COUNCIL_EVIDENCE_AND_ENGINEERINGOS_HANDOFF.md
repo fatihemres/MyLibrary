@@ -906,3 +906,34 @@ The PO explicitly approved continuing **D1 Reading Table Evolution** with indepe
 4. Keep Ponytail's technical-only review independent of the creative team; PO's scoped permission does not license new hooks or global configuration changes.
 
 **Conclusion:** `D1_DESIGN_WORK_PRESERVED / FULL_CONTEXT_NOT_OBSERVED / BROWSER_CAPTURE_BLOCKED / PO_REVIEW_AWAITING_ZIP / NO_IMPLEMENTATION_APPROVAL`.
+---
+
+## 32. D1 partial ZIP independently checked — dual shells rendered in isolated in-memory Chromium (2026-11-13)
+
+**Evidence state:** `INDEPENDENT 61/61 PACKAGE INTEGRITY PASS / LIMITED NON-NATIVE DERIVED RENDER AND INTERACTION SMOKE / D1 DESIGN STILL PARTIAL`.
+
+### Independent uploaded-source findings
+
+- The user uploaded the actual `MyLibrary-D1-PARTIAL-20261113.zip` that had previously only been described by Codex. It measures **33,214,002 bytes** and the recalculated SHA-256 **`bb5e6e5292c0a41c9f530fb34756a12d2c56b70371980b08622c60d19c4f7734`** matches the reported original.
+- ZIP contains **63 entries**: **61/61 verified payload lengths and SHA-256 hashes** plus the manifest and manifest SHA sidecar. The sidecar matches the manifest's independent digest `4106bb6889beead0a2df2929e40ecf3b05f613ea78eba5f0b14b60aa5bf57c7d`. CRC/path checks are clean; no extra listed files, path traversal, backslash names or symbolic links. A targeted path/source scan **is not a comprehensive privacy guarantee**.
+- The nested full frozen D0 ZIP (**24,847,894 bytes**) hashes to `853164127e82a9a1d882c004d9f99f6cac19ee7b146ee31958bd8f8899705194`, matching the previously reviewed D0 archive. The nine preserved WebM files are explicitly **D0 historical videos**, not D1 motion evidence.
+- Exact D1 source has **one shared Reading Table implementation** with two URL-parametrized shells: compact `horizontal` and persistent `rail`. Both use the same six-Edition/seven-Copy synthetic fixture and product semantics; no “two independently completed redesigns” claim. Four A/B/C/D independent initial notes and received-context provenance are present, but **no final same-source four-participant review**.
+- The PO-loved selected-jacket Web Animations bridge remains in D1 code at **260 ms** / `cubic-bezier(.2,.7,.25,1)`. It is restricted to meaningful selection/return compared with D0's broader cover motion; layout and Copy movements are deliberately smaller. Source code preserves return route/layout/scroll/focus, reduced-motion gates and explicit Edition/Copy separation **as intended implementation, not established browser/native quality**.
+
+### Independent local diagnostic — important equivalence limit
+
+- This review environment's browser administrator policy blocked **both** actual `file://` navigation and locally fulfilled virtual HTTP navigation (`ERR_BLOCKED_BY_ADMINISTRATOR`), a **different** blocker from the PO Windows Codex Chrome/Edge process failures. Therefore, no exact-package browser launch passed.
+- A permitted **derived in-memory Chromium test** loaded unmodified source contents while omitting resource/CSP tags in the ephemeral page and replacing only the shell URL-selection expression with a fixed variant. Original source archive bytes were preserved; the modified **runtime test page is not the delivered application**.
+- Across both D1 variants at **1280×820 EN/light** and **900×620 TR/dark**, comparison renderings for Dashboard/Library/Detail were produced. No test page errors or external requests were detected, and sampled pages did not produce body horizontal overflow. This is **limited browser smoke**, not Windows native display verification.
+- In both variants the sampled **Library→e1 Detail→Library**, **cp2 independent selection**, and **Copy editor change→dirty confirmation→discard** flows passed. The cp2 condition remained `Poor` after discard. A Web Animations API cover animation was observed `running` with a **260 ms** effect; this does **not** demonstrate correct full-speed visual cadence.
+- A separate attempt to record continuous video in the isolated review environment failed because the configured Playwright ffmpeg executable was missing; **no new D1 video was made and no tool was installed**. No 1× D0-versus-D1 aesthetic acceptance is claimed.
+
+### Current judgment and follow-up
+
+- Compared with D0 in the limited derived render, **horizontal** removes repeated introductory/navigation chrome, retains spacious book presentation and may still feel somewhat web-like; **rail** gives recognizable persistent desktop navigation and narrower working width. Both show two Copy cards in the tested 900px Detail. PO has not yet evaluated either D1 shell at normal speed or chosen a winner.
+- Four Council initial critiques and earlier browser/packaging failures are preserved. The original Windows `spawn EPERM`, Chrome Crashpad/Mojo and Edge exception root cause is **not** known, and the local diagnostic does not resolve it.
+- See [full independent public-safe partial review](reviews/D1_PARTIAL_INDEPENDENT_PACKAGE_AND_VISUAL_DIAGNOSTIC_2026-11-13.md). No original ZIP, logs, personal paths, participant raw payloads, derived screenshot files or profiles were published in this repository.
+- Next gate: try a **PO-controlled normal manual preview** of the existing safe offline D1 variant pages in an already functioning browser, with no reinstall/profile/antivirus changes, and/or separately authorize a bounded isolated capture fix. Defer final Council assessment until a **genuine continuous D1 recording** and relevant keyboard/rapid-interruption checks exist. Keep D1 frozen, rather than spending more creative calls on environmental errors.
+- No production code, UX fix, roadmap, MyLibrary `v2` integration, EngineeringOS adoption or PO design acceptance is authorized by this documentation update.
+
+**Final evidence label:** `D1_PARTIAL_INDEPENDENTLY_VERIFIED / LIMITED_IN_MEMORY_RENDERING / TRUE_MOTION_AND_NATIVE_ACCEPTANCE_OPEN`.
