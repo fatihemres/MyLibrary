@@ -789,3 +789,27 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 - Current user permission permits continued **scoped GitHub research review documentation**, not rewriting D-023/D-024 or autonomous EngineeringOS deployment. MyLibrary #52 stays in discovery.
 
 **D0 outcome:** `INTEGRITY_CONFIRMED / THREE_MEANINGFUL_DIRECTIONS / ONE_DESIGN_REVIEW_CSS_CORRECTION / PO_DESIGN_PREFERENCE_PENDING`.
+---
+
+## 27. PO's first D0 direction calibration — Reading Table strongly preferred; desktop feel and colour engineering open (2026-11-13)
+
+**Evidence class:** `DIRECT PO SUBJECTIVE VISUAL/MOTION FEEDBACK`; **state:** `STRONG INITIAL ART-DIRECTION PREFERENCE / NOT FINAL DESIGN APPROVAL OR PRODUCTION AUTHORIZATION`.
+
+### What the PO actually observed
+
+- Of the three D0 sketches, **“Okuma Masası” (Reading Table) is preferred by a large margin**. This is the first direct art-direction response to D0 and supersedes the earlier “PO preference pending” research state; it does **not** retroactively turn D0 into a winner-selected product release or authorize design implementation.
+- The PO **especially liked the book-selection/click transition** (“kitaba tıklayınca ... motion ... acayip iyi”). Treat the spatial book/detail continuity as an **explicit positive experience reference** to preserve and investigate, not a requirement to copy unreviewed code or apply the exact same animation to every interaction.
+- The PO also liked **the general colours/visual atmosphere**. This is a preference for the current direction, not approval of a permanent fixed palette, contrast values, semantic tokens, or light/dark scheme.
+- The prototype still felt **somewhat web-based rather than native desktop** to the PO. The PO suspects the **top navigation** may be a contributing reason but is uncertain; this is a **perceptual design hypothesis**, not a confirmed implementation defect, and is not evidence that the PO is “wrong”.
+- The PO has **begun a separate investigation into colour and palette design** and is interested in a future **“colour engineer” / specialist colour capability**. Treat this as an **open design-research idea**, not a selected permanent fifth agent, skill, dependency, new service, automatic palette change, or license/install approval. Wait for PO-provided research/next direction before deciding the tool/role composition.
+- The PO did **not** give specific preference rankings to Catalogue Desk or Page by Page subcomponents; do not invent rejections of those concepts' accessibility/density, data-entry or information-architecture advantages.
+
+### Design consequences to propose for the next bounded exploration (not implementation authority)
+
+1. Use Reading Table's warm, book-centered **feeling and effective book-click motion** as the leading **calibration input** while keeping `Creative Freedom by Default`: the Council may exceed this result without mechanically copying it.
+2. Study desktop-native interaction cues independently from the colour/visual direction: persistent/appropriate navigation hierarchy, Windows window chrome/titlebar relationships, keyboard focus/shortcuts, resize density and editor behavior. Avoid the unproven conclusion that moving the navigation from top to left alone will solve the “web feel”.
+3. Evaluate colour as a design **system**, not just a set of hex values: coherent roles/tokens, contrast and state differentiation, book-cover variety, light/dark continuity and visual accessibility. No benchmark, colour tool or permanent specialist has yet been selected.
+4. Seek a **single more developed, representative direction after scoping the next stage with the PO**, keeping the other two D0 ideas as optional sources of better workflow/structure patterns, and protecting the five still-open native V2 UX/keyboard defects from being hand-waved as aesthetic improvements.
+5. Preserve D0 source/videos and PO acceptance boundaries: this preference is not native WebView2 proof, Windows DPI/FPS verification, accessibility validation or permission to merge.
+
+**Next gate:** discuss how to give the leading Reading Table direction a stronger *desktop* identity while preserving its feel and motion, with the future colour-specialist research deliberately kept open until the PO provides the material.
