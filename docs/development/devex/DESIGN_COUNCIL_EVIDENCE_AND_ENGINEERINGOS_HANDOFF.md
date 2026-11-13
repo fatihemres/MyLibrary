@@ -755,3 +755,37 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 - Do not automatically turn these five reproduced findings into changes within the design experiment; any corrective implementation needs a separately PO-approved #27 or narrower engineering scope.
 
 **End state:** `NATIVE_BASELINE_VERIFIED / FIVE_REPRODUCED_TRIAGE_ITEMS / E3-R1_POSITIVE_PO_MOTION_FEEDBACK / VISUAL_DIRECTION_EXPLORATION_NEXT / NO_PRODUCTION_DESIGN_ACCEPTANCE`.
+---
+
+## 26. D0 Creative Direction Exploration — three distinct sketches, actual peer correction and PO calibration pending (2026-11-13)
+
+**Status:** `D0 PACKAGE VERIFIED / THREE DIRECTIONS / PRE-PO-CHOICE / NO FULL PRODUCTION REDESIGN`. This is a dated research continuation and does **not** amend accepted product contracts, create new implementation authority or turn a design hypothesis into permanent policy.
+
+### Actual D0 handoff and independent checks
+
+- Codex research participant handoff: `Okuma Masası` (Reading Table), `Katalog Masası` (Catalogue Desk), `Sayfa Sayfa` (Page by Page). A/B/C/D have separately recorded initial design proposals. The four labels remain **prompted perspectives**, not proof of four different installed specialist design engines. The D0 coordinator chose three comparative concepts, **not** a winning design.
+- Uploaded user-supplied review ZIP `MyLibrary-Design-Council-D0-20261113.zip`: **24,847,894 bytes**, SHA-256 `853164127e82a9a1d882c004d9f99f6cac19ee7b146ee31958bd8f8899705194`. Independent inspection: **166 ZIP entries; CRC clean; 163/163 manifest payload SHA and size matched; 165/165 SHA256SUMS entries matched; no path-traversal/Unix-symlink evidence**. This is not a security certification.
+- All **nine** D0 continuous browser WebM recordings independently hash-matched the shipped video manifest and fully decoded; three ordinary, three TR/dark/narrow, three reduced-motion variants, roughly 9.6–11.2 sec. Another **37** final illustrative screenshots and **27** motion-frame PNGs are present. These are browser prototypes, **not native WebView2 UX or measured native FPS**. Selected frames were personally compared in a read-only local viewer; the PO has **not yet provided a preference or final motion comfort assessment for D0**.
+- Same synthetic fixture: **six Editions, seven independent Copies, two active Wishlist wishes and one fulfilled wish**, with no silent ownership/Edition matching or real acquisition commit. Production `v2` stayed unchanged; local synthetic browser state only.
+
+### The deliberately different design decisions
+
+- **Reading Table:** warm editorial/cover-first personal-library experience, asymmetric visual space, focused Edition Detail and centered edit sheet. It preserves book presence but may reduce retrieval efficiency and Copy accessibility above the first 900×620 viewport. A 260ms book-jacket transition may visually cross immediately settled row text (normal-speed PO evaluation needed).
+- **Catalogue Desk:** compact, blue/graphite working desk where Edition/Copy inspector remains beside results at wide sizes. High-density repeat-work value; risk of an administrative feel, empty pre-selection pane, and loss of simultaneous context at 900px. Whole-row/tile movement includes text.
+- **Page by Page:** large title-led, full-page navigation and editor, explicit shared-Edition versus independent-Copy sections, generous focused tasks. Trades visible catalogue context and immediate access to footer actions on narrow height for task clarity. Layout and typography motion cadence needs 1× review.
+
+### Real critiques, evidence limitations and retained failures
+
+- Council D independently caught a **significant Catalogue Desk v1 dark-mode contrast/inheritance issue**. Original v1 and broken screenshot were preserved; author C changed only the candidate CSS's body foreground/background/min-height, producing v2, and focused browser checks verified the affected states. This supports **a real critique → correction sequence**, not universal high visual quality.
+- Earlier combined and keyboard harness failures were preserved and later isolated. In particular a failed overly strict focus-containment assertion left a Catalogue dialog open and contaminated two follow-on click timeouts; isolation found a BODY/document focus boundary **without verified background control interaction**. Do not transform those three failures into three product bugs or claim full accessibility certification.
+- The complete **four-participant final-source review did not occur**; D's focused final comparison and the initial four proposals are what is actually evidenced. No participant is reported to have watched all full-speed D0 videos. Technical PASS is separate from visual impression and PO acceptance.
+- The native V2 baseline's five independently reviewed and agent-reproduced issues remain separate #27 triage candidates, unchanged by these D0 sketches.
+- Ponytail full injection under a **fresh D0 observer-only exception** is acknowledged; it is not a fifth creative author, and the exception should not be silently carried to the next session.
+
+### Independent report and PO handoff
+
+- [Full public-safe D0 independent review](reviews/D0_CREATIVE_DIRECTION_INDEPENDENT_REVIEW_2026-11-13.md) links the source ZIP hash, comparison tradeoffs, contributor provenance, browser and motion evidence limits. **The private raw ZIP, source archive, participant session payloads, media and local machine paths are not public GitHub attachments.**
+- Next action is **PO visual direction calibration** against the three shipped interactive sketches and **nine genuine browser recordings**. The PO may prefer features across concepts and need not select an overall winner. No new Council spend, design synthesis, product UI edit or external install should be triggered before recording those preferences.
+- Current user permission permits continued **scoped GitHub research review documentation**, not rewriting D-023/D-024 or autonomous EngineeringOS deployment. MyLibrary #52 stays in discovery.
+
+**D0 outcome:** `INTEGRITY_CONFIRMED / THREE_MEANINGFUL_DIRECTIONS / ONE_DESIGN_REVIEW_CSS_CORRECTION / PO_DESIGN_PREFERENCE_PENDING`.
