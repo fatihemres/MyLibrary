@@ -721,3 +721,37 @@ The E2 captured Grid→List sample has old Grid at an offset near **2ms** and fu
 - A stand-alone **proposed protocol** was drafted as `ENGINEERINGOS_DESIGN_DIRECTION_CALIBRATION_PROTOCOL_PROPOSAL_2026-11-11.md` for PO review and later separately authorized EngineeringOS contribution; this generated artifact is **not automatically a GitHub/EngineeringOS file**.
 
 **Follow-up owner gate:** Authorize a separate docs-only EngineeringOS branch/Draft PR once the workflow wording is reviewed. Do not merge this into the protected `main` or claim persistent runtime enforcement without independent review, CI and explicit PO integration approval.
+---
+
+## 25. E3-R1 PO motion feedback and V2 native visual baseline independent review (2026-11-13)
+
+**State:** `VERIFIED BASELINE RESEARCH / PO MOTION FEEDBACK / CREATIVE DIRECTION NOT YET CHOSEN`. Append-only evidence and intent; no new MyLibrary/EngineeringOS product workflow, app code, dependency or integration approval.
+
+### E3 / E3-R1 research update (PO and agent evidence are not interchangeable)
+
+- Codex **E3 partial** reported 9/16 Council attempts, 8 genuine responses and one `NETWORK / CLI_ERROR_NO_RETRY`; motion remained enabled but toolbar jumping, empty navigation region and modal text ghosting were still defects. The failure to execute `record_lab.py` was separately diagnosed as an automatic approval **usage-limit** error, not a malware judgment.
+- E3's uploaded package was independently inspected and was technically substantive but **not** a complete final Council review. The PO later stated that E3's normal-speed motion no longer felt like the earlier abrupt “çötenk” and that the experience was materially improving.
+- Codex **E3-R1 v6** reported all A/B/C/D reviewed the same candidate source; 15/16 attempts, 14 responses and the one preserved transport failure. A initially objected, then withdrew the objection after reviewing additional same-source frames; differing evidence sets were disclosed. Uploaded ZIP was independently checked: 249/249 manifest files and 24/24 versioned source hashes matched, with 17 WebM recordings in the review package.
+- Independent sampled video/source inspection supported fixes to the toolbar jump, empty transition area and modal ghosting, with cover continuity and moving Grid/List indicator retained. **No model watched complete normal-speed video.** PO's subsequent Windows observation: ordinary interaction was broadly good; **one intermittent stall on rapid clicks** occurred. This is **positive directional feedback, not unconditional motion acceptance or proof that native production will automatically fix a prototype stall**.
+- No native WebView2 FPS, DPI or screen reader evaluation was established for E3-R1; this must not be conflated with the separate V2 native baseline described below.
+
+### V2 real application — read-only study, independent package verification
+
+- Source-only Whole-App UX Discovery used live `v2` commit `10510ab0c5a5d413717cf736b1d74d3590b39e2b` and listed Dashboard, Library, Detail, Add/Edit, Wishlist, Locations, Explore, Personal, Settings and Data workflows. **Smart/Manual Collections remain Issue #33 discovery, not a current integrated screen.**
+- The PO authorized an isolated real Tauri/WebView2/SQLite **synthetic-only baseline capture** on a separate exact-SHA worktree, not product changes or real library access. A past single-file JSON/EOL anomaly was explicitly and narrowly excepted after a reported no-substantive-diff check. The existing Ponytail `full` hook was granted **observer-only in that capture session**, not adopted for future creative UI/UX sessions.
+- Supplied Codex report: **six user journeys, 95 PNG screenshots, seven WebM videos**, synthetic records, separate profile, and existing offline toolchain. The first session was interrupted by a Codex quota limit and subsequently completed. `900×620` captures were **viewport emulations in native WebView2**, not physically resized desktop; encoded 25 FPS is not a native FPS measurement.
+- **Independent ZIP check:** 42,386,088 bytes; SHA-256 `4e1e4023c150d93d07f818476b0940fa487a203bfee2dacd9d348717718bf4cd`; 229 ZIP entries, 227/227 manifest payload hashes recalculated, all seven videos decoded; 42 additional timed-status-limited Wishlist JPG frames were retained. Original capture was **not independently rerun**. Archive safety and targeted private-data checks are not a certification.
+- Five native-reproduced candidate defects, **not yet implemented fixes**: Dashboard→Detail back-button destination label mismatch; Library page 2 state loss after Detail; `ArrowDown` dismisses context menu; `Ctrl+N` opens second Add Book modal over open Physical Copy modal; full synthetic title query misses while a shorter title fragment finds it (root cause unknown). The two keyboard cases deserve priority triage; no proven data loss. Distinguish source-identified `aria-pressed` omission from measured screen-reader impact.
+- Independently inspected screenshots suggest visual opportunities: sparse Dashboard blank panels; dense Library hierarchy; large Wishlist header/budget block at narrow TR/dark pushing books below fold; Book Editor horizontally scrollable tabs and nested scroll; mixed serif editorial/sans desktop presentation. All are **design hypotheses** rather than PO-confirmed failures.
+- **Ponytail attribution:** tool prompt/observation occurred inside the same Codex session, **not** a distinct technical review model, and an observed possible cover URL cache risk remains **unmeasured**.
+- **Independent, publicly readable detailed record:** [V2 Native Visual Baseline Independent Review](reviews/V2_NATIVE_VISUAL_BASELINE_INDEPENDENT_REVIEW_2026-11-12.md). The full source ZIP, recordings, raw screenshot/PC provenance and personal/local paths are **not published here**.
+
+### PO direction / next gate
+
+- The PO authorized preserving future review evidence on the **existing scoped GitHub research Draft PR**, with no blanket `v2` integration, EngineeringOS main mutation or Issue closure.
+- Next experiment idea: **Creative Direction Exploration**, starting with independent A/B/C/D design thinking and only **2–3 lightweight visual and real motion directions** on real-product journeys, then one **early PO calibration**. Keep accepted Edition/Copy, offline/security and acquisition policy boundaries; use *Creative Freedom by Default* without promoting an early preference into a permanent component lock.
+- Only **after** PO orientation feedback should the Council commit substantial implementation to **one cohesive representative interactive candidate** with normal-speed evidence. Separate visual acceptance, actual engineering acceptance, platform support and PO authorization.
+- The original D-023/Issue #51 Ponytail **off-by-default** policy for UI/UX remains in the repository; its session-specific observer exception for baseline capture does **not** extend automatically to the next Design Council session.
+- Do not automatically turn these five reproduced findings into changes within the design experiment; any corrective implementation needs a separately PO-approved #27 or narrower engineering scope.
+
+**End state:** `NATIVE_BASELINE_VERIFIED / FIVE_REPRODUCED_TRIAGE_ITEMS / E3-R1_POSITIVE_PO_MOTION_FEEDBACK / VISUAL_DIRECTION_EXPLORATION_NEXT / NO_PRODUCTION_DESIGN_ACCEPTANCE`.
