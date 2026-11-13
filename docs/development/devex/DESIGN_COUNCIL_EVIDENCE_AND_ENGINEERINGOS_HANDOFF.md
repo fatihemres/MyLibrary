@@ -872,3 +872,37 @@ The PO explicitly approved continuing **D1 Reading Table Evolution** with indepe
 - Do not construe this entry as a new product design, production acceptance, milestone decision, adoption of Ponytail, automatic authorization to integrate `v2`, or actual independent validation of the user's Windows runtime.
 
 **Next task:** clarify the difference between **effective instruction isolation** and **positive hook-event telemetry** in the running CLI session and proceed with the **already PO-authorized D1 research scope** only if actual participant contexts remain clean. A separate Ponytail technical-only audit remains optional and off the creative critical path.
+---
+
+## 31. D1 CLI 0.169.0 — four Council submissions, two shell drafts, browser failure and partial preservation (2026-11-13)
+
+**State:** `PO-SUPPLIED AGENT TRANSCRIPT / D1 PARTIAL / CONTEXT ISOLATION OBSERVED / BROWSER MOTION REVIEW BLOCKED`. No final D1 quality claim, production source change or acceptance.
+
+### Work genuinely reported as completed
+
+- Fresh **Codex CLI 0.169.0**, configured **`gpt-6.1-sol / high`**, launched under process-local `PONYTAIL_DEFAULT_MODE=off`. Coordinator and participant A/B/C/D effective-context inspections reported no active Ponytail FULL rules; no active runtime flag. This resolves the earlier *observed creative-context contamination concern for this particular session*, but does not establish positive hook lifecycle telemetry, permanent config isolation or a future-session guarantee.
+- The original D1 brief and checkpoints were recovered. **Four participant invocations** completed, with independent design critiques reported; **two desktop shell/navigation drafts** were preserved. Early critiques implicated repeated chrome, oversized introduction and distant Copy controls, not just placement of the top navigation. The D0 Reading Table visual feel and book-click continuity remain the PO's positively observed reference, not a proven D1 outcome.
+- Input preservation checks **reported by Codex**, not independently rerun in this GitHub update: 163 D0 manifest payloads, 114 selected frozen V2 source blobs and previous reference ZIPs/checkpoints. Prototypes, input hashes and drafts were saved in an isolated synthetic experiment.
+- **No verified D1 final candidate, 1× motion recordings, native visual acceptance, accessibility conformance, PO acceptance or all-four final-source review**. A/B/C/D being invoked is not the same as all four approving an animated final design.
+
+### Tooling/browser blocker and conservative stop
+
+- Browser launch through installed Node/Playwright helper was blocked with `spawn EPERM`; an ffmpeg subprocess failed with `EPERM` as well. Subsequent existing headless browser attempts failed without a reliable working browser-control host.
+- Chrome **157.0.8103.52** reported Crashpad `CreateFile` access denied, followed by fatal Mojo/IPC startup failure. Edge **156.0.4314.42** displayed a `0x80000003` exception in the PO screenshot, but the available Windows event query did **not** corroborate it. Executable signatures were reported valid. These are **symptoms**, not confirmed Kaspersky, Windows Defender, malware, policy, profile or OS root causes.
+- The Computer Use Google Chrome permission was not granted, so that tool did not provide a browser inspection. Earlier Playwright capture failures **must not** be counted as failed native application journeys.
+- After the PO requested read-only diagnosis, Codex stopped launches without changing security settings, antivirus, personal browser profile, plugins, global settings, dependencies or production worktrees. The previous Kaspersky unsigned build-script false positive does not justify any AV bypass here.
+
+### Checkpoint and completeness
+
+- Codex's partial delivery saved `D1-PARTIAL-CHECKPOINT.md`, browser diagnosis, an offline link page, four Council submissions and two shell drafts. A first ZIP packaging attempt failed due to Windows-style entry separators, and a second helper initially missed the compression assembly; both failures were retained for provenance.
+- **Agent-reported** cleaned package: `MyLibrary-D1-PARTIAL-20261113.zip`, SHA-256 `bb5e6e5292c0a41c9f530fb34756a12d2c56b70371980b08622c60d19c4f7734`; 61 payload hashes reported matching. **Not independently verified or supplied to ChatGPT at this point**. The ZIP and any local machine profiles/diagnostic logs remain out of this public repository.
+- Detailed public-safe handoff: [D1 Partial and Browser Blocker Review](reviews/D1_READING_TABLE_PARTIAL_BROWSER_BLOCKER_2026-11-13.md). This report is an annotated account of the PO-pasted Codex transcript, **not** an independent ZIP review.
+
+### Next gate
+
+1. Request the **already-produced partial ZIP** for independent contents/hash review and static concept comparison *before* allocating any more Council or animation development calls. Preserve originals.
+2. If the prototype sources pass review, consider a PO-controlled **offline, normal-speed manual preview** in an already functioning browser; do not assume manual preview proves complete automated test or native FPS/DPI/a11y.
+3. If browser launch remains unavailable, retain D1 as `PARTIAL`, and isolate the browser/host diagnostic into its own separately scoped, authorized task instead of loosening security or making speculative fixes.
+4. Keep Ponytail's technical-only review independent of the creative team; PO's scoped permission does not license new hooks or global configuration changes.
+
+**Conclusion:** `D1_DESIGN_WORK_PRESERVED / FULL_CONTEXT_NOT_OBSERVED / BROWSER_CAPTURE_BLOCKED / PO_REVIEW_AWAITING_ZIP / NO_IMPLEMENTATION_APPROVAL`.
