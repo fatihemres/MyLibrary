@@ -937,3 +937,36 @@ The PO explicitly approved continuing **D1 Reading Table Evolution** with indepe
 - No production code, UX fix, roadmap, MyLibrary `v2` integration, EngineeringOS adoption or PO design acceptance is authorized by this documentation update.
 
 **Final evidence label:** `D1_PARTIAL_INDEPENDENTLY_VERIFIED / LIMITED_IN_MEMORY_RENDERING / TRUE_MOTION_AND_NATIVE_ACCEPTANCE_OPEN`.
+---
+
+## 33. D1 first PO normal-speed visual feedback — rail preferred; harsher transitions, viewport hopping and sparse feel (2026-11-16)
+
+**Evidence class:** `DIRECT PO MANUAL VISUAL FEEDBACK + INDEPENDENT SOURCE RE-INSPECTION`. **Status:** `D1_PARTIAL / POSITIVE_RAIL_PREFERENCE / VISUAL-MOTION_REGRESSIONS_REPORTED / NOT_FINAL_PO_ACCEPTANCE`.
+
+### Direct PO feedback
+
+- The PO **prefers the labelled left navigation rail** over D1's compact horizontal navigation. This is the current leading **desktop shell preference**, not an accepted permanent navigation decision or approval to integrate UI code.
+- The PO still feels the **well-liked D0 Reading Table book-click motion is present**, but other transitions feel **somewhat harsher than D0**. Preserve the signature book-to-detail continuity and improve the **surrounding** motion choreography; do not dismiss this as an unsophisticated preference or assume every 260ms animation works equally well.
+- On page/route changes the **viewport appears to shift downward/hop repeatedly** (“hop hop hop”). The PO considers this strange and distracting. Whether D0 also showed it is unknown to the PO. This is a directly reported **perceptual defect**; the specific event mechanism requires normal-speed reproduction.
+- The overall D1 screens feel **too empty, sparse and austere**, despite the PO liking Reading Table's warm identity. “More premium” here should not automatically mean adding features, decorative widgets or decorative motion; explore richer information hierarchy, stronger book presence, balanced occupied/empty space, and meaningful density.
+- The PO is not selecting a final D1 candidate or declaring motion acceptance. The prior five native V2 behavior/keyboard cases remain separate #27 engineering triage.
+
+### Independently re-inspected shipped ZIP source — plausible mechanism, not proven runtime root cause
+
+The already uploaded D1 partial archive `MyLibrary-D1-PARTIAL-20261113.zip` was reopened **read-only** and compared with its embedded frozen D0 Reading Table files.
+
+1. D1 `review/reading-table/app.js`: `openBook(...)` stores prior `scrollX/scrollY` and calls `render({bridge:id,from,scroll:{x:0,y:0}})`. `returnToOrigin()` applies saved scroll coordinates through `render({bridge:id,from,scroll:{x:point.x,y:point.y}})`. Generic `navigate()` also resets scroll to `(0,0)`. `render()` replaces `app.innerHTML` and then calls `window.scrollTo(...)`. **This is a specific candidate for visible vertical jumps or anchor/geometry instability during route changes**, particularly across views with different heights. Confirm with time-series scroll/geometry evidence before assigning definitive causality.
+2. Frozen D0's `render(move=true)` animates **multiple matching book covers** between old/new layout rectangles (260ms FLIP-style). D1's `render(options)` instead emphasizes **one selected jacket bridge at 260ms** (`cubic-bezier(.2,.7,.25,1)`) and a distinct **170ms, 8px local layout animation**; other surrounding DOM is replaced directly. This **plausibly explains** why one book transition still delights while overall navigation can feel less fluid. Not a measured user-perception or FPS claim.
+3. Both styles contain an original `.page` entrance rule translating 10px, **but D1's later CSS explicitly overrides it with `.page{animation:none}`**. Do not blame D1's page hopping on a rule that is overridden; inspect scroll restoration, DOM replacement, reflow, sticky header and focus interactions first.
+4. D1's labelled rail is fixed at approximately **184px** outside narrow overrides; it increases persistent navigation prominence while reducing the book working width. D1's book-card grid and six-edition synthetic fixture may contribute to the PO's sparse impression; **do not confuse fixture scarcity with proof that the final real library will look sparse**. Evaluate dense and sparse scenarios separately, at 900×620 TR/dark and standard desktop widths.
+
+### Next bounded design-and-engineering hypothesis (not implementation authority)
+
+- **Direction:** Carry the left rail as the leading D1 shell, keep the D0 Reading Table book-click motion as a protected quality reference, but allow the Council creative latitude to combine alternative approaches that give better book presence and usability.
+- **First priority:** Reproduce and isolate viewport hopping with actual `scrollY`, selected-cover bounding rect, sidebar/header coordinates and intermediate normal-speed playback; distinguish intentional return-to-book scroll restoration from unintended whole-page movement. Prevent jumping **without** disabling animation, hiding essential content, adding broad fades or sacrificing focus/keyboard accessibility.
+- **Second:** Restore coherent page/cover/metadata choreography around the good selected-jacket motion. Test both ordinary and rapid reversal, long-page returns, and reduced-motion; preserve visual stability during layout transition.
+- **Third:** Explore a more substantial yet uncluttered Reading Table presentation: composition, book/card rhythm, hierarchy, texture, contextual useful information and efficient Copy access. Keep existing Edition/Copy semantics and product security contracts intact; **no invented feature scope or permanent palette/color-engineer selection**.
+- **Proof gate:** A new scoped prototype adjustment would need an authorized execution environment (prior Windows Chrome/Edge launch blocker remains unresolved); compare frozen D0/D1 vs proposed candidate in actual continuous 1× motion, along with EN/TR, light/dark, 900×620, keyboard/focus and synthetic dense/sparse datasets. Distinguish automated technical PASS, native Windows validation, and independent PO aesthetic judgment.
+- No new agent call, prototype implementation, PR integration, `v2` change, EngineeringOS adoption or Issue closure follows from this research entry. Original D1 remains **PARTIAL** until a new explicitly scoped continuation is authorized and verified.
+
+**Current research disposition:** `PO_PREFERS_RAIL / D0_BOOK_MOTION_PRESERVED_AS_REFERENCE / SCROLL_HOPPING_AND_HARSH_CADENCE_OPEN / VISUAL_RICHNESS_OPEN`.
