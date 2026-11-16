@@ -8,6 +8,13 @@ Future milestone scopes may be refined by the owner. Agents must not infer or mo
 milestones, or start future work, without approval. A roadmap entry is not evidence of implementation
 or verification.
 
+## Dated integration-status checkpoint — 2026-11-16 (scope and milestones unchanged)
+
+- Live protected `v2` HEAD `10510ab0c5a5d413717cf736b1d74d3590b39e2b`; [PR #57](https://github.com/fatihemres/MyLibrary/pull/57) CI/branch-governance integration is complete. Separate [restore-safety PR #55](https://github.com/fatihemres/MyLibrary/pull/55) and [M3-C explicit Wishlist acquisition PR #56](https://github.com/fatihemres/MyLibrary/pull/56) were also **MERGED** on 6–7 November. These are verified integration facts, not approval to close Issue #54 or #32, deliver M5 Backup V2, or begin another roadmap feature.
+- M2 main functional slices including Scan-to-Lookup are integrated; **M2 overall remains OPEN** pending [#31](https://github.com/fatihemres/MyLibrary/issues/31) and separate owner closure. M3-A Search, M3-B Wishlist, M3-C acquisition are integrated, while [Wishlist acceptance #26](https://github.com/fatihemres/MyLibrary/issues/26) and [M3-C tracking #32](https://github.com/fatihemres/MyLibrary/issues/32) remain OPEN. **M3 Collections #33** and **Visual Shelves #34** are still discovery/planned with no default implementation authority.
+- M4/M5/M6 scope and pre-demo [Design Council #52](https://github.com/fatihemres/MyLibrary/issues/52) placement are unchanged. Early synthetic D0/D1 design studies are **research**, not acceptance of final product UI. Source version `2.0.0-alpha.1` does not imply a published V2 tag/release. Separate PO authorization remains required for feature implementation, milestone closure, final visual acceptance, signing/updater, and any release.
+- Historical 27–28 October checkpoints and the milestone sections below preserve **the original planning/status at their dates**. This new status note supersedes only stale descriptions of already-merged work; it does not rewrite historical decisions or promise a revised V2 delivery scope. For provenance and test limits see [project status](../../PROJECT_STATUS.md) and [verification](../../VERIFICATION.md).
+
 ## Dated evidence checkpoint — 2026-10-28 (no milestone closure)
 
 - Canonical `v2` `42f963e450186d81da3922a209eaffae11e843c6`; separate PO-approved one-line Apple Silicon runner maintenance [PR #44](https://github.com/fatihemres/MyLibrary/pull/44) integrated, with post-push [Foundation 4/4](https://github.com/fatihemres/MyLibrary/actions/runs/40651855231) and [CodeQL 3/3](https://github.com/fatihemres/MyLibrary/actions/runs/40651857486) SUCCESS. Does not expand product scope.
