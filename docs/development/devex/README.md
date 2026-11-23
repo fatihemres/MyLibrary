@@ -6,6 +6,23 @@
 
 This directory is the **durable repository-side research library** for AI coding agents, agent skills, prompts, MCP integrations, security tools, UI/UX/test automation, model comparisons and developer workflow improvements. It complements the live [Issue #47](https://github.com/fatihemres/MyLibrary/issues/47), rather than replacing the canonical project contracts.
 
+
+## Latest evidence reconciliation — 2026-11-23 (candidate, not integrated)
+
+**Verified starting `v2` HEAD:** `3faefabc10b4bbf8e1bbdd92cda612df35d389a3`, including the merged [PR #61](https://github.com/fatihemres/MyLibrary/pull/61) bounded administrative closures for M2 [#31](https://github.com/fatihemres/MyLibrary/issues/31), Wishlist [#26](https://github.com/fatihemres/MyLibrary/issues/26) and restore safety [#54](https://github.com/fatihemres/MyLibrary/issues/54). This **new docs-only candidate branch** is not yet the canonical `v2` history. Revalidate the branch and current CI before any review or integration.
+
+| Source / retained evidence | New research file | Provenance and boundary |
+| --- | --- | --- |
+| [Draft PR #58](https://github.com/fatihemres/MyLibrary/pull/58), `d9b43c7479c3307398259ba0854534c72f7e8e6a` | [LIVE_OBSERVATIONS.md](LIVE_OBSERVATIONS.md) | Exact original blob `05dfd54b931036ce3a5479bc7638af4b696e1b96`; bounded Graphify, Context7, Ponytail and first Council observations; **not adopted** |
+| [Draft PR #59](https://github.com/fatihemres/MyLibrary/pull/59), `8a2e5bae5df08722a1cf7cba8b1ef75eeb712318` | [Design Council evidence and EngineeringOS handoff](DESIGN_COUNCIL_EVIDENCE_AND_ENGINEERINGOS_HANDOFF.md) | Original source blob `efd4ea6654faffdd2f4fef09dc14158e86bf35cc` preserved as sections 1–35; **§36** separately adds current 23 Nov status |
+| Same [Draft PR #59](https://github.com/fatihemres/MyLibrary/pull/59) | [Five dated independent review records](reviews/) | Original Markdown source blobs retained unchanged; native/visual/reproduction limits are preserved |
+| Historical [Draft PR #48](https://github.com/fatihemres/MyLibrary/pull/48) | Existing [2026-10-29 research snapshots](snapshots/2026-10-29/) | Later public-safe successor [PR #49](https://github.com/fatihemres/MyLibrary/pull/49) already integrated. Do not import #48's old unsanitized source or rewrite its history |
+
+**Evidence limits:** The source notes distinguish actual pilot measurements, tool outputs, partial renders, PO observations and agent claims. The old dated “M2 OPEN” and PR ancestry statements are historical; the newer §36 overrides only their *current-status interpretation*. M3-C [#32](https://github.com/fatihemres/MyLibrary/issues/32), Collections [#33](https://github.com/fatihemres/MyLibrary/issues/33), Design Council [#52](https://github.com/fatihemres/MyLibrary/issues/52), and DevEx [#47](https://github.com/fatihemres/MyLibrary/issues/47)/[#51](https://github.com/fatihemres/MyLibrary/issues/51) retain their separate open gates.
+
+**No automatic adoption or publication:** D-023 Ponytail UI/UX exclusion stays in force pending a new explicit PO decision about later pilot interest; no global hook/config changes. EngineeringOS Public Core/Private Workspace transfer requires **separate** privacy/rights review and repository approval. No raw browser ZIPs/profiles, authentication material or personal paths are copied here. A limited literal-secret/path scan is not full independent privacy certification. See the [dated reconciliation log](RESEARCH_LOG.md).
+
+
 ## Read first / authority
 
 1. Revalidate the **live** `v2` HEAD, open PRs/Issues, exact candidate CI and any explicit PO decisions. The snapshot below is historical.
