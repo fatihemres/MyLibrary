@@ -2,11 +2,22 @@
 
 This is the canonical owner-approved V2 milestone roadmap. The shared safety and verification
 contract is [AGENTS.md](../../AGENTS.md). Active development stays on `v2`; V1 release refs remain
-protected. Milestone 1 is closed; **M2 — Barcode & Metadata remains OPEN**.
+protected. Milestone 1 is closed; **M2 — Barcode & Metadata PO-CLOSED on 2026-11-23**.
 
 Future milestone scopes may be refined by the owner. Agents must not infer or move features between
 milestones, or start future work, without approval. A roadmap entry is not evidence of implementation
 or verification.
+
+## PO-approved M2/acceptance closure checkpoint — 2026-11-23
+
+**Effective Product Owner milestone decision:** **M2-A through M2-F delivery is accepted and M2 — Barcode & Metadata is formally PO-CLOSED**, recorded in [closed #31](https://github.com/fatihemres/MyLibrary/issues/31). This is the current milestone state and supersedes **only** older 16 November / October statements that M2 was OPEN. It is not a GitHub Milestones API object transition: Issue #31 has no linked GitHub milestone object and the available connector does not expose milestone-object editing.
+
+- M2-A/B/C previously CLOSED; M2-D [PR #7](https://github.com/fatihemres/MyLibrary/pull/7), M2-E [PR #17](https://github.com/fatihemres/MyLibrary/pull/17), M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) integrated. Earlier PO-reported isolated physical USB/camera scanning and CI evidence remain attributed, not reproduced by this docs change.
+- **Remaining OPEN M2-related follow-ups are accepted as distinct future investigations, not delivered features:** [#29](https://github.com/fatihemres/MyLibrary/issues/29) Google Books provider availability/quota, [#30](https://github.com/fatihemres/MyLibrary/issues/30) shared/multivolume ISBN identity-warning UX. Existing D-014 deferred ordinary-webcam optimization remains deferred; the existing user-initiated, offline-first identity/data safety constraints remain.
+- The PO also closed bounded [M3-B acceptance #26](https://github.com/fatihemres/MyLibrary/issues/26) with **two nonblocking cosmetics carried by [#27](https://github.com/fatihemres/MyLibrary/issues/27)**, and [restore safety #54](https://github.com/fatihemres/MyLibrary/issues/54) with physical power-loss/cross-filesystem validation limitations retained. [M3-C #32](https://github.com/fatihemres/MyLibrary/issues/32) remains **OPEN** for separate final acceptance. M3 overall is **NOT closed**. [Collections #33](https://github.com/fatihemres/MyLibrary/issues/33) and [Visual Shelves #34](https://github.com/fatihemres/MyLibrary/issues/34) stay discovery/planned, with no implicit implementation authority.
+- [PR #55](https://github.com/fatihemres/MyLibrary/pull/55) recovery safety does **not** satisfy future M5 Backup V2 [#36](https://github.com/fatihemres/MyLibrary/issues/36). Native macOS/Linux manual acceptance, real power-loss realism and overall Windows DPI/a11y must be validated in their own subsequent gates. This is not beta/release approval, a version bump or a change of V2 feature scope.
+
+**Historical record preservation:** The dated 16 November and October notes below, and M2-D/E/F's embedded “overall M2 OPEN” descriptions, refer to the actual conditions *when originally written*. They remain to preserve attribution and test provenance; the **23 November PO decision above supersedes those old status labels**. See [Project Status](../../PROJECT_STATUS.md), [Verification](../../VERIFICATION.md), [Decisions](../DECISIONS.md).
 
 ## Dated integration-status checkpoint — 2026-11-16 (scope and milestones unchanged)
 
@@ -44,7 +55,9 @@ Closed on 2026-10-09. See the [foundation assessment](foundation-assessment.md),
 Windows manual desktop evidence is separate from automated CI/package evidence. macOS/Linux native
 manual acceptance, signing/notarization, and full accessibility QA are not implied by M1 closure.
 
-## M2 — Barcode & Metadata — OPEN
+## M2 — Barcode & Metadata — CLOSED (PO decision 2026-11-23)
+
+**Current milestone:** PO-CLOSED 2026-11-23 under [#31](https://github.com/fatihemres/MyLibrary/issues/31), with #29/#30 and D-014 limitations separately preserved. The chronological M2 subsections below reflect their original integration-time state; old `OPEN` wording there is historical, not a later reopening.
 
 - **M2-A — ISBN & Metadata Foundation — CLOSED.** Integrated at `ec661cd0f153540b2fb27784d2642fc01d356f00`; final integration CI run `38120576734` passed all four platforms.
 - **M2-B — Duplicate Intelligence + Edition / Physical Copy Decisions — CLOSED.** Integrated at `f469306b9f8edd720046376fee07f3de913323dc`; final integration CI run `38257915937` passed all four platforms. See [duplicate decisions](../architecture/duplicate-decisions.md).
