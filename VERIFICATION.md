@@ -10,7 +10,7 @@
 
 **M3-C #32 remains OPEN** with final human/security-candidate acquisition-flow acceptance boundaries; closing M3-B does not close M3-C. No other Issue/milestone, release, version, tag or data/model scope was changed.
 
-**Note on history:** The sections that follow refer to earlier 16 November / October / pre-integration snapshots and are retained byte-for-byte as historical evidence; their then-current “OPEN” notes are **not** newer than this PO decision. An Issue's CLOSED label is administrative acceptance of its bounded scope, not a new validation event.
+**Note on history:** The sections that follow refer to earlier 16 November / October / pre-integration snapshots and are retained byte-for-byte as historical evidence; their then-current “OPEN” notes are **not** newer than this PO decision. **These three Issue closures (#31, #26 and #54)** record explicit, bounded PO administrative acceptance decisions; their GitHub CLOSED state alone is **not** new test or validation evidence, nor does closure of another Issue imply PO acceptance.
 
 ---
 
