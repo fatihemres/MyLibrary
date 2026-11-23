@@ -1,5 +1,21 @@
 # MyLibrary — Project Status
 
+## PO-approved acceptance and M2 closure checkpoint — 2026-11-23
+
+**Current `v2` at this decision checkpoint:** `2dc7de93c7020b17e510f464291ede74e65324bf` (reviewed/merged [PR #60](https://github.com/fatihemres/MyLibrary/pull/60)); its push CodeQL Rust, JS/TS, Actions **3/3 PASS** on 23 November. This section records three **direct PO-authorized administrative closure decisions**, not newly executed Windows tests, new implementation or a stable V2 release.
+
+| Scope | Final PO decision / GitHub Issue | Accepted limitations / remaining work |
+| --- | --- | --- |
+| **M2 — Barcode & Metadata / [#31](https://github.com/fatihemres/MyLibrary/issues/31)** | **PO milestone CLOSED — 2026-11-23; Issue #31 CLOSED/completed.** M2-A/B/C previously closed, M2-D [PR #7](https://github.com/fatihemres/MyLibrary/pull/7), M2-E [PR #17](https://github.com/fatihemres/MyLibrary/pull/17), M2-F [PR #19](https://github.com/fatihemres/MyLibrary/pull/19) integrated. Historical PO-reported synthetic Windows USB/camera scan-to-lookup passed. | [#29](https://github.com/fatihemres/MyLibrary/issues/29) Google Books quota/availability and [#30](https://github.com/fatihemres/MyLibrary/issues/30) ambiguous set/multivolume ISBN remain **OPEN**. D-014 ordinary-webcam optimization deferral holds. Other platforms' real GUI/hardware, high-DPI/accessibility and provider behavior not newly verified. |
+| **M3-B Wishlist / [#26](https://github.com/fatihemres/MyLibrary/issues/26)** | **Bounded M3-B acceptance issue CLOSED/completed** by PO, [PR #42](https://github.com/fatihemres/MyLibrary/pull/42) already integrated. Historical PO-reported **38/38 functional**, **6/6 narrow gallery**, **4/6 visual**. | The **two** incomplete cosmetic hover/focus-outline quality criteria stay deferred to [UX #27](https://github.com/fatihemres/MyLibrary/issues/27), which remains **OPEN**; this is **not** whole-app UX/DPI/macOS/Linux native signoff. |
+| **V2 restore/backup safety / [#54](https://github.com/fatihemres/MyLibrary/issues/54)** | **Safety hardening issue CLOSED/completed** by PO; [PR #55](https://github.com/fatihemres/MyLibrary/pull/55) already integrated. Previous **2026-11-06 PO-reported isolated Windows backup/restore and persist/reopen PASS** preserved with separate synthetic failure-injection and code-review evidence. | Actual sudden hardware power loss, some cross-filesystem/durability cases and independently reconstructed per-step native evidence remain **unverified**. This is **not** completion of planned M5 Backup V2 [#36](https://github.com/fatihemres/MyLibrary/issues/36). |
+
+**Still OPEN:** [#32 M3-C acquisition](https://github.com/fatihemres/MyLibrary/issues/32) for final-flow/Windows acceptance reconciliation; [#33 Collections](https://github.com/fatihemres/MyLibrary/issues/33) and [#34 Visual Shelves](https://github.com/fatihemres/MyLibrary/issues/34) remain discovery/planned without implementation approval. No GitHub Milestone object was changed: the closure of M2 is the explicit **roadmap/PO milestone decision**, and the GitHub integration used for Issue updates does not expose a Milestones-object update. Historical 16 November and earlier OPEN records **below are retained as true snapshots for their dates**, superseded by this dated PO decision.
+
+**Governance:** No automatic release, milestone M3 closure, tag, signing, updater, branch cleanup, personal-library testing, product implementation or protected-ref integration follows from these Issue closures. See [verification](VERIFICATION.md), [decisions](docs/DECISIONS.md) and [roadmap](docs/v2/ROADMAP.md).
+
+---
+
 ## Live integration and acceptance reconciliation — 2026-11-16 (no milestone closure or release)
 
 **Canonical `v2` at this checkpoint:** `10510ab0c5a5d413717cf736b1d74d3590b39e2b`, identical to the head/merge commit of [PR #57](https://github.com/fatihemres/MyLibrary/pull/57). GitHub's commit check-runs returned 11 successful entries, including PR platform/CodeQL and a separate CodeQL result; this is **automated evidence**, not native Windows PO acceptance, an installer release or permission to close issues. Source npm/Cargo/Tauri version remains `2.0.0-alpha.1`; no V2 release/tag was found.
