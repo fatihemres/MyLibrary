@@ -1,0 +1,239 @@
+# Collections and assisted series organization
+
+## Authority and provenance
+
+**ACCEPTED — PO PRODUCT DECISION.** The PO supplied COL-01 through COL-20 directly for the 23–24 November 2026 discovery checkpoint. D-028 records them together. The dates identify the discussion window. Individual decisions have no independently established day. The register below defines the product outcomes for M3 discovery. [Decision ledger](../DECISIONS.md) · [M3 roadmap](../v2/ROADMAP.md) · [Issue #33](https://github.com/fatihemres/MyLibrary/issues/33)
+
+**VERIFIED — CURRENT IMPLEMENTATION FACT.** The source baseline is `13e469579db1b702e0fb0b1fc6f92ee75d671c15`. PR #62 is merged and its canonical push CodeQL succeeded. M2 is PO-closed. M3 remains open. M3-C is integrated and #32 remains open for final acquisition acceptance. #54 closed within its restore-hardening scope. #34 remains separate discovery. [PR #62](https://github.com/fatihemres/MyLibrary/pull/62) · [push CI](https://github.com/fatihemres/MyLibrary/actions/runs/45161841420) · [project status](../../PROJECT_STATUS.md) · [verification history](../../VERIFICATION.md)
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** For implementation facts, use exact-base source and integrated evidence. For scope, use the roadmap and later explicit PO decisions. Historical summaries inform proposal provenance. The original M3 PDF and the October 19, 22, 27 and November 23 master handoff texts were unavailable in the supplied material and tracked sources inspected. References to PDF sections 6, 7, 13–20 and PO-03 below rely on the PO's brief and repository summaries. Additional PDF proposals cannot be independently inventoried. The reported mandatory Edition association conflicts with COL-04. Independent Wishlist membership prevails. The dated D-017 entry covers inventory membership and retains its original meaning. [Idea Register](idea-register.md) · [post-V2 discovery](post-v2-discovery.md)
+
+**NOT AUTHORIZED — IMPLEMENTATION OR EXPANSION.** This is a documentation candidate. Application changes, schema changes, acquisition redesign, Visual Shelves, Wishlist Studio, Backup V2, sharing, AI, network services, global Simple/Advanced modes, Design Council implementation, release and milestone changes require separate authority. Publication follows independent exact-commit review. Integration requires separate PO approval. [Issue and review workflow](../development/issue-review-workflow.md) · [branch lifecycle](../development/repository-hardening.md)
+
+## Decision register
+
+**ACCEPTED — PO PRODUCT DECISION** applies to every row in this register. Later sections label design choices and unresolved details separately.
+
+| ID | Product outcome |
+| --- | --- |
+| COL-01 | A Manual Collection is a logical group the user curates. A Smart Collection evaluates saved rules dynamically. Neither changes genres, subgenres, categories, tags, physical locations, series, ownership or reading status. |
+| COL-02 | Add an Edition by its stored identity. This single membership is independent of every Copy membership. Adding the Edition creates no individual Copy memberships. |
+| COL-03 | Select one or more specific Physical Copies of the same Edition. Each retains its identity, condition, location, reading state and loan history. The same target can belong to several collections. Within one collection each typed target has at most one membership. |
+| COL-04 | A Manual Collection accepts a Wishlist Item by its own persistent identity, including a wish with no linked Edition. Membership creates no Edition, placeholder inventory or fake Copy. This resolves PDF PO-03 (option A). |
+| COL-05 | On explicit acquisition keep the original Wishlist Item, history, acquisition link and Manual memberships. Show effective Purchased/Fulfilled and preserve D-026 exclusions from active wish counts and budget. Its membership continues to target the wish. |
+| COL-06 | Acquisition does not enroll the new Copy or Edition. Users may add either explicitly later. Unlink/Reopen keeps both inventory records and independent memberships intact. Each later acquisition is a distinct explicit event. |
+| COL-07 | Group explicit Edition and Copy memberships by stored Edition identity into one book card. Count that Edition once. Label any displayed raw membership count separately. Title, author and ISBN similarity never establish identity. |
+| COL-08 | Detail exposes the Edition and related Copies, identifying each explicit member. Related unselected Copies may be visible. Removing one membership leaves the others intact. Whole-card removal controls require separate design and tests. |
+| COL-09 | Preserve legacy collection terms and Edition links during upgrade. Offer user-approved transfer of selected or all eligible groups, skip and later return. Preserve names, source identities and Edition relationships. Unselected data stays intact. Similar names never justify a merge. |
+| COL-10 | Offer individual selection, Select All, Deselect All and partial transfer, with counts and explicit scope. Design for search, visible-result selection, preview, conflict inspection, atomic apply, cancel and repeat safety. Bulk transfer must be practical. |
+| COL-11 | Support custom grouped-card order plus title, author, publication year and added-date views. Alternate sorts preserve the custom order. Provide keyboard-accessible ordering without dragging. |
+| COL-12 | Smart sources are Library, Wishlist or both. Respect each source's actual attributes. Wishlist needs no Copy reading, condition, location or loan fields. Missing or inapplicable values require an explicit operator contract. |
+| COL-13 | When a Purchased wish and its explicitly related Library records both match a Smart Collection, show one book card. Retain Edition, matching Copy identities, wish and purchase history in detail. Only persisted relationships can justify grouping. Original wish Edition and acquired Copy's Edition may differ. No inferred merge, absorption of unmatched inventory, unrelated wishes or blanket grouping of historical acquisitions. |
+| COL-14 | Assist organization of existing independent Editions with attributed series name and order suggestions only where evidence is reliable. Allow manual entry without suggestions. Require explicit confirmation. Never infer order from title, ISBN sequence or unsupported metadata, or silently overwrite existing values. |
+| COL-15 | Show existing and proposed series values and their source or manual provenance. Exclude conflicting overwrites from default bulk selection. Allow deliberate overrides and individual or bulk review. Show the final selection before applying. Missing reliable order may stay unset or be entered manually. |
+| COL-16 | Keep common workflows simple while giving users access to advanced controls. Use progressive disclosure, understandable defaults and bulk scope, useful empty/error states and proportionate confirmation. Preserve keyboard access, EN/TR, RTL readiness and unsaved-change safeguards. Separate pre-demo Design Council and PO design gates remain. |
+| COL-17 | Archive and restore both Manual and Smart definitions. Archive hides the definition from the active list, retaining identity, memberships, rules, settings and applicable ordering. Restore returns the same collection. No timed expiry or cleanup. |
+| COL-18 | Permanent deletion requires explicit confirmation. Delete only the collection and its own dependent data. Preserve all Editions, Copies, wishes, covers, attachments, reading history, notes, quotes, loans and other collections and memberships. Distinguish removal, collection archive/delete, Copy Trash and Wishlist archive. Account for referencing Smart rules. |
+| COL-19 | Trashing a Copy or archiving a wish retains its Manual membership identity and order. Restoring the source makes it visible again. Smart results reevaluate. Existing Trash and active-loan restrictions continue to apply. |
+| COL-20 | Default presentation hides archived members and permits explicit reveal. Label active book counts, archived records and raw memberships distinctly. A hidden Copy cannot hide the card if an explicit Edition or another eligible membership still supports it. |
+
+## Evidence at the base commit
+
+**VERIFIED — CURRENT IMPLEMENTATION FACT** applies to each row. These are source observations about existing behavior. None is evidence of a completed Collections test.
+
+| Area | What the code establishes |
+| --- | --- |
+| Migration and legacy editing | `CURRENT_SCHEMA = 5`. The frozen bootstrap defines typed terms and Edition links. The book editor includes the collection term kind. When saving Edition terms, `save_book` deletes and reconstructs its `edition_terms` links. A new membership writer sharing those rows would risk losing independent edits. [Migrations](../../src-tauri/src/migrations.rs) · [bootstrap](../../src-tauri/src/schema.sql) · [writer](../../src-tauri/src/db.rs) · [editor](../../src/components/BookEditor.tsx) |
+| Library and search | The Library snapshot is Copy-oriented. The advanced predicates and search IDs filter individual Copies before `editionCards` groups the active view by stored Edition ID, with a Copy ID fallback. Trash groups by Copy ID. Detail resolves related Copies by Edition. The bounded current query and flat criteria do not persist a rule tree. [Snapshot](../../src-tauri/src/db.rs) · [search](../../src-tauri/src/search.rs) · [filter](../../src/domain/filter.ts) · [types](../../src/domain/types.ts) · [Library](../../src/pages/Library.tsx) · [detail](../../src/pages/Detail.tsx) |
+| Wishlist and acquisition | A wish has its own ID, nullable Edition FK, archive timestamp and status history. An acquisition has its own ID, wish FK, unique Copy FK and acquisition/reopen timestamps. At most one unreopened acquisition exists per wish. It supplies effective Purchased status, excluding the wish from active totals and budget. Reopen retains the event and inventory. The optional original Edition link does not identify the acquired Copy. [Wishlist schema](../../src-tauri/src/wishlist-schema.sql) · [acquisition schema](../../src-tauri/src/wishlist-acquisition-schema.sql) · [acquisition writer](../../src-tauri/src/wishlist_acquisition.rs) · [Wishlist logic](../../src-tauri/src/wishlist.rs) · [domain](../../src/domain/wishlist.ts) · [Wishlist UI](../../src/pages/Wishlist.tsx) |
+| Archive, export and recovery | Copy Trash uses `copies.deleted_at`, subject to active-loan restrictions. Wishlist archive uses `wishlist_items.archived_at`. Full backup snapshots SQLite consistently and includes managed covers and attachments. Restore checks a trusted versioned schema, stages upgrades and validates before live replacement. Catalogue export projects selected information. It cannot reconstruct the complete library. [Copies](../../src-tauri/src/copies.rs) · [backup/restore](../../src-tauri/src/backup.rs) · [transfer](../../src/services/transfer.ts) |
+| Series evidence | Existing M2-E Open Library bracketed series tags can describe an ambiguous series or publisher collection. There is no reliable order to import from that path. User input remains available. [Provider evidence](../architecture/metadata-providers.md) |
+| Evidence boundaries | #55 and #56 are merged. The migration and acquisition documents still describe schema 5 as candidate work, and the recovery document retains the #54 candidate context. Read those descriptions at their original checkpoint. The search document also retains a pre-integration review paragraph. Existing synthetic tests and locale resources are references for future work. [Migration notes](../architecture/migrations.md) · [acquisition notes](../architecture/wishlist-acquisition.md) · [Wishlist architecture](../architecture/wishlist.md) · [recovery](../architecture/restore-recovery.md) · [search](../architecture/search.md) · [#55](https://github.com/fatihemres/MyLibrary/pull/55) · [#56](https://github.com/fatihemres/MyLibrary/pull/56) |
+
+## Manual workflow and grouped detail
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Start with a name and a Manual/Smart choice. In a Manual Collection, choose a target type before adding a record. Present each Copy with enough inventory detail to distinguish it from its siblings. A wish can be selected directly even when the Library contains no Editions. Repeating an add can report “Already in this collection.” After adding, return focus to the selection or collection. Give an empty group an Add members action.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Example text for a synthetic Manual Collection with three explicit memberships. “Related” means the record can be inspected. “Member” means it was explicitly added.
+
+```text
+Reading group                        Custom order ▾
+1 active book · 3 memberships         Add members
+River Atlas                           2 selected copies
+  Edition E1                          Member · Remove membership
+  Copy C1   Reading room              Member · Remove membership
+  Copy C2   Front desk                Member · Remove membership
+  Copy C3   Storage                   Related
+```
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Split any grouped-card “Remove all memberships shown” action from per-record removal. Preview the exact affected records, including whether hidden archived members are in scope. Keep archive and permanent deletion at collection level. Keep Move Copy to Trash and Archive Wishlist Item in their source workflows. Show archived records only on request, with separate counts. On restore, reapply the saved rank. Removing or hiding C1 in the example still leaves E1 visible.
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Decide whole-card removal scope, focus after removal, the name and meaning of added date for a group, and Manual display of a wish alongside an acquired Copy. The Smart grouping approval alone cannot settle the Manual case.
+
+## Persistence, transfer and repair
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Evaluate an additive schema-6 migration. Keep schema 1–5 SQL frozen. Give definitions a stable opaque ID, type, name and archived state. Rename and restore address that ID. Model each Manual membership with its own identity and exactly one valid target. Prefer three typed membership relations, each with real target and Manual-parent foreign keys and a unique collection/target pair. An alternative is one relation with three nullable typed FKs and an exactly-one-target constraint plus per-type uniqueness. Compare enforcement of Manual-only/Smart-only ownership, indexes and maintenance costs before selecting the layout. An untyped target ID cannot enforce these relationships. Smart definitions own versioned rule data. Calculated hits are ephemeral.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Use a collection-local rank for a presentation group keyed by stored Edition ID for inventory or Wishlist ID for independent wishes, with separate type namespaces. Adding a sibling reuses the group rank. Removing the final explicit member retires that group's rank; hiding the last active member retains its rank for restore. Sort alternatives use deterministic tie-breakers without updating ranks. Test concurrent adds/reorders and rollback as a unit. Keep membership identity independent of presentation keys.
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Decide rank storage, default position on re-add, order after a Copy changes Edition, regrouping after an acquisition, tie-breakers, missing sort fields and orphaned group-rank repair. Define hard-delete constraints for a target with retained memberships. Prefer a visible conflict to dropping membership silently.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** A transfer preview lists eligible legacy term identities, names and linked Edition IDs. Show selected/eligible counts, visible matches and collisions. Label “Select all eligible” separately from any “Select visible” control. Skip and Cancel write nothing. On Apply, reread the previewed terms and links, detect stale selections, then atomically create selected definitions, Edition memberships and durable source-to-destination provenance. A unique source identity guards concurrent or repeated apply. Reopen the preview to distinguish already transferred from remaining groups. Equal names with different source IDs stay independent. Show the affected names for deliberate collision handling. Failed validation or write rolls back the batch.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Before transfer the legacy editor remains authoritative for classification. After transfer the new definition owns its memberships. Keep source terms/links intact. One candidate preserves the transferred source as read-only history in the legacy editor while unselected terms remain editable. The Edition save path would have to preserve protected links when rebuilding the other terms. Display the destination and transfer status from the legacy entry. Never dual-write two editable membership lists. Preserve provenance across rename, archive and restore.
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Ratify snapshot-versus-lock behavior for later legacy edits, handling of edits made during preview, exact name collision UI, and a retained transfer marker if a destination is permanently deleted. Repeat apply must neither resurrect a deleted collection without consent nor duplicate it. Test an ordinary unrelated Book Editor save. Silent divergence is unacceptable.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Removing a collection may cascade only into its own membership, order, rule and setting data. Preview dependent rules in *other* collections. A candidate blocks deletion until the user explicitly repairs those rules. If an invalid reference already exists, retain its identity, surface the broken condition, and require explicit replacement or removal with preview. Archive and restore use the same identities without cascading into sources.
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Decide between blocking a referenced definition's deletion and retaining an explicit broken reference. Define whether an archived Manual definition can satisfy a rule and how the user repairs it. Neither route may broaden a Smart result silently.
+
+## Smart rules and mixed results
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Start with a source and simple filters. Expand to ALL (AND), ANY (OR), field-appropriate exclusions, NOT and bounded nested groups. The PDF direction reported in the brief suggests one nested level as a candidate. A structured, versioned rule tree would carry typed source, field and operator IDs, literal values or explicit entity references, and group nodes. Validate on save, load, preview, restore and evaluation. Set finite limits for tree depth, nodes, value lengths, work and preview size. Reject unknown versions, operators, malformed comparisons and cycles with a visible error. Never accept raw SQL, scripts or unbounded execution. Use allowlisted evaluators and bound values. Derive preview and saved matches through the same evaluator and apply deterministic display sorting.
+
+| Proposed field domain | Candidate comparisons and evaluation unit |
+| --- | --- |
+| Shared bibliographic text | Exact or contains for supported title/author fields in each source, with defined Turkish normalization and consistent query/preview behavior. |
+| Library attributes | Evaluate Edition terms and publication-year numeric bounds in Edition context and Copy state, location, loan and acquisition dates on one Copy. Preserve matching Copy IDs. |
+| Wishlist attributes | Evaluate priority, effective purchase status, supported dates and target amounts on the wish. Define currency scope before comparing monetary values. |
+| Empty, unknown and absent | For a supported field distinguish empty/non-empty from absent or inapplicable. Candidate semantics use true/false/unknown. NOT unknown stays unknown. ALL with false is false, otherwise unknown propagates. ANY with true is true, otherwise unknown propagates. Include only true roots. A broken referenced entity invalidates the whole rule before evaluation, even inside ANY or NOT. |
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Evaluate the Library branch against eligible inventory and the Wishlist branch against eligible wishes. A mixed builder could display separate source groups and combine their matching identities before projection. A Copy that meets condition A and its sibling that meets B cannot satisfy A AND B. Preserve matched IDs even when detail also shows related nonmatches. A saved rule responds to changes of source values, archive state and acquisition links without storing a membership list. A transient search inside a result only narrows the visible set. Editing the saved rule is a separate action.
+
+```text
+Source   Library and Wishlist
+Library  All of   [Reading state: Unread] [Location: Study]
+Wishlist All of   [Effective status: Purchased]
+Preview  [matching books]   Open a result for match reasons
+         Edit rules         Save collection
+```
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** For a Purchased wish, trace the active acquisition's Copy FK to its stored Edition. When the matching library evidence and the matching wish agree through that relationship, project one card. Detail can show the Edition, exactly which Copies matched, the acquired Copy, and the original wish with its timeline. Label “related” separately from “matched.” A reopened event is history. An unmatched acquired Copy must never become a match merely because a wish matched.
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Decide precedence when the wish originally points to E1 but the acquired Copy belongs to E2, when only a sibling matches, or when several wishes point at the same Edition. A conservative preview can show separate results with the two link roles until precedence is settled. Never merge E1 and E2 or collapse unrelated wishes. Set source-combination grammar, field/operator matrix, date/time zone and relative-date boundaries, maximum rule size/depth, template set, AST encoding/version upgrades, sort stability and performance budgets before implementation. If Manual membership is offered as a rule field, permit only validated Manual IDs initially. Reject Smart-to-Smart cycles or recursive dependencies. Specify fail-closed behavior for missing entities and explain the repair in the builder.
+
+## Assisted series review
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Start from selected independent Editions. Present current series name/order, proposed value, evidence source and whether each field differs. Accept input even with no provider evidence. Preview all chosen edits and label conflicts as deliberate overrides. Keep conflicting rows unchecked on initial bulk selection. Editing a proposed name must not carry an old order into a different series without review. Apply only confirmed fields in one transaction after rechecking reviewed values. A stale value or failed write leaves the batch intact and returns to review.
+
+```text
+Edition        Current           Proposed          Source           Apply
+River Atlas    Coast / 2         Rivers / unset    Open Library     [ ] conflict
+Harbor Notes   unset             Rivers / 1        User entered     [ ] review
+                                      Review selected changes
+```
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Design the exact provenance display, field-level conflict selection, offline suggestion availability and keyboard path. Open Library's bracketed tag can suggest a name. It supplies no reliable order for this example. Series review grants no permission for a new provider, background lookup, bulk network call or persistent cover download.
+
+## Compatibility, recovery and catalogue boundaries
+
+**ACCEPTED — PO PRODUCT DECISION.** Preserve the Windows-first, cross-platform, local/offline Tauri 2, React, TypeScript, Rust and SQLite architecture. Preserve V1 IDs, Edition/Copy relationships, paths, media, acquisition and reading history, committed WAL data and recovery generations. No Work table, title-driven merge, destructive conversion, empty-library fallback, automatic orphan-cover or recovery-generation cleanup, mandatory account, cloud, telemetry, network access or unrequested data export. D-011 keeps Library as the default catalogue scope with selectable Wishlist/Collections when implemented. Full Backup/Restore remains comprehensive. [Architecture](../../ARCHITECTURE.md) · [versioning](../versioning.md) · [decisions](../DECISIONS.md)
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Exercise a fresh empty library and separate populated fixtures for each of V1–V5, including committed WAL-only writes and legacy terms. Before modifying an existing database, make a consistent snapshot. Apply all pending upgrades transactionally. Inject failure, compare the pre-upgrade IDs, schema version, links and media, then reopen twice. Schema upgrade creates no memberships from legacy terms. Exercise selected transfers, cancel/retry, collisions, concurrent duplicate adds and rejected invalid FK targets.
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** Round-trip a synthetic current-format backup containing definitions, typed memberships, group ranks, archive flags, source mappings, versioned rules, acquisition history, covers and attachments. Open historical supported archives using their declared trusted schema, upgrade only in staging, and validate schema, integrity, FKs, rule bounds, provenance and managed paths before replacement. Check a separately staged safety backup. Reject unsupported versions, corrupt archives, invalid targets, missing media and unsafe paths. Inject errors before/after swap and during rollback. Retain recoverable generations, pending marker and error evidence if recovery is uncertain. Compare restored entities by stored identity. #54's physical power-loss and cross-filesystem limitations still apply. [Restore hardening](https://github.com/fatihemres/MyLibrary/issues/54)
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Define scoped search/count units for mixed results, which selected records/fields appear in a Collections catalogue export, and whether there is any import contract. No All Data export, new interchange format, sharing or disclosure of private notes/history is authorized. Search and counts must use the same scope and distinguish active books, archived records and raw memberships.
+
+## Proposal register
+
+**PROPOSED — TECHNICAL OR UX DESIGN** applies to each row. “Brief” means the PO-supplied discovery recap, including its request to preserve earlier ideas. It establishes provenance for consideration without attributing an exact suggestion to an unseen PDF page. The reasons identify what needs a decision.
+
+| Idea | Source | Why it remains a proposal |
+| --- | --- | --- |
+| Collection descriptions and notes | Brief, historical/recent ideas | Decide fields, privacy and whether notes ever leave the library. |
+| Icons and 2×2 cover mosaics | Brief, historical/recent ideas | Need missing-cover, archived-member and accessible-label behavior. |
+| Pin or favorite a collection | Brief, historical/recent ideas | Define per-list order and archive interaction. |
+| Duplicate a collection without copying books | Brief, historical/recent ideas | Decide what is copied from rules, ranks and archived members. |
+| Bulk add to multiple collections | Brief, historical/recent ideas | Define preview, per-destination duplicates and atomicity. |
+| Add to collection from Library, Wishlist and detail | Brief, historical/recent ideas | Decide entry points and whether the selected identity is a Copy, Edition or wish. |
+| Search and filter inside a collection | Brief and #33 | Define match, scope and counts without editing the definition. |
+| Selection command bar and empty-state actions | Brief, COL-16 | Useful states are accepted. Placement, wording and actions need UX review. |
+| Undo simple membership removal or reorder | Brief, historical/recent ideas | Define lifetime and behavior if another edit intervenes. |
+| Save Advanced Search as Smart | Brief and M3 search direction | Map transient query semantics only where the persisted rule can express them. |
+| Snapshot Smart into Manual | Brief, historical/recent ideas | Decide which matching typed identities to materialize and how to preview them. |
+| Smart templates | Brief, rule-builder direction | Choose bounded, localizable templates after the field matrix. |
+| Explain a match | Brief, rule-builder direction | Decide source-specific explanations and avoid exposing private excerpts. |
+| Stale-reference warning and repair UI | Brief, rule safety | Safe evaluation is required. Replacement workflow and warning placement remain open. |
+| Keyboard move buttons or position picker | Brief, COL-11/COL-16 | An accessible alternative is accepted. Exact controls and focus need testing. |
+| Collection-scoped catalogue export | Brief and D-011 | Scope is a product direction. Record selection, format and privacy contract are open. |
+| Create a collection within an existing workflow | Brief, historical/recent ideas | Decide draft ownership, Save, Cancel and return focus. |
+| Series-aware sorting and presentation | Brief and M3 series direction | Define missing order and conflicting names without inferring a sequence. |
+| One nested rule-group level | Brief's account of original M3 PDF | A candidate complexity bound to benchmark and review with users. |
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** Additional PDF-only suggestions require the original material before attribution. The Idea Register and post-V2 records preserve adjacent ideas. Visual Shelves, Wishlist Studio, whole-app modes, sharing and AI retain their separate scope.
+
+## Proposed sequence and gates
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** These are possible slices within M3. Each needs fresh scoped PO authorization, a verified exact base, isolated branch/worktree, relevant synthetic tests, independent exact-SHA review, candidate CI, applicable PO acceptance and separate integration authorization. Data safety is a gate in every affected slice.
+
+| Slice | Deliverable under consideration | Evidence needed before moving on |
+| --- | --- | --- |
+| 1 · Core / Manual | Definitions, typed memberships, grouped detail, selected legacy transfer, ordering and lifecycle. | Migration failure and rollback, transfer replay, legacy editor consistency, integrity and backup/restore including archived data. |
+| 2 · Smart | Bounded rule representation, source-specific and mixed evaluation, simple/advanced builder, preview, explanations and stale references. | Rule truth tables, same-Copy and mixed-link fixtures, dynamic updates, deterministic sorting, offline search/performance and rule restore. |
+| 3 · Assisted series | Attributed suggestions, manual edit, individual/bulk review and conflict selection. | Consent, stale review, cancellation, transactional failure, metadata and edition-independence regressions. |
+| 4 · Cross-slice acceptance | Integrated organization, scoped search/count/export checks, integrity and native Windows workflows. | Reopen and restore, EN/TR, keyboard/RTL, native Windows PO observations and separate acceptance of each approved scope. |
+
+**OPEN — REQUIRES FURTHER DESIGN / PO DECISION.** #32 final acquisition acceptance remains an integration risk for any slice using acquisition semantics. Confirm its disposition and link precedence before accepting those workflows. Each slice's execution order, UI design, scope and integration remain subject to their own gates. [Acquisition #32](https://github.com/fatihemres/MyLibrary/issues/32)
+
+## Future acceptance scenarios
+
+**PROPOSED — TECHNICAL OR UX DESIGN.** All fixtures are synthetic. Each row is a future verification contract. “DB” means a Rust/SQLite integration test, “UI” a component or interaction test, and “Windows PO” a recorded native acceptance session. “Rule” means a deterministic evaluator test. Persistence assertions include checking that rejected writes leave their original data intact. An open policy in a row requires a decision before its final expected result can be signed off.
+
+| Scenario | Decision | Preconditions | Action | Visible result | Persistent result / failure boundary | Verification | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| AC-01 | COL-02 | Empty Manual group, E1 has two Copies | Add Edition E1 | One Edition card | One E1 membership, zero Copy memberships | DB + UI | NOT RUN |
+| AC-02 | COL-03 | C1 and C2 belong to E1 | Add C1, then C2 | Both marked as selected on one card | Two distinct Copy targets, no Edition membership | DB + UI | NOT RUN |
+| AC-03 | COL-04 | W1 has no Edition or Copy | Add W1 | Wish appears with its own identity | Only the W1 membership is added | DB + UI | NOT RUN |
+| AC-04 | COL-02, COL-03, COL-04 | Each target kind already has a membership | Repeat and concurrently submit identical adds | One member per target with understandable feedback | Uniqueness holds within each collection including after retry | DB + UI | NOT RUN |
+| AC-05 | COL-03 | Two Manual definitions share no members | Add C1 to both, remove from one | C1 remains in the second | Independent links per collection | DB + UI | NOT RUN |
+| AC-06 | COL-07 | E1, C1 and C2 explicitly included | Open group | One active book, three raw memberships if displayed | Three original typed rows retained | UI + DB | NOT RUN |
+| AC-07 | COL-07 | Distinct E1/E2 share title, author and ISBN | Add both Editions | Two cards and two active books | IDs and links remain distinct | UI + DB | NOT RUN |
+| AC-08 | COL-08 | E1 and C1 explicit, sibling C2 unselected | Open E1 detail | C2 visible as related if displayed, only E1/C1 marked members | Inspecting detail adds no membership | UI + DB | NOT RUN |
+| AC-09 | COL-08 | E1 and C1 explicit | Remove E1, then repeat fixture removing C1 | Remaining membership still supports the card | Only selected row removed in each case | DB + UI | NOT RUN |
+| AC-10 | COL-05 | W1 is a member with priced active intent | Confirm acquisition | Purchased and history visible, removed from active count and budget | Original W1, its link and acquisition event persist | DB + UI | NOT RUN |
+| AC-11 | COL-06 | W1 belongs to a Manual group | Acquire C1, then explicitly add C1 | First only W1 is a member, then C1 is marked explicit | No automatic inventory membership, exactly one after consent | DB + UI | NOT RUN |
+| AC-12 | COL-05, COL-06 | W1 purchased, C1 also explicitly enrolled | Unlink/Reopen, then confirm a new acquisition | Wishing between events, history shows both cycles | Existing Edition/C1 and memberships survive, new event links a distinct Copy | DB + UI | NOT RUN |
+| AC-13 | COL-13 | Purchased W1 and its acquired C1 both match | Open mixed Smart result | One card with Edition, matching C1 and W1 purchase history | Projection uses active event and stored FK, no Manual writes | Rule + UI | NOT RUN |
+| AC-14 | COL-04, COL-13 | Independent W1 resembles an Edition, both match | Preview mixed rule | Two results with separate identities | No inferred link or invented inventory | Rule + UI | NOT RUN |
+| AC-15 | COL-13 | W1 originally links E1 but active acquisition C2 belongs to E2 | Preview and inspect detail | Distinct role labels, no silent merge, final precedence requires decision | Both stored paths and history survive unchanged | Rule + UI + PO design | NOT RUN |
+| AC-16 | COL-09, COL-10 | Three eligible legacy terms with Edition links | Select All, Deselect All, then apply two | Counts move 3 → 0 → 2, preview identifies scope | Only two destinations and their source mappings created, all source links intact | DB + UI | NOT RUN |
+| AC-17 | COL-09 | Several legacy terms await transfer | Skip, reopen tool, transfer one | Remaining terms still eligible later | Skip stores no memberships, selected transfer preserves originals | DB + UI | NOT RUN |
+| AC-18 | COL-09, COL-10 | Partial transfer preview open | Cancel or dismiss before Apply | Returns with legacy groups available | No destination, membership or mapping created | DB + UI | NOT RUN |
+| AC-19 | COL-09, COL-10 | One transfer already committed | Retry same source including after reopen | Already-transferred state is clear | One mapping and destination, no duplicate memberships | DB + UI | NOT RUN |
+| AC-20 | COL-09, COL-10 | Source names resemble each other or a destination | Preview and resolve or cancel | Distinct source IDs and collision visible | No silent merge, unresolved batch makes no changes | DB + UI | NOT RUN |
+| AC-21 | COL-09 | Transferred and unselected terms on E1 | Edit unrelated Edition field and save | Transferred state remains identifiable, unselected terms retain normal editing | Rebuilt legacy links and new memberships respect ratified authority policy | DB + editor UI | NOT RUN |
+| AC-22 | COL-11 | Three grouped cards have custom ranks | Reorder, switch through title/author/year/added date, return | Custom sequence returns including after reopen | Temporary sort leaves group ranks intact | DB + UI | NOT RUN |
+| AC-23 | COL-11, COL-16 | Keyboard-only user on a grouped card | Move it without dragging | Order and focus change predictably, movement announced | Same order persists as pointer-based edit | UI + Windows PO | NOT RUN |
+| AC-24 | COL-01, COL-17 | Collection has members or a saved rule | Rename and reopen | New name, same content | Stable definition ID, links, settings and rank | DB + UI | NOT RUN |
+| AC-25 | COL-17 | One Manual and one Smart definition with settings | Archive then restore both | Hidden in active list, same groups return | Identity, rules, memberships, settings and ranks retained | DB + UI | NOT RUN |
+| AC-26 | COL-18 | Collection has members, media, loans and another group sharing targets | Cancel deletion, then confirm, repeat with referencing rule | Cancel retains group, confirmed deletion targets named group only, dependencies visible | Only own dependent rows may be deleted, other definitions and all source/history/media intact | DB + UI | NOT RUN |
+| AC-27 | COL-19 | Member C1 has a loan, later returned | Attempt Trash on active loan, then Trash after return and restore | First blocked, later hidden then visible | Loan history, C1 membership ID and order survive | DB + UI | NOT RUN |
+| AC-28 | COL-19 | W1 is a Manual member | Archive W1 then restore it | W1 disappears by default and returns in position | Same wish, archive lifecycle, membership ID and rank | DB + UI | NOT RUN |
+| AC-29 | COL-20 | Collection includes active and archived members | Toggle archived visibility | Active books and revealed archived records labeled distinctly | Visibility switch preserves memberships and source flags | UI + DB | NOT RUN |
+| AC-30 | COL-07, COL-20 | E1 and two Copies support one card | Trash C1 while E1 or C2 still qualifies | One active card remains with correct detail/counts | C1 retained, other explicit links intact | UI + DB | NOT RUN |
+| AC-31 | COL-12 | Library and Wishlist both contain a matching title | Choose Library and preview | Only matching inventory appears | Saved source Library, zero materialized hits | Rule + DB | NOT RUN |
+| AC-32 | COL-12 | Same title exists in both domains | Choose Wishlist with supported wish status | Only matching wishes appear | Saved source Wishlist, no Copy data required | Rule + DB | NOT RUN |
+| AC-33 | COL-12, COL-13 | Both sources have independent hits and one linked pair | Choose both sources | Independent hits plus one qualified linked card | Both source scopes retained with matching IDs, no new inventory | Rule + UI | NOT RUN |
+| AC-34 | COL-12 | Only C1 has required condition and only sibling C2 has required location | Apply both predicates with ALL | Edition absent until a single Copy meets both | Matching Copy IDs derive from the same evaluated row | Rule | NOT RUN |
+| AC-35 | COL-12 | Wish lacks Copy location, supported optional value is empty | Try positive, NOT and empty predicates | Inapplicable fields cannot become matches through negation, explicit empty applies only to supported field | No default physical data persisted | Rule | NOT RUN |
+| AC-36 | COL-12 | Known records exercise true, false and unknown | Build ALL/ANY/NOT tree, submit over-limit depth/size | Truth table respected, invalid tree explains error | Rejected edit keeps prior valid rule and version | Rule + DB + UI | NOT RUN |
+| AC-37 | COL-12, COL-18 | Saved reference becomes missing, including under ANY or NOT | Open and repair it | Invalid rule reported, no broadened results, explicit replacement previewed | Original reference retained until confirmed repair | Rule + DB + UI | NOT RUN |
+| AC-38 | COL-12, COL-19 | Smart rule matches C1 and W1 | Change matching field, archive, restore | Preview updates and eligible matches return after restore | Definition persists without stale calculated memberships | Rule + UI | NOT RUN |
+| AC-39 | COL-14 | Existing Edition has attributed series suggestion | Inspect review then apply selected field | Source and proposed name visible before confirmation | Only confirmed Edition field changes | UI + DB | NOT RUN |
+| AC-40 | COL-14, COL-15 | Series name known, reliable order absent | Review unset order, optionally enter a number | Unset stays visible, entered order marked manual | Only explicitly confirmed supplied order persists | UI + DB | NOT RUN |
+| AC-41 | COL-15 | Bulk review mixes conflicts and empty fields | Open default selection and inspect chosen rows | Conflicting overwrites unchecked, old/new and provenance visible | Review does not write | UI + DB | NOT RUN |
+| AC-42 | COL-14, COL-15 | Conflicting series value shown on one Edition | Select override and confirm final change list | Only chosen conflict applied | Unselected values and other Editions unchanged | UI + DB | NOT RUN |
+| AC-43 | COL-10, COL-15 | Transfer or series batch has multiple writes | Cancel before Apply, then inject failure mid-apply | Cancel or error leaves prior state visible | No partial rows, rank changes or Edition edits | DB fault injection + UI | NOT RUN |
+| AC-44 | COL-01, COL-09, COL-17 | Fresh empty DB and populated V1–V5 fixtures with committed WAL | Initialize or upgrade, fail mid-upgrade and reopen twice | Empty library usable, old books and legacy terms preserved | Consistent pre-upgrade snapshot for populated fixtures, rollback restores old version, successful reopen idempotent | DB migration | NOT RUN |
+| AC-45 | COL-09, COL-11, COL-12, COL-17, COL-19 | Synthetic library contains typed links, archive flags, provenance, rules, ranks, media and histories | Full backup then staged restore | Same cards, archived detail, rules and order | Compare all IDs, acquired/reopened events, ranks, settings, covers and attachments | DB + filesystem + Windows PO | NOT RUN |
+| AC-46 | COL-03, COL-12, COL-18 | Historical supported archives plus corrupt schema, invalid FK, missing media and interrupted swap fixtures | Stage validate, inject validation/swap/rollback failures | Supported older archive can upgrade, unsafe input rejected or recovery state visible | No unsafe live swap, preserve live DB or recoverable generations, no empty reset | DB + filesystem fault injection | NOT RUN |
+| AC-47 | COL-01, COL-12, COL-14 | Network unavailable, synthetic local records loaded | Create/evaluate collections and manually organize series | Core flows and manual entry usable offline | Only local confirmed changes, no network dependency or export | UI + isolated desktop | NOT RUN |
+| AC-48 | COL-11, COL-16 | TR and EN builds, keyboard and RTL layout fixtures | Create, select, reorder, reveal errors, cancel with draft | Localized labels, focus and reading order usable, reduced motion and draft guard preserved | Dismissed draft causes no silent writes | locale checks + UI + Windows PO | NOT RUN |
+| AC-49 | COL-11, COL-16, COL-17 | Isolated Windows data directory/profile, saved and unsaved examples | Save, close, reopen, then attempt close with dirty draft | Saved order and archive state return, unsaved path offers safe choice | Committed values survive, discarded draft absent | isolated native Windows PO | NOT RUN |
+| AC-50 | COL-07, COL-12, COL-20 | Mixed group has matching, unrelated and archived synthetic records | Narrow within group, inspect counts and preview authorized catalogue scope | Count units explicit, Library stays default, selectable projection awaits export contract | No mutation or private history disclosure, full backup remains separate | Rule + export fixture + UI | NOT RUN |
+| AC-51 | COL-03, COL-09 | Previewed target disappears or typed target ID never existed | Apply add/transfer and retry | Specific missing target reported, stale preview requests refresh | FK rejects invalid writes, no partial membership or provenance | DB + UI | NOT RUN |
+| AC-52 | COL-11, COL-17, COL-20 | Group is hidden after last eligible Copy is trashed | Restore that Copy after using an alternate sort | Group returns at its retained custom position | Rank and membership identities survive visibility changes | DB + UI | NOT RUN |
+| AC-53 | COL-12, COL-16 | Rule draft open over a large synthetic library | Preview, edit and rapidly switch source | Only latest bounded preview shown with deterministic order and match reasons | Preview writes nothing, save persists only validated definition | Rule + performance + UI | NOT RUN |
+| AC-54 | COL-15, COL-16 | Reviewed series batch includes manual and suggested values | Modify one Edition independently before final apply | Stale value highlighted for renewed consent | No overwritten concurrent edit or partially applied batch | DB + UI | NOT RUN |

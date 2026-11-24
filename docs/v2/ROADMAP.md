@@ -88,6 +88,8 @@ Existing optional lookup and M1 provider boundaries are foundations, not proof t
 
 ## M3 — Organization — PLANNED
 
+**Collections discovery, 24 November 2026.** Manual Collections, Smart Collections and assisted series organization retain their M3 placement. D-028 resolves PDF PO-03 in favor of independent Wishlist membership and records the related product decisions. [#33](https://github.com/fatihemres/MyLibrary/issues/33) remains open for design and execution preparation. The proposed slices and acceptance scenarios carry no implementation authorization. M3 remains open, including final acquisition acceptance in [#32](https://github.com/fatihemres/MyLibrary/issues/32). [Collections specification](../product/collections-specification.md) · [decision ledger](../DECISIONS.md)
+
 **M3-A scoped exception (2026-10-24 checkpoint):** the PO separately authorized Turkish FTS5
 search foundation and bounded advanced filters, including concise/detailed presentation. The local
 candidate is verified and commit/push plus a stacked DRAFT PR targeting M2-F

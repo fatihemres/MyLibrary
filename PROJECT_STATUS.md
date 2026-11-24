@@ -1,5 +1,11 @@
 # MyLibrary — Project Status
 
+## Collections discovery checkpoint — 2026-11-24
+
+The PO resolved independent Wishlist membership and the related Manual, Smart, lifecycle and assisted-series product decisions for [#33](https://github.com/fatihemres/MyLibrary/issues/33). The documentation candidate records D-028 and COL-01 through COL-20. Schema, controls and delivery slices still require design and scoped authorization. The proposed acceptance cases await execution. [Decision ledger](docs/DECISIONS.md) · [Collections specification](docs/product/collections-specification.md)
+
+The verified base was `13e469579db1b702e0fb0b1fc6f92ee75d671c15` after [PR #62](https://github.com/fatihemres/MyLibrary/pull/62), with successful [push CodeQL](https://github.com/fatihemres/MyLibrary/actions/runs/45161841420). Schema-5 acquisition is integrated through [#56](https://github.com/fatihemres/MyLibrary/pull/56). [#32](https://github.com/fatihemres/MyLibrary/issues/32) remains open for final acceptance. M2 is PO-closed, M3 is open and Collections implementation requires separate approval.
+
 ## PO-approved acceptance and M2 closure checkpoint — 2026-11-23
 
 **Current `v2` at this decision checkpoint:** `2dc7de93c7020b17e510f464291ede74e65324bf` (reviewed/merged [PR #60](https://github.com/fatihemres/MyLibrary/pull/60)); its push CodeQL Rust, JS/TS, Actions **3/3 PASS** on 23 November. This section records three **direct PO-authorized administrative closure decisions**, not newly executed Windows tests, new implementation or a stable V2 release.

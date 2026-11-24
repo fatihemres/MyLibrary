@@ -145,6 +145,21 @@ existing-ref/worktree deletion, repository-setting change, release or milestone 
 - **Separate open acceptance and work:** [M3-C acquisition #32](https://github.com/fatihemres/MyLibrary/issues/32) still OPEN pending final-flow/Windows verification despite integrated [PR #56](https://github.com/fatihemres/MyLibrary/pull/56) and earlier specific D-026 partial approvals. [Collections #33](https://github.com/fatihemres/MyLibrary/issues/33) and [Visual Shelves #34](https://github.com/fatihemres/MyLibrary/issues/34) remain discovery; no implementation consent is inferred.
 - **Governance:** No V2 release, main/tag changes, signing/updater, developer-tool adoption, cleanup, global configuration or unrelated milestone closure follows. This is a roadmap/PO milestone decision, **not** a separately performed GitHub Milestones-object API update. Project status and verification are dated in their own canonical documents.
 
+## D-028 — Collections product discovery, 23–24 November 2026
+
+**ACCEPTED — PO PRODUCT DECISION.** The PO directly supplied the following outcomes for [Issue #33](https://github.com/fatihemres/MyLibrary/issues/33) during the 23–24 November discovery checkpoint. The individual approval days are unspecified. D-028 is the canonical decision record. COL identifiers trace its parts to the [complete specification and acceptance scenarios](product/collections-specification.md).
+
+| Trace | Accepted direction |
+| --- | --- |
+| COL-01 through COL-04 | Separate Manual curation from dynamic Smart rules. Manual memberships independently target an Edition, a selected Physical Copy or a Wishlist Item. A wish needs no inventory record. This resolves PDF PO-03 A and supplements historical D-017. |
+| COL-05 through COL-08 | Preserve wish membership, history and effective Purchased semantics across explicit acquisition. Add inventory only by choice. Group Edition/Copy memberships on one stored Edition card with independently manageable links and explicit member indicators. |
+| COL-09 through COL-11 | Preserve legacy terms and links. Allow selected/all/none and deferred user-approved transfer. Support persistent custom card order, alternate sorts and a keyboard alternative. |
+| COL-12 and COL-13 | Evaluate Library, Wishlist or both using applicable attributes. Group matching Purchased wishes and explicitly related matching Library records, preserving their identities and history. Conflicting link precedence requires design. |
+| COL-14 through COL-16 | Provide source-aware, user-confirmed series organization with manual entry, individual/bulk review and deliberate conflict overrides. Keep common paths simple with accessible, localized advanced options. |
+| COL-17 through COL-20 | Archive/restore Manual and Smart definitions. Confirm permanent collection-only deletion. Retain Manual memberships through source archive/restore. Allow optional archived visibility while counting active grouped cards correctly. |
+
+**NOT AUTHORIZED — IMPLEMENTATION OR EXPANSION.** The schema, rule grammar, transfer policy, controls and delivery slices in the specification remain proposals or open questions. M3 and #33 remain open. M3-C final acceptance is separately tracked in [#32](https://github.com/fatihemres/MyLibrary/issues/32).
+
 ## Open PO decisions — do **not** silently resolve
 
 | ID | Question | Current disposition / source |
